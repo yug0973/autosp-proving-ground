@@ -42,7 +42,7 @@ export const WORDS: Readonly<Record<WordKey, WordSpec>> = {
   // on the sandboxed tower it did not show (the sandbox draws over it), and no other tower in view
   // fits it from this camera, so this beat has no word; the headline carries it
   sandbox: { text: 'SANDBOX', tone: 'neutral', on: 'tower' },
-  gates: { text: 'GATES', tone: 'neutral', on: 'tower' },
+  gates: { text: 'CHECKS', tone: 'neutral', on: 'tower' },
   merge: { text: 'MERGE', tone: 'neutral', on: 'tower' },
   record: { text: 'RECORD', tone: 'neutral', on: 'tower' },
   results: { text: 'RESULTS', tone: 'neutral', on: 'row' },
@@ -81,6 +81,8 @@ export interface WordsOptions {
   readonly subject: () => Box3 | null;
   /** The building with the crack, for the words that go on the subject itself. */
   readonly subjectBuilding: () => number | null;
+  /** Whether a building is out of sight for now (faded out of the line of sight to the subject). */
+  readonly hidden?: (building: BuildingInfo) => boolean;
   /** How far the camera focuses now (world units). */
   readonly focusDistance: () => number;
   /** Where a word that belongs to the results' row stands. */
@@ -158,7 +160,12 @@ export function createWords(options: WordsOptions): Words {
     const keepClear = (x: number, y: number): boolean =>
       !rects.some((r) => x >= r.left && x <= r.right && y <= r.top && y >= r.bottom);
     const target = options.subjectBuilding();
-    const own = onSubject ? buildings.filter((b) => b.index === target) : buildings;
+    const hidden = options.hidden;
+    const own = onSubject
+      ? buildings.filter((b) => b.index === target)
+      : hidden
+        ? buildings.filter((b) => !hidden(b))
+        : buildings;
     return planWord(WORDS[key].text, snapshot, own, occluding(), {
       keepClear,
       focusDistance: options.focusDistance(),

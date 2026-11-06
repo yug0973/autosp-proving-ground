@@ -15,6 +15,7 @@ It starts in the bright Nexarise day sky, falls into the night city where the ba
   - The ground stays Nexarise navy and ink, never neutral grey.
 - **No AI-template patterns:** No italic accent words, eyebrow labels, glass pill navs, card grids, gradient blobs, purple/neon cyberpunk, rain or neon puddle reflections.
 - **The box:** each beat's panel is the one component (`styles/annotations.css`, `modules/annotations.ts`), adapted from Magic UI's Magic Card and Border Beam (MIT): a light on the edge follows the pointer, and a beam travels round it in the colour of the step's state. Panels stay where the cameras expect them. **Rejected by the owner:** full-width subtitles, facts pinned to objects, wide shade layers (they slid across the city with hard edges), and a bright paper strip. Check a whole scroll sweep before reporting, not only settled frames.
+- **The checks beat:** the three checks run on the patched building (exploit flash, lime suite wave, scanner sweep), not through gates; the owner found the gates useless. Don't bring back flying-through-gates.
 - **Honest Claims:** Use only numbers and statements already in the existing copy (e.g. 14/16 benchmark numbers). Never add or strengthen claims; keep benchmark caveats visible wherever numbers appear.
 - **Legibility & Contrast:** Text on top of the 3D scene stays readable (body text at least 18px at 1440w, contrast >= 4.5:1, at most one panel per beat).
 - **Labels:** Every interactive demo must carry an "Illustrative" label.
@@ -48,7 +49,7 @@ It starts in the bright Nexarise day sky, falls into the night city where the ba
 ## 4. Phase Status
 1. ✅ **Phase 1: Cinematic Camera & Depth of Field** (`shots.ts`, `depth-of-field.ts`, verified via `tests/camera.py`).
 2. ✅ **Phase 2: Facade Display System** (`display.ts`, `display-font.ts`, `display.glsl`, verified via `tests/display.py`).
-3. ✅ **Phase 3: Beat Keywords Spelled by the City** (`words.ts`, `word-planner.ts`, verified via `tests/words.py`). The sandbox beat has no word: no tower fits from its camera.
+3. ✅ **Phase 3: Beat Keywords Spelled by the City** (`words.ts`, `word-planner.ts`, verified via `tests/words.py`). The sandbox and checks beats have no word: no tower in plain sight fits from their cameras, and words never go on a building the city has faded out of the line of sight.
 4. ✅ **Phase 4: Scanner Sweep for Backlog Beat** (`scan.ts`, `scan.glsl`, verified via `tests/scan.py`).
 5. ✅ **Phase 5: Results as a Skyline** (`skyline.ts`, verified via `tests/results.py`).
 6. ✅ **Phase 6: Dawn Ending & Company on Tower** (`atmosphere.ts`, `skyline.ts`, verified via `tests/dawn.py`).

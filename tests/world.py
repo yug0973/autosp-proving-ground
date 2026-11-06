@@ -176,8 +176,15 @@ def rail(pg, label):
 
 
 def apply_form(pg):
+    # one step at a time: moving on is refused until the step's own fields are filled in
+    pg.click('[data-step-next]'); pg.wait_for_timeout(200)
+    check('apply: an empty step does not move on', pg.evaluate("document.querySelector('[data-apply] [data-form-step][data-current]').dataset.formStep") == 'You')
     pg.fill('input[name=name]', 'Ada Test'); pg.fill('input[name=company]', 'Example Ltd')
-    pg.select_option('select[name=team]', '20 to 150'); pg.check('input[value=Semgrep]')
+    pg.click('[data-step-next]'); pg.wait_for_timeout(200)
+    pg.click('label.apply__tile:has-text("20 to 150")'); pg.click('[data-step-next]'); pg.wait_for_timeout(200)
+    pg.click('label.apply__check:has-text("Semgrep")'); pg.click('[data-step-next]'); pg.wait_for_timeout(200)
+    summary = pg.evaluate("document.querySelector('[data-step-summary]').textContent")
+    check('apply: the last step shows what will be sent', 'Example Ltd' in summary and '20 to 150' in summary and 'Semgrep' in summary, summary[:80])
     try:
         pg.click('button[type=submit]', no_wait_after=True)
     except Exception:  # the mailto navigation itself is not something a headless browser can follow

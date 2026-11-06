@@ -193,11 +193,11 @@ export function initWorldStage(stage: HTMLElement): () => void {
   }
 
   /** The gates at this scroll position; null until their section is coming up the screen, which is
-   * when the camera starts moving in behind the fix (shots.ts). */
+   * when the camera starts moving to the building (shots.ts). */
   function gatesNow(): GateMoment | null {
     if (!gatesSection) return null;
     const p = signedProgress(gatesSection);
-    if (p < SHOTS.gates.chaseIn.from) return null;
+    if (p < SHOTS.gates.enter.from) return null;
     return gateMoment(p, refusingGate(), prefersReducedMotion());
   }
 
@@ -309,7 +309,7 @@ export function initWorldStage(stage: HTMLElement): () => void {
   const flagSize = { width: 0, height: 0 };
 
   /**
-   * The refusing barrier's flag: the failing check's name, hung on the barrier's top edge. It stays
+   * The refusing check's flag: the failing check's name, hung over the building it was run on. It stays
    * whole on screen, below the strip and clear of the gates panel: beside the panel (wide screens)
    * it slides along the panel's edge; where the panel spans the screen (phones) and would cover it,
    * it hides, since the panel already names the failing check.
@@ -351,7 +351,7 @@ export function initWorldStage(stage: HTMLElement): () => void {
       { beat: 'pick', section: push, leader: 'building' },
       { beat: 'proof', section: reproduceSection, leader: 'building' },
       { beat: 'proof', section: sandboxSection, leader: 'building' },
-      { beat: 'gates', section: gatesSection, leader: 'fix' },
+      { beat: 'gates', section: gatesSection, leader: 'building' },
       { beat: 'proof', section: mergeSection, leader: 'building' },
       { beat: 'record', section: recordSection, leader: 'building' },
       { beat: 'results', section: resultsSection, leader: null },

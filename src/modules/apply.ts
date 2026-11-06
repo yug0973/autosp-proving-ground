@@ -9,6 +9,8 @@ const SUBJECT = 'AUTOSP free pilot';
 
 function field(form: HTMLFormElement, name: string): string {
   const element = form.elements.namedItem(name);
+  // the team size is a row of choices: the one picked is the answer
+  if (element instanceof RadioNodeList) return element.value.trim();
   if (
     element instanceof HTMLInputElement ||
     element instanceof HTMLSelectElement ||

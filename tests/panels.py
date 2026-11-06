@@ -7,7 +7,9 @@
   - Its beam runs in the colour of the step's state; the light on its edge follows the pointer.
   - A sweep down the whole page, with the city hidden: nothing the page lays over it draws a hard line
     across the frame at any scroll position.
-  - Each step's fingerprint is the record's.
+  - Each step's fingerprint is the record's, and a rewritten entry decrypts into its new ones.
+  - The checks run on the building: each finding's careless fix is refused by its own check.
+  - The form goes one step at a time, and the results' counters roll to 14 and 2.
 
 Needs the dev server up. Exits 1 if a check fails.
 """
@@ -145,7 +147,7 @@ def main() -> int:
         page.evaluate(f'({scroll})("#reproduce", 0.6)')
         page.wait_for_function("document.querySelector('[data-run-status]').dataset.state === 'failed'", timeout=15000)
         check('failing: the beam is orange', '255, 106, 43' in page.evaluate(beam, '#reproduce'), page.evaluate(beam, '#reproduce')[:80])
-        page.evaluate(f'({scroll})("#gates", 0.85)')
+        page.evaluate(f'({scroll})("#gates", 0.97)')
         page.wait_for_timeout(1500)
         check('passed: the beam is lime', '200, 242, 69' in page.evaluate(beam, '#gates'), page.evaluate(beam, '#gates')[:80])
         page.evaluate(f'({scroll})("#merge", 0.6)')
@@ -160,6 +162,83 @@ def main() -> int:
         same = page.evaluate("""[...document.querySelectorAll('[data-tape-fp]')].every((f) => f.textContent === document.querySelectorAll('[data-record-short]')[+f.dataset.tapeFp].textContent)""")
         check('each step carries the fingerprint the record has', same)
         check('All products is gone', page.locator('text=All products').count() == 0)
+        ctx.close()
+
+        # --- the checks: run on the building, each finding's careless fix refused by its own check -----------------
+        for finding, refused, flag in (('SQL injection', 2, 'Static scan refused it'), ('Cross-site scripting', 1, 'Existing suite refused it'), ('IDOR', 0, 'Reproduction test refused it')):
+            ctx, page, errors = open_page(1440, 900)
+            page.evaluate("document.querySelector('#pick').scrollIntoView()")
+            page.wait_for_timeout(500)
+            page.locator('[data-push] label', has_text=finding).click()
+            page.evaluate("document.querySelector('#gates').scrollIntoView()")
+            page.wait_for_timeout(400)
+            page.locator('[data-choice] label', has_text='careless').click()
+            page.evaluate("(() => { const s = document.querySelector('#gates'); scrollTo(0, s.getBoundingClientRect().top + scrollY + (s.offsetHeight - innerHeight) * 0.97); })()")
+            page.wait_for_timeout(2400)
+            got = page.evaluate("({ rows: [...document.querySelectorAll('[data-gates-list] li')].map((l) => l.dataset.state), flag: document.querySelector('[data-gate-flag]').hidden ? '' : document.querySelector('[data-gate-flag]').textContent.trim() })")
+            want = ['passed'] * refused + ['refused'] + ['skipped'] * (2 - refused)
+            check(f'checks: a careless {finding} fix is refused by its own check, over its building', got['rows'] == want and got['flag'] == flag, str(got))
+            check(f'checks: {finding}: no script errors', not errors, '; '.join(errors)[:160])
+            ctx.close()
+        ctx, page, errors = open_page(1440, 900)
+        page.evaluate("(() => { const s = document.querySelector('#gates'); scrollTo(0, s.getBoundingClientRect().top + scrollY + (s.offsetHeight - innerHeight) * 0.97); })()")
+        page.wait_for_timeout(2400)
+        check('checks: the fix from the sandbox passes all three', page.evaluate("[...document.querySelectorAll('[data-gates-list] li')].every((l) => l.dataset.state === 'passed')"))
+        check('checks: no refusal flag over a fix that passed', page.evaluate("document.querySelector('[data-gate-flag]').hidden"))
+
+        # --- the form, one step at a time ---------------------------------------------------------------------------
+        page.evaluate("scrollTo(0, document.querySelector('#apply').getBoundingClientRect().top + scrollY)")
+        page.wait_for_timeout(1500)
+        step = "document.querySelector('[data-apply] [data-form-step][data-current]').dataset.formStep"
+        check('form: it starts on the first step', page.evaluate(step) == 'You' and page.locator('[data-apply] button[type=submit]').is_hidden())
+        page.click('[data-step-next]')
+        page.wait_for_timeout(200)
+        check('form: an empty step does not move on', page.evaluate(step) == 'You')
+        page.fill('[data-apply] input[name=name]', 'Pat')
+        page.fill('[data-apply] input[name=company]', 'Initech')
+        page.keyboard.press('Enter')
+        page.wait_for_timeout(250)
+        check('form: Enter in a field moves on, without sending', page.evaluate(step) == 'Your team' and not page.evaluate("document.querySelector('[data-apply]').dataset.mailto"))
+        page.click('label.apply__tile:has-text("20 to 150")')
+        page.click('[data-step-next]')
+        page.click('label.apply__check:has-text("Semgrep")')
+        page.click('[data-step-back]')
+        page.wait_for_timeout(200)
+        check('form: Back keeps what was chosen', page.evaluate(step) == 'Your team' and page.evaluate("document.querySelector('[data-apply] input[name=team]:checked').value") == '20 to 150')
+        page.click('[data-step-next]')
+        page.click('[data-step-next]')
+        page.wait_for_timeout(250)
+        summary = page.evaluate("document.querySelector('[data-step-summary]').textContent")
+        check('form: the last step shows what will be sent', all(w in summary for w in ('Pat', 'Initech', '20 to 150', 'Semgrep')), summary[:90])
+        check('form: only the last step can send', page.locator('[data-apply] button[type=submit]').is_visible() and page.locator('[data-step-next]').is_hidden())
+        check('form: the progress bar is full on the last step', page.evaluate("getComputedStyle(document.querySelector('[data-apply]')).getPropertyValue('--step').trim()") == '1')
+        check('form: the tower takes the company typed', 'INITECH' in str(page.evaluate('__world.skyline()')).upper())
+
+        # --- the counters and the fingerprints ------------------------------------------------------------------------
+        a11y = page.evaluate("[...document.querySelectorAll('#results .stats__text')].map((e) => e.textContent.trim())")
+        check('counters: screen readers still read 14/16, 2/2 and 0', a11y == ['14/16', '2/2', '0'], str(a11y))
+        check('counters: the rolling digits are hidden from them', page.evaluate("[...document.querySelectorAll('.odometer')].every((o) => o.getAttribute('aria-hidden') === 'true')"))
+        page.evaluate("(() => { const s = document.querySelector('#results'); scrollTo(0, s.getBoundingClientRect().top + scrollY + (s.offsetHeight - innerHeight) * 0.12); })()")
+        page.wait_for_timeout(2600)
+        shown = page.evaluate("[...document.querySelectorAll('.odometer__number')].map((n) => [...n.querySelectorAll('.odometer__strip')].map((s) => Math.round(-parseFloat(s.style.transform.replace('translateY(', '')))).join(''))")
+        check('counters: they roll to 14 and 2 as the results arrive', shown == ['14', '2'], str(shown))
+        page.evaluate("(() => { const s = document.querySelector('#record'); scrollTo(0, s.getBoundingClientRect().top + scrollY); })()")
+        page.wait_for_timeout(1500)
+        page.locator('[data-record-tamper]').click()
+        page.wait_for_timeout(150)
+        mid = page.evaluate("[...document.querySelectorAll('[data-record-short]')].map((e) => e.textContent)")
+        page.wait_for_timeout(1200)
+        end = page.evaluate("[...document.querySelectorAll('[data-record-short]')].map((e) => e.textContent)")
+        check('fingerprints: a rewritten entry decrypts into its new fingerprints', mid != end and all(len(m) == 4 for m in mid), f'{mid} then {end}')
+        check('fingerprints: and settles on them, the steps with them', page.evaluate("[...document.querySelectorAll('[data-tape-fp]')].every((f) => f.textContent === document.querySelectorAll('[data-record-short]')[+f.dataset.tapeFp].textContent)"))
+        check('no script errors', not errors, '; '.join(errors)[:160])
+        ctx.close()
+
+        ctx, page, errors = open_page(1440, 900, reduced_motion='reduce')
+        page.evaluate("(() => { const s = document.querySelector('#results'); scrollTo(0, s.getBoundingClientRect().top + scrollY + (s.offsetHeight - innerHeight) * 0.12); })()")
+        page.wait_for_timeout(800)
+        shown = page.evaluate("[...document.querySelectorAll('.odometer__number')].map((n) => [...n.querySelectorAll('.odometer__strip')].map((s) => Math.round(-parseFloat(s.style.transform.replace('translateY(', '')))).join(''))")
+        check('reduced motion: the counters simply show 14 and 2', shown == ['14', '2'], str(shown))
         ctx.close()
 
         # --- the sweep: every scroll position, for what only shows on the way between beats ------------------

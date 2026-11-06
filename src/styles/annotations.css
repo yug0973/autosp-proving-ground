@@ -7,6 +7,10 @@
    outside its own box. The form follows Aceternity's Signup Form: labels above, filled fields, one action. */
 
 @layer notes {
+  /* a little more of the night behind the words than before: the checks light the windows around them */
+  [data-experience="cinematic"] .track__panel:not(.track--results .track__panel) {
+    background: rgb(5 8 22 / 0.9);
+  }
   [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner) {
     --beam: var(--mist-300);
     --edge-light: var(--mist-50);
@@ -245,5 +249,226 @@
     [data-experience="cinematic"] .apply__actions .btn--primary {
       min-height: 2.75rem;
     }
+  }
+
+  /* --- The form, one step at a time (modules/stepper.ts, after React Bits' Stepper) -------------------------- */
+  .apply__progress,
+  .apply__step-label {
+    display: none;
+  }
+  .apply__step {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] {
+    --step: 0.25;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__progress {
+    display: block;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: rgb(189 201 234 / 0.14);
+  }
+  /* the bar glides to the step it is on */
+  [data-experience="cinematic"] .apply__progress i {
+    display: block;
+    height: 100%;
+    background: var(--mist-50);
+    transform: scaleX(var(--step));
+    transform-origin: left;
+    transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__step-label {
+    display: block;
+    margin-top: calc(var(--space-2) * -1);
+    color: var(--mist-300);
+    font-size: 1rem;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__step {
+    display: grid;
+    gap: var(--space-4);
+    min-height: 13.5rem;
+    align-content: start;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__step:not([data-current]) {
+    display: none;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__step[data-current] {
+    animation: step-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__step[data-current][data-from="before"] {
+    animation-name: step-back;
+  }
+  @keyframes step-in {
+    from {
+      opacity: 0;
+      transform: translateX(1.25rem);
+    }
+  }
+  @keyframes step-back {
+    from {
+      opacity: 0;
+      transform: translateX(-1.25rem);
+    }
+  }
+  /* a team size is one tap: three large choices in a row */
+  [data-experience="cinematic"] .apply__tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  [data-experience="cinematic"] .apply__tile {
+    position: relative;
+    display: grid;
+    min-height: 3.5rem;
+    place-items: center;
+    border-radius: 8px;
+    background: rgb(243 246 255 / 0.06);
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.08);
+    color: var(--mist-300);
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease-out,
+      box-shadow 160ms ease-out,
+      color 160ms ease-out;
+  }
+  [data-experience="cinematic"] .apply__tile:hover {
+    background: rgb(243 246 255 / 0.1);
+    color: var(--mist-50);
+  }
+  [data-experience="cinematic"] .apply__tile input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  [data-experience="cinematic"] .apply__tile:has(:checked) {
+    background: var(--mist-50);
+    box-shadow: none;
+    color: var(--ink-950);
+  }
+  [data-experience="cinematic"] .apply__tile:has(:focus-visible) {
+    outline: 2px solid var(--mist-50);
+    outline-offset: 2px;
+  }
+  /* scanners are chips: lit when chosen */
+  [data-experience="cinematic"] .apply__scanners {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  [data-experience="cinematic"] .apply__scanners .apply__label {
+    flex: 0 0 100%;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__check {
+    position: relative;
+    min-height: 2.75rem;
+    padding: 0 var(--space-4);
+    border-radius: 999px;
+    background: rgb(243 246 255 / 0.06);
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.1);
+    color: var(--mist-300);
+    cursor: pointer;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__check input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__check:has(:checked) {
+    background: rgb(243 246 255 / 0.16);
+    box-shadow: inset 0 0 0 1px var(--mist-50);
+    color: var(--mist-50);
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__check:has(:focus-visible) {
+    outline: 2px solid var(--mist-50);
+    outline-offset: 2px;
+  }
+  /* the last step: what will be sent, to read before it is */
+  [data-experience="cinematic"] .apply__summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+  }
+  [data-experience="cinematic"] .apply__summary dt {
+    color: var(--mist-300);
+  }
+  [data-experience="cinematic"] .apply__summary dd {
+    margin: 0;
+    color: var(--mist-50);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+  [data-experience="cinematic"] .apply__summary dd[data-empty] {
+    color: var(--mist-500);
+    font-weight: 400;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__actions {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__actions .btn--quiet {
+    min-height: 3rem;
+    border-radius: 8px;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__actions :is([data-step-next], [type="submit"]) {
+    grid-column: 2;
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__actions .apply__how {
+    grid-column: 1 / -1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-experience="cinematic"] .apply[data-stepping] .apply__step[data-current] {
+      animation: none;
+    }
+    [data-experience="cinematic"] .apply__progress i {
+      transition: none;
+    }
+  }
+
+  /* step one has no way back: its way on takes the whole width */
+  [data-experience="cinematic"] .apply[data-stepping] .apply__actions:has([data-step-back][hidden]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-experience="cinematic"] .apply[data-stepping] .apply__actions:has([data-step-back][hidden]) > .btn {
+    grid-column: 1;
+  }
+
+  /* --- The odometer in the results' box (modules/rolling.ts, after React Bits' Counter) ------------------- */
+  [data-experience="cinematic"] .odometer__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .odometer {
+    display: none;
+  }
+  [data-experience="cinematic"] .odometer {
+    display: inline-flex;
+    font-variant-numeric: tabular-nums;
+  }
+  [data-experience="cinematic"] .odometer__column {
+    display: inline-block;
+    width: 1ch;
+    height: 1em;
+    overflow: hidden;
+    line-height: 1;
+  }
+  [data-experience="cinematic"] .odometer__strip {
+    display: block;
+    text-align: center;
+    white-space: pre;
+    line-height: 1;
   }
 }

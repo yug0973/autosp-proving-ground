@@ -43,7 +43,6 @@ import { createJourney, createJourneySample } from './journey';
 import { createSandbox } from './sandbox';
 import { createStreets } from './streets';
 import { createTraffic } from './traffic';
-import { createGatePath, createGates } from './gates';
 import { createRise } from './rise';
 import { createSkyline } from './skyline';
 import { createTear } from './tear';
@@ -211,8 +210,11 @@ const FAREWELL = {
 } as const;
 /** On the low tier, which has no depth of field, a little more fog softens the far towers. */
 const LOW_TIER_FOG = 1.2;
-/** The gates before their section: nothing has moved. */
-const IDLE_GATES: GateMoment = { travel: 0, passed: 0, refused: false, cleared: false, at: -1 };
+/** The static scan of the checks: how far either side of the building its line runs, in world units. */
+const CHECK_SCAN = { half: 34 } as const;
+/** The existing suite's wave: how far through the block it runs, as a share of the merge's reach, and
+ * where it stops when the suite fails. */
+const CHECK_WAVE = { reach: 0.55, failsAt: 0.5 } as const;
 /**
  * The merge's light. While the button is held, the wave runs out from the sealed building up to
  * `reach` (world units, block by block); once merged it runs on at `runOn` reaches a second and
@@ -331,18 +333,13 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   const streets = createStreets(palette, shared, quality, city.focus, city);
   const traffic = createTraffic(palette, shared, quality);
   const sandbox = createSandbox(palette.pixelLit);
-  const gates = createGates(
-    { waiting: palette.pixelLit, passed: palette.pixelLit, refused: palette.open, cleared: palette.sealed },
-    (x, z, radius) => city.heightAround(x, z, radius),
-  );
-  const gatePath = createGatePath();
   const rise = createRise(palette.sealed);
   // Tests only (?test): GPU time per frame, through EXT_disjoint_timer_query_webgl2 where present
   const gpuTimer = new URLSearchParams(location.search).has('test')
     ? createGpuTimer(renderer.getContext())
     : null;
   const scene = new Scene();
-  scene.add(sky.group, streets.group, city.group, traffic.group, sandbox.mesh, ...gates.meshes, rise.points);
+  scene.add(sky.group, streets.group, city.group, traffic.group, sandbox.mesh, rise.points);
   // Tests only (?test&no=lamps,cars,people,streets,city): leave parts of the scene out, to measure them.
   const params = new URLSearchParams(location.search);
   if (params.has('test')) {
@@ -390,7 +387,6 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   const listeners: FrameListener[] = [];
   const gateFlag: GateFlag = { shown: false, x: 0, y: 0 };
   const fixOnScreen: ScreenPoint = { shown: false, x: 0, y: 0 };
-  let fixOut = false; // the gates are out and the fix is flying this frame
   const flagPoint = new Vector3();
   const facadePoint = new Vector3();
 
@@ -401,6 +397,30 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   let pushRaw = 0;
   let pushEased = 0;
   let focus: Finding | undefined = city.findings[0];
+  // how far the line of sight to the focus has been cleared, as the city was last told (city.setFocus)
+  let clearAmount = 0;
+  /**
+   * Whether the city has faded a building out of the line of sight to the focus (shaders/focus-clear.glsl,
+   * the same test on the same numbers): a word on it would not be seen, so none goes there.
+   */
+  const clearedAway = (building: BuildingInfo): boolean => {
+    if (clearAmount <= 0.001 || !focus || building.index === focus.building) return false;
+    const from = camera.position;
+    const ab = new Vector3().subVectors(clearTarget, from);
+    const stop = Math.max(0.86, 1 - 5 / Math.max(ab.length(), 1e-3));
+    return building.tiers.some((tier) => {
+      const reach = Math.max(tier.w, tier.d) / 2;
+      const plan = ab.x * ab.x + ab.z * ab.z;
+      const t = Math.min(
+        Math.max(((tier.x - from.x) * ab.x + (tier.z - from.z) * ab.z) / Math.max(plan, 1e-4), 0),
+        1,
+      );
+      if (t >= stop) return false;
+      const p = new Vector3().copy(from).addScaledVector(ab, t);
+      const q = new Vector3(tier.x, Math.min(Math.max(p.y, tier.y0), tier.y0 + tier.h), tier.z);
+      return p.distanceTo(q) < 5 + reach;
+    });
+  };
   let pulseAt = -1; // when the last pulse started, in performance.now() time
   let settled = false; // false until the close view has been placed once
   let last = performance.now();
@@ -460,6 +480,7 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
           )
         : null,
     subjectBuilding: () => focus?.building ?? null,
+    hidden: clearedAway,
     focusDistance: () => focusNow.distance,
     rowWord: (text) => skyline.word(text),
     still,
@@ -482,11 +503,14 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   const boxTarget = new Vector3();
   let gateMoment: GateMoment | null = null;
   let refusing: GateIndex | null = null;
-  const fix = new Vector3();
-  const chasePosition = new Vector3();
-  const chaseTarget = new Vector3();
-  const sidePosition = new Vector3();
-  const sideTarget = new Vector3();
+  const checkPosition = new Vector3();
+  const checkTarget = new Vector3();
+  // the scanner's line has been moved for the static scan, and must go back where the backlog left it
+  let scanBorrowed = false;
+  let exploitAt = -1; // when the exploit was fired at the patched building, in performance.now() time
+  // where the refusing check's flag hangs this frame, over the building it was run on; null when none
+  const flagOver = new Vector3();
+  let flagUp = false;
   let mergeProgress = -1; // the merge section's scroll progress; -1 before it comes up the screen
   let enter = 0; // the merge shot's entry, eased
   let merged = false;
@@ -543,7 +567,6 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
 
     pushEased = along(SHOTS.pick.enter, pushRaw);
     enter = along(SHOTS.merge.enter, mergeProgress);
-    fixOut = false;
     if (focus) {
       closeView(focus, wide, wantPosition, wantTarget);
       // glide to a newly chosen building rather than cut, except on the first placement
@@ -563,7 +586,8 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
       clearTarget.set(focus.box.x, focus.top * 0.5, focus.box.z);
       // over the row the camera has left the finding behind, so nothing needs clearing or dimming
       const away = along(SHOTS.results.enter, resultsProgress);
-      city.setFocus(focus.building, pushEased * (1 - away), clearTarget);
+      clearAmount = pushEased * (1 - away);
+      city.setFocus(focus.building, clearAmount, clearTarget);
       city.setPulse(pulseAt < 0 ? 99 : (now - pulseAt) / 1000);
 
       // the sandbox: step back to see the whole volume, then orbit it with the scroll; the
@@ -579,42 +603,58 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
       pose.target.lerp(boxTarget, view);
       focusInto(SHOTS.sandbox.focus, boxTarget, view);
       const clearAway = 1 - enter;
-      sandbox.update(focus, volume * clearAway);
-      city.setPatch(patch);
+      // the checks run outside the sandbox, where the agents can't reach them: its walls lift away first
+      const checksIn = gateMoment ? along(SHOTS.gates.enter, gateMoment.at) : 0;
+      sandbox.update(focus, volume * clearAway * (1 - checksIn));
 
-      // the gates: the camera rides behind the fix through them, then pulls out to the side
-      gates.path(focus, gatePath);
+      // the checks: the camera comes to the patched building and turns slowly round it while the three
+      // run on it, one after another (lib/gates.ts). The reproduction test fires the exploit at it again;
+      // the existing suite runs a lime wave through the block's windows; the static scan sweeps its line
+      // over it. A check that refuses the fix lifts the patch, and the crack burns again.
       const moment = gateMoment;
-      const chase = moment ? along(SHOTS.gates.chaseIn, moment.at) : 0;
-      const show = Math.min(chase * 2, 1);
-      if (moment) {
-        gates.pointAt(gatePath, moment.travel, fix);
-        const shot = SHOTS.gates;
-        chasePosition
-          .copy(fix)
-          .addScaledVector(gatePath.along, -shot.chase.back)
-          .addScaledVector(UP, shot.chase.up);
-        chaseTarget
-          .copy(fix)
-          .addScaledVector(gatePath.along, shot.chase.ahead)
-          .addScaledVector(UP, -shot.chase.down);
-        // three-quarter view from behind and to one side: all three panes face the camera partly
-        const sideShot = wide ? shot.side.wide : shot.side.tall;
-        sideTarget.lerpVectors(gatePath.rise, gatePath.end, shot.side.at).addScaledVector(UP, sideShot.lift);
-        sidePosition
-          .copy(sideTarget)
-          .addScaledVector(gatePath.side, sideShot.out)
-          .addScaledVector(gatePath.along, -sideShot.back)
-          .addScaledVector(UP, sideShot.up);
-        camera.position.lerp(chasePosition, chase);
-        pose.target.lerp(chaseTarget, chase);
-        focusInto(shot.focus, fix, chase);
-        const side = along(shot.sideOut, moment.at);
-        camera.position.lerp(sidePosition, side);
-        pose.target.lerp(sideTarget, side);
+      const check = moment ? along(SHOTS.gates.enter, moment.at) * clearAway : 0;
+      let patchShown = patch;
+      flagUp = false;
+      if (moment && check > 0) {
+        const turn = SHOTS.gates.turn * (Math.min(Math.max(moment.at, 0), 1) - 0.5);
+        sandboxView(focus, closePosition, turn, wide, checkPosition, checkTarget);
+        checkPosition.lerp(checkTarget, SHOTS.gates.closer);
+        camera.position.lerp(checkPosition, check);
+        pose.target.lerp(checkTarget, check);
+        focusInto(SHOTS.gates.focus, checkTarget, check);
+        const [test, , scan] = moment.checks;
+        // the reproduction test: the exploit hits the crack again, once, as the check runs
+        if (test > 0.25 && test < 1 && exploitAt < 0 && !still) exploitAt = now;
+        if (test <= 0) exploitAt = -1;
+        if (exploitAt >= 0) pulseAt = exploitAt;
+        // a refused fix comes off the building: the patch lifts as the refusing check reaches it
+        if (refusing !== null) {
+          const reached =
+            refusing === 2
+              ? MathUtils.smoothstep(scan, 0.45, 0.6)
+              : MathUtils.smoothstep(moment.checks[refusing], 0.7, 1);
+          patchShown = patch * (1 - reached);
+        }
+        if (moment.refused) {
+          flagOver.set(focus.box.x, focus.top + 6, focus.box.z);
+          flagUp = true;
+        }
+        // the static scan: the line sweeps across the building, from one side of its block to the other
+        if (scan > 0 && scan < 1) {
+          shared.uScanX.value = focus.box.x - CHECK_SCAN.half + CHECK_SCAN.half * 2 * scan;
+          shared.uScanOn.value = 1;
+          scanBorrowed = true;
+        } else if (scanBorrowed) {
+          shared.uScanX.value = scanX(scanProgress, range);
+          shared.uScanOn.value = scanProgress > 0 && scanProgress < 1 ? 1 : 0;
+          scanBorrowed = false;
+        }
+      } else if (scanBorrowed) {
+        shared.uScanX.value = scanX(scanProgress, range);
+        shared.uScanOn.value = scanProgress > 0 && scanProgress < 1 ? 1 : 0;
+        scanBorrowed = false;
       }
-      gates.update(gatePath, moment ?? IDLE_GATES, refusing, show * clearAway, (now - start) / 1000, still);
-      fixOut = moment !== null && show * clearAway > 0.5;
+      city.setPatch(patchShown);
 
       // the merge: back to the building, sealed in dim lime until a person merges it
       if (enter > 0) {
@@ -641,6 +681,13 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
           wave = MERGE.reach * hold;
           waveFade = Math.min(hold * 4, 1);
         }
+      }
+      if (moment && check > 0 && enter <= 0.05) {
+        const suite = moment.checks[1];
+        // a suite that fails stops part of the way through the block
+        const reach = refusing === 1 ? Math.min(suite, CHECK_WAVE.failsAt) : suite;
+        wave = MERGE.reach * CHECK_WAVE.reach * reach;
+        waveFade = suite > 0 ? (still ? 0.6 : 1 - 0.4 * MathUtils.smoothstep(suite, 0.85, 1)) * check : 0;
       }
       shared.uWave.value = wave;
       shared.uWaveFade.value = waveFade;
@@ -740,19 +787,16 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
       label.targetY = (-facadePoint.y * 0.5 + 0.5) * height;
     }
     gateFlag.shown = false;
-    if (gates.flag(flagPoint)) {
-      flagPoint.project(camera);
-      gateFlag.shown = flagPoint.z < 1 && Math.abs(flagPoint.x) < 1 && Math.abs(flagPoint.y) < 1;
+    if (flagUp) {
+      // the refusing check's flag hangs over the building it was run on
+      flagPoint.copy(flagOver).project(camera);
+      // above the frame it still shows, held at the top edge (world-stage.ts keeps it on screen)
+      gateFlag.shown = flagPoint.z < 1 && Math.abs(flagPoint.x) < 1 && flagPoint.y > -1;
       gateFlag.x = (flagPoint.x * 0.5 + 0.5) * width;
       gateFlag.y = (-flagPoint.y * 0.5 + 0.5) * height;
     }
+    // nothing flies any more: the checks run on the building itself
     fixOnScreen.shown = false;
-    if (fixOut) {
-      flagPoint.copy(fix).project(camera);
-      fixOnScreen.shown = flagPoint.z < 1 && Math.abs(flagPoint.x) < 1 && Math.abs(flagPoint.y) < 1;
-      fixOnScreen.x = (flagPoint.x * 0.5 + 0.5) * width;
-      fixOnScreen.y = (-flagPoint.y * 0.5 + 0.5) * height;
-    }
     for (const listener of listeners) listener(labels, gateFlag, fixOnScreen);
   }
 
@@ -816,7 +860,10 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
       testHandle = null;
       const snapshot = camera.clone();
       snapshot.updateMatrixWorld();
-      const choice = finish(planWord(text, snapshot, city.buildings, createOccluders(city.buildings)));
+      // as the page's own words do (words.ts): on a tower other than the beat's subject, and not on one
+      // the city has faded out of the line of sight to it
+      const towers = city.buildings.filter((b) => b.index !== focus?.building && !clearedAway(b));
+      const choice = finish(planWord(text, snapshot, towers, createOccluders(city.buildings)));
       const handle = displays.claim();
       if (!choice || !handle) {
         handle?.release();
@@ -1025,7 +1072,6 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
       streets.dispose();
       traffic.dispose();
       sandbox.dispose();
-      gates.dispose();
       rise.dispose();
       skyline.dispose();
       tear.dispose();

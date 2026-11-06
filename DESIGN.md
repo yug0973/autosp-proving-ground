@@ -307,6 +307,12 @@ Decisions made while polishing the streets (world upgrade, after Phase 8):
 - **The form follows Aceternity's Signup Form:** labels above, filled fields with no border, one full-width action.
 - **Tried and rejected:** dark cards with pills, a bright paper strip, full-width subtitles with facts pinned to objects. The wide shade layers those needed moved with the scroll and showed hard edges across the city.
 
+### 6.8c The checks, the form and the small motions
+
+- **The three checks run on the building itself, not through gates.** The owner found a box flying through three gates useless: it showed nothing of what each check does. Now the sandbox's walls lift away, and on the patched building the reproduction test fires the exploit at it again (the crack flashes, the patch holds), the existing suite runs a lime wave through the block's windows, and the static scan sweeps the backlog's scanner line over it. A refused fix comes off: the patch lifts, the crack burns orange again, and the refusing check's flag hangs over the building. Each finding's careless fix is refused by its own check.
+- **The form goes one step at a time,** after React Bits' Stepper (MIT + Commons Clause): You, Your team, Scanners, Check and send, with a progress bar that glides. Team size is three large choices, scanners are chips, the last step shows what will be sent. Without script it is one plain form.
+- **Counters and fingerprints,** after React Bits' Counter and Decrypted Text: the results' 14 and 2 roll up like an odometer as the box arrives, and a rewritten record entry decrypts each later fingerprint into its new value. The real text stays in the page; neither moves with reduced motion.
+
 ### 6.9 Two experiences, one URL
 
 - **One HTML file holding both, chosen before paint.** It is the calm phone page as written; a small script in the head turns it cinematic on a screen at least 60rem wide that can draw WebGL. Chosen once per load: rotating or resizing keeps what the visit started with.

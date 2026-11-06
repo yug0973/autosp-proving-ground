@@ -251,7 +251,7 @@
   .finding[data-state="sealed"]::after {
     background: var(--signal-sealed);
   }
-  /* The refusing barrier's flag: which check said no, in the open signal, on the barrier's edge */
+  /* The refusing check's flag: which check said no, in the open signal, over the building's edge */
   .gate-flag {
     position: absolute;
     top: 0;

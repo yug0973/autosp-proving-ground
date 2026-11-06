@@ -305,7 +305,8 @@ void main() {
   // The patch, written from the bottom up: crack pixels below the line settle back into the grid
   // and stop flickering, in a neutral tone. Not lime: the fix is written but not yet verified.
   float patchLine = mix(vFace.y * 0.12, vFace.y * 0.96, uPatch);
-  float patched = isFocus * step(0.001, uPatch) * (1.0 - step(patchLine, cu.y)) * (1.0 - sealed);
+  // a display owns its rectangle: the patch lights the windows round a word, never its pixels
+  float patched = isFocus * step(0.001, uPatch) * (1.0 - step(patchLine, cu.y)) * (1.0 - sealed) * (1.0 - disp.cell);
   float settled = max(sealed, patched);
 
   float beat = floor(uTime * 7.0);
@@ -354,14 +355,16 @@ void main() {
   // tower's own windows light lime, so it stands alone in the dark city. (A far wall lights
   // evenly, so its window grid never shimmers.)
   {
-  float other = 1.0 - isFocus;
+  // a display's own pixels keep its word: the wave goes round them
+  float other = (1.0 - isFocus) * (1.0 - disp.cell);
   float waveWin = mix(win * step(0.67, fract(hc * 29.1)), 0.2 * upper * wallFace, blur);
   col = mix(col, uSealed * (0.45 + 0.35 * fract(hc * 17.3)), waveWin * waveBehind(vWorld.xz) * other);
   col += uSealed * waveFront(vWorld.xz) * exp(-max(vWorld.y, 0.0) / 5.0) * 0.45 * wallFace * other;
   float towerWin = mix(win * step(0.3, fract(hc * 29.1)), 0.45 * upper * wallFace, blur);
   col = mix(col, uSealed * (0.55 + 0.45 * fract(hc * 17.3)), towerWin * isFocus * uLone);
   }
-  col += scanLight(vWorld.x, normalize(vNormal).x);
+  // the scanner's line passes behind a display's word rather than washing it out
+  col += scanLight(vWorld.x, normalize(vNormal).x) * (1.0 - disp.cell);
   gl_FragColor = vec4(applyFog(col, vWorld), 1.0);
 #ifdef FADE
   gl_FragColor.a = 1.0 - vClear;

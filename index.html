@@ -701,36 +701,51 @@ Waiting for a person to merge</textarea>
             method="post"
             enctype="text/plain"
           >
-            <div class="apply__row">
-              <label class="apply__field">
-                <span class="apply__label">Your name</span>
-                <input class="apply__input" name="name" type="text" autocomplete="name" required />
-              </label>
-              <label class="apply__field">
-                <span class="apply__label">Company</span>
-                <input
-                  class="apply__input"
-                  name="company"
-                  type="text"
-                  autocomplete="organization"
-                  aria-describedby="company-note"
-                  required
-                />
-              </label>
-            </div>
-            <p class="apply__illustrative" id="company-note">
-              Illustrative: the tower shows what you type here. Nothing has been scanned.
-            </p>
-            <div class="apply__row">
-              <label class="apply__field">
-                <span class="apply__label">Engineering team size</span>
-                <select class="apply__input" name="team" required>
-                  <option value="">Choose one</option>
-                  <option>Under 20</option>
-                  <option>20 to 150</option>
-                  <option>Over 150</option>
-                </select>
-              </label>
+            <div class="apply__progress" aria-hidden="true"><i data-step-progress></i></div>
+            <p class="apply__step-label" data-step-label aria-live="polite"></p>
+
+            <fieldset class="apply__step" data-form-step="You" data-current>
+              <legend class="visually-hidden">You</legend>
+              <div class="apply__row">
+                <label class="apply__field">
+                  <span class="apply__label">Your name</span>
+                  <input class="apply__input" name="name" type="text" autocomplete="name" required />
+                </label>
+                <label class="apply__field">
+                  <span class="apply__label">Company</span>
+                  <input
+                    class="apply__input"
+                    name="company"
+                    type="text"
+                    autocomplete="organization"
+                    aria-describedby="company-note"
+                    required
+                  />
+                </label>
+              </div>
+              <p class="apply__illustrative" id="company-note">
+                Illustrative: the tower shows what you type here. Nothing has been scanned.
+              </p>
+            </fieldset>
+
+            <fieldset class="apply__step" data-form-step="Your team">
+              <legend class="visually-hidden">Your team</legend>
+              <div class="apply__field">
+                <span class="apply__label" id="team-label">Engineering team size</span>
+                <div class="apply__tiles" role="radiogroup" aria-labelledby="team-label">
+                  <label class="apply__tile"
+                    ><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label
+                  >
+                  <label class="apply__tile"
+                    ><input type="radio" name="team" value="20 to 150" required /><span
+                      >20 to 150</span
+                    ></label
+                  >
+                  <label class="apply__tile"
+                    ><input type="radio" name="team" value="Over 150" required /><span>Over 150</span></label
+                  >
+                </div>
+              </div>
               <label class="apply__field">
                 <span class="apply__label">Python services on GitHub</span>
                 <input
@@ -741,27 +756,39 @@ Waiting for a person to merge</textarea>
                   placeholder="For example, 12"
                 />
               </label>
-            </div>
-            <fieldset class="apply__scanners">
-              <legend class="apply__label">Scanners you run</legend>
-              <label class="apply__check"
-                ><input type="checkbox" name="scanner" value="Semgrep" /> Semgrep</label
-              >
-              <label class="apply__check"
-                ><input type="checkbox" name="scanner" value="CodeQL" /> CodeQL</label
-              >
-              <label class="apply__check"
-                ><input type="checkbox" name="scanner" value="Snyk Code" /> Snyk Code</label
-              >
-              <label class="apply__check"
-                ><input type="checkbox" name="scanner" value="osv-scanner" /> osv-scanner</label
-              >
             </fieldset>
-            <label class="apply__field">
-              <span class="apply__label">Anything we should know (optional)</span>
-              <textarea class="apply__input" name="note" rows="2"></textarea>
-            </label>
+
+            <fieldset class="apply__step" data-form-step="Scanners">
+              <legend class="visually-hidden">Scanners</legend>
+              <div class="apply__scanners" role="group" aria-labelledby="scanner-label">
+                <span class="apply__label" id="scanner-label">Scanners you run</span>
+                <label class="apply__check"
+                  ><input type="checkbox" name="scanner" value="Semgrep" /> Semgrep</label
+                >
+                <label class="apply__check"
+                  ><input type="checkbox" name="scanner" value="CodeQL" /> CodeQL</label
+                >
+                <label class="apply__check"
+                  ><input type="checkbox" name="scanner" value="Snyk Code" /> Snyk Code</label
+                >
+                <label class="apply__check"
+                  ><input type="checkbox" name="scanner" value="osv-scanner" /> osv-scanner</label
+                >
+              </div>
+              <label class="apply__field">
+                <span class="apply__label">Anything we should know (optional)</span>
+                <textarea class="apply__input" name="note" rows="2"></textarea>
+              </label>
+            </fieldset>
+
+            <fieldset class="apply__step" data-form-step="Check and send">
+              <legend class="visually-hidden">Check and send</legend>
+              <dl class="apply__summary" data-step-summary></dl>
+            </fieldset>
+
             <p class="apply__actions">
+              <button type="button" class="btn btn--quiet" data-step-back hidden>Back</button>
+              <button type="button" class="btn btn--primary" data-step-next hidden>Next</button>
               <button type="submit" class="btn btn--primary">Apply for the free pilot</button>
               <span class="apply__how"
                 >Opens an email to nexarise.office@gmail.com with your answers filled in.</span
