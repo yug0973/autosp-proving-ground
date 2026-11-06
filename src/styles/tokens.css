@@ -1,0 +1,125 @@
+/* Design tokens: the only source of colour, type, spacing, radius and motion values (DESIGN.md §3).
+   Every other stylesheet reads these custom properties; none hard-codes a value. */
+@layer reset, tokens, base, components, utilities;
+
+@layer tokens {
+  @font-face {
+    font-family: "Cabinet Grotesk";
+    src: url("/fonts/cabinet-grotesk-800.woff2") format("woff2");
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "General Sans";
+    src: url("/fonts/general-sans-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "General Sans";
+    src: url("/fonts/general-sans-500.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "JetBrains Mono";
+    src: url("/fonts/jetbrains-mono-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    /* Color: base */
+    --slate-950: #101517; /* page background, deepest */
+    --slate-900: #151b1d; /* default surface */
+    --slate-800: #1d2528; /* raised surface (cards, code panels) */
+    --slate-700: #2b3639; /* borders and dividers */
+    --bone-100: #ebe7db; /* primary text */
+    --bone-300: #b4b0a4; /* secondary text (8.0:1 on slate-900) */
+    --bone-500: #7d7a70; /* tertiary text, disabled (large text only: 4.05:1 on slate-900) */
+
+    /* Color: semantic signals. These carry meaning. Never use them decoratively. */
+    --signal-open: #ff5a47; /* open or failing finding, exploit success */
+    --signal-hold: #f2b134; /* inconclusive, needs review */
+    --signal-pass: #3ddc97; /* check passed, verified, merged */
+
+    /* Color: derived surfaces */
+    --nav-ground: color-mix(in srgb, var(--slate-950) 92%, transparent);
+
+    /* Type families */
+    --font-display: "Cabinet Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "General Sans", "Helvetica Neue", Arial, sans-serif;
+    --font-code: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    /* Type scale (fluid) */
+    --step--1: clamp(0.82rem, 0.79rem + 0.15vw, 0.9rem);
+    --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+    --step-1: clamp(1.25rem, 1.15rem + 0.5vw, 1.55rem);
+    --step-2: clamp(1.6rem, 1.35rem + 1.2vw, 2.4rem);
+    --step-3: clamp(2.2rem, 1.6rem + 2.8vw, 4rem);
+    --step-4: clamp(3.2rem, 1.8rem + 6vw, 7.5rem);
+    --step-5: clamp(3.6rem, 0.6rem + 13vw, 12.5rem); /* hero statement only */
+    /* the protagonist code: its longest line (28 characters) fills the column, ~21px at 390, ~56px at 1440 */
+    --step-code: clamp(1.1rem, 0.45rem + 3.35vw, 3.5rem);
+    --leading-code: 1.2;
+    /* the proving panel holds the code beside a rail, so it runs a step smaller than the hero */
+    --step-code-panel: clamp(0.95rem, 0.6rem + 1.4vw, 1.75rem);
+
+    /* Type: line heights and tracking (DESIGN.md §4) */
+    --leading-body: 1.55;
+    --leading-display-tight: 0.9;
+    --leading-display: 1.05;
+    --tracking-display-large: -0.04em; /* --step-4 and above */
+    --tracking-display: -0.025em; /* below --step-4 */
+
+    /* Spacing (8px base) */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 4.5rem;
+    --space-9: 7rem;
+    --space-10: 11rem;
+
+    /* Layout */
+    --gutter: clamp(1.25rem, 4vw, 3.5rem);
+    --measure: 62ch; /* max body line length */
+    --max-content: 90rem;
+    --nav-height: 4.5rem; /* = --space-8; anchors land this far below the top */
+    --target-min: 2.75rem; /* 44px minimum touch target */
+    --cursor-size: 1.75rem; /* the custom cursor ring, before it grows */
+    --cursor-grow: 1.7; /* its scale over interactive elements and the code */
+    --wave-height: 0.3em; /* the red wavy underline under vulnerable code */
+    --wave-period: 0.6em;
+
+    /* Radius: deliberate hierarchy, not one value everywhere */
+    --radius-control: 0.5rem; /* buttons, inputs */
+    --radius-panel: 0.25rem; /* code panels, log blocks */
+
+    /* Focus (DESIGN.md §8) */
+    --focus-width: 2px;
+    --focus-offset: 3px;
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --dur-fast: 140ms;
+    --dur-base: 280ms;
+    --dur-slow: 640ms;
+    --dur-glitch: 120ms; /* the exploit's one-time glitch (DESIGN.md §6.1) */
+    --reveal-failsafe: 2.5s; /* if the hero reveal never starts, the code shows anyway */
+  }
+
+  @media (max-width: 40rem) {
+    :root {
+      --nav-height: 4rem;
+    }
+  }
+}

@@ -1,0 +1,126 @@
+/* Reset and base element styles. Element selectors live only here, in the lowest layers, so the
+   class-based rules in components.css always win without specificity fights (DESIGN.md §5, §11). */
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    display: block;
+    max-width: 100%;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  ul[role="list"],
+  ol[role="list"] {
+    list-style: none;
+    padding: 0;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer base {
+  html {
+    background: var(--slate-950);
+    color-scheme: dark;
+    /* anchors and focus land below the fixed nav, with or without Lenis */
+    scroll-padding-top: calc(var(--nav-height) + var(--space-5));
+  }
+
+  body {
+    min-height: 100svh;
+    background: var(--slate-950);
+    color: var(--bone-100);
+    font-family: var(--font-body);
+    font-size: var(--step-0);
+    font-weight: 400;
+    line-height: var(--leading-body);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-display);
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd,
+  figcaption,
+  summary {
+    text-wrap: pretty;
+  }
+
+  p {
+    max-width: var(--measure);
+  }
+
+  a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-code);
+    font-size: 0.94em;
+  }
+
+  ::selection {
+    background: var(--bone-100);
+    color: var(--slate-950);
+  }
+
+  /* One focus treatment for every interactive element (DESIGN.md §8) */
+  :focus-visible {
+    outline: var(--focus-width) solid var(--bone-100);
+    outline-offset: var(--focus-offset);
+  }
+
+  /* Anchor targets take focus programmatically (scroll.ts); they show no ring for that */
+  [tabindex="-1"]:focus:not(:focus-visible) {
+    outline: none;
+  }
+}

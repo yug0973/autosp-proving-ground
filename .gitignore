@@ -1,0 +1,11 @@
+node_modules
+dist
+tests/output
+
+# local backups, logs and tool settings
+*.zip
+vite.log
+scratch/
+.impeccable/
+.claude/
+tests/**/output/

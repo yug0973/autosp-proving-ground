@@ -1,0 +1,1792 @@
+/* The world page: a fixed canvas behind DOM text. The world has no cards and no glass; colour
+   carries state only (world-tokens.css). Base element styles come from base.css, which reads
+   the three aliases below. */
+
+@layer tokens {
+  :root {
+    --slate-950: var(--ink-950);
+    --bone-100: var(--mist-50);
+    --nav-height: var(--strip-height);
+    /* a soft shadow under text that sits on the moving scene, for legibility only */
+    --text-lift: 0 1px 2px rgb(5 8 22 / 0.45), 0 0 28px rgb(5 8 22 / 0.35);
+  }
+}
+
+@layer components {
+  /* The hero waits for its reveal (reveal.ts); if the script never runs, it shows after 2.5 s */
+  :root[data-reveal="pending"] .beat--sky .beat__text,
+  :root[data-reveal="pending"] .strip {
+    visibility: hidden;
+    animation: reveal-failsafe 0s 2.5s forwards;
+  }
+  @keyframes reveal-failsafe {
+    to {
+      visibility: visible;
+    }
+  }
+
+  /* A finding's label springs up from its roof each time it appears */
+  .finding:not([hidden]) {
+    animation: label-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transform-origin: 50% calc(100% + 0.75rem);
+  }
+  @keyframes label-in {
+    from {
+      opacity: 0;
+      scale: 0.4;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .finding:not([hidden]) {
+      animation: none;
+    }
+  }
+
+  .skip-link {
+    position: fixed;
+    top: var(--space-3);
+    left: var(--space-3);
+    z-index: 30;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-control);
+    background: var(--mist-50);
+    color: var(--ink-950);
+    transform: translateY(-200%);
+  }
+  .skip-link:focus-visible {
+    transform: none;
+  }
+
+  :focus-visible {
+    outline: var(--focus-width) solid var(--mist-50);
+    outline-offset: var(--focus-offset);
+  }
+
+  /* Buttons: neutral, high contrast. The signal colours are kept for state. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--target-min);
+    padding: 0 var(--space-5);
+    border-radius: var(--radius-control);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+  .btn--primary {
+    background: var(--mist-50);
+    color: var(--ink-950);
+  }
+  .btn--primary:hover {
+    background: #ffffff;
+  }
+  .btn--primary:active {
+    transform: translateY(1px);
+  }
+  .btn--quiet {
+    border: 1px solid rgb(189 201 234 / 0.4);
+    color: var(--mist-50);
+    text-shadow: none;
+  }
+  .btn--quiet:hover {
+    border-color: var(--mist-50);
+    background: rgb(5 8 22 / 0.6);
+  }
+  .btn--small {
+    min-height: 2.5rem;
+    padding: 0 var(--space-4);
+    font-size: var(--step--1);
+  }
+
+  /* The top strip: thin and quiet, a way back to Nexarise and one action. Transparent over the
+     hero's sky; once the page has scrolled, an ink scrim fades in behind it, darkest at the top
+     edge and gone by its lower edge, so it never reads as a band across the sky. */
+  .strip {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 20;
+    height: var(--strip-height);
+  }
+  .strip::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 -1.5rem;
+    z-index: -1;
+    background: linear-gradient(rgb(5 8 22 / 0.86), rgb(5 8 22 / 0.6) 60%, rgb(5 8 22 / 0));
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+    pointer-events: none;
+  }
+  :root[data-scrolled] .strip::before {
+    opacity: 1;
+  }
+  .strip__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    height: 100%;
+    padding: 0 var(--gutter);
+  }
+  .strip__brand {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin-right: auto;
+    max-width: none;
+  }
+  .strip__nexarise {
+    color: var(--mist-50);
+    text-decoration: none;
+  }
+  .strip__slash {
+    color: var(--mist-300);
+  }
+  .strip__product {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+  .strip__nexarise:hover {
+    text-decoration: underline;
+  }
+
+  /* The stage: the canvas and its labels, fixed behind the page */
+  .stage {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .stage__canvas {
+    width: 100%;
+    height: 100%;
+  }
+  /* The low tier has no depth of field: a soft vignette holds the eye on the middle of the frame
+     instead (with a little more fog in the scene, world.ts). It is ink, and fades in with the night
+     (the same amount as the labels), so the bright day sky is left clean. */
+  :root[data-quality="low"] .stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(
+      ellipse at 50% 45%,
+      transparent 55%,
+      color-mix(in srgb, var(--ink-950) 45%, transparent) 100%
+    );
+    opacity: var(--night-scrim, 0);
+    pointer-events: none;
+  }
+  :root[data-quality="low"] .stage > :is(.findings, .leader, .gate-flag) {
+    z-index: 2;
+  }
+  :root[data-world="off"] .stage {
+    display: none;
+  }
+  /* A neutral scrim on the text side, only once it is dark: the lit windows behind the copy
+     would otherwise compete with it. It fades in with the labels. */
+  .stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(5 8 22 / 0.82) 0%, rgb(5 8 22 / 0.55) 32%, rgb(5 8 22 / 0) 58%);
+    opacity: var(--night-scrim, 0);
+    pointer-events: none;
+  }
+  @media (max-width: 40rem) {
+    .stage::after {
+      background: linear-gradient(0deg, rgb(5 8 22 / 0.85) 0%, rgb(5 8 22 / 0.5) 45%, rgb(5 8 22 / 0) 75%);
+    }
+  }
+
+  .findings {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+    opacity: var(--labels, 0);
+  }
+  .finding {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+    border-radius: var(--radius-control);
+    background: rgb(5 8 22 / 0.78);
+    color: var(--mist-50);
+    font-size: var(--step--1);
+    font-weight: 500;
+    line-height: 1.3;
+    white-space: nowrap;
+    translate: -50% calc(-100% - 0.75rem);
+    pointer-events: auto;
+    will-change: transform;
+  }
+  /* the open-finding pixel, and a hairline down to the roof */
+  .finding::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    background: var(--signal-open);
+  }
+  .finding::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 1px;
+    height: 0.75rem;
+    background: var(--signal-open);
+  }
+  .finding[data-state="sealed"]::before,
+  .finding[data-state="sealed"]::after {
+    background: var(--signal-sealed);
+  }
+  /* The refusing barrier's flag: which check said no, in the open signal, on the barrier's edge */
+  .gate-flag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--signal-open);
+    border-radius: var(--radius-control);
+    background: rgb(5 8 22 / 0.85);
+    color: var(--mist-50);
+    font-size: 1rem;
+    font-weight: 500;
+    white-space: nowrap;
+    translate: -50% -100%;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .gate-flag::before {
+    content: "";
+    width: 0.55rem;
+    height: 0.55rem;
+    background: var(--signal-open);
+  }
+  .gate-flag:not([hidden]) {
+    animation: label-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transform-origin: 50% 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gate-flag:not([hidden]) {
+      animation: none;
+    }
+  }
+
+  /* The leader line: a thin rule from a beat's panel to what it describes in the scene, drawn by
+     world-stage.ts each frame. A small pixel marks where it leaves the panel; a larger one, in the
+     finding's state, marks the object. Hidden on narrow screens and with reduced motion. */
+  .leader {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  .leader[data-shown] {
+    opacity: 1;
+  }
+  .leader__line {
+    fill: none;
+    stroke: rgb(189 201 234 / 0.55);
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+  }
+  .leader__anchor {
+    fill: var(--mist-300);
+  }
+  .leader__dot {
+    fill: var(--signal-open);
+    stroke: var(--ink-950);
+    stroke-width: 2px;
+    paint-order: stroke;
+  }
+  .leader__dot[data-sealed] {
+    fill: var(--signal-sealed);
+  }
+  @media (max-width: 60rem), (prefers-reduced-motion: reduce) {
+    .leader {
+      display: none;
+    }
+  }
+
+  /* The progress rail: the seven beats as links down the right edge, each a pixel on a hairline.
+     Hollow ahead, filled once passed, lit and named where the visitor is. Wide screens keep room
+     for it beside the panels (--rail-room) and name every beat; narrower ones show the pixels and
+     name them on hover or focus; stacked layouts collapse it to one button (rail.ts). */
+  :root {
+    --rail-room: 0rem;
+  }
+  @media (min-width: 60.01rem) {
+    :root {
+      --rail-room: 2.5rem;
+    }
+  }
+  @media (min-width: 80rem) {
+    :root {
+      --rail-room: 7.5rem;
+    }
+  }
+  .rail {
+    position: fixed;
+    top: 50%;
+    right: var(--space-3);
+    z-index: 15;
+    visibility: hidden;
+    opacity: 0;
+    translate: 0 -50%;
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      visibility 0s var(--dur-base);
+  }
+  :root[data-js] .rail[data-shown] {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+  .rail__toggle {
+    display: none;
+  }
+  .rail__list {
+    position: relative;
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* the hairline through the pixels */
+  .rail__list::before {
+    content: "";
+    position: absolute;
+    top: 1.375rem;
+    bottom: 1.375rem;
+    right: calc(1.375rem - 0.5px);
+    width: 1px;
+    background: rgb(189 201 234 / 0.22);
+  }
+  .rail__link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    min-height: 2.75rem;
+    padding: 0 1rem 0 var(--space-3);
+    border-radius: 2px;
+    color: var(--mist-300);
+    font-size: 1rem;
+    text-decoration: none;
+    text-shadow: var(--text-lift);
+    white-space: nowrap;
+  }
+  .rail__link::after {
+    content: "";
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 1.5px solid var(--mist-500);
+    background: var(--ink-950);
+  }
+  .rail__link[data-state="past"]::after {
+    border-color: var(--mist-300);
+    background: var(--mist-300);
+  }
+  .rail__link[data-state="current"] {
+    color: var(--mist-50);
+    font-weight: 500;
+  }
+  .rail__link[data-state="current"]::after {
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-right: -0.125rem;
+    border-color: var(--mist-50);
+    background: var(--mist-50);
+  }
+  .rail__link:hover {
+    color: var(--mist-50);
+  }
+  .rail__link:focus-visible {
+    outline-offset: -2px;
+  }
+  /* between 60 and 80rem: the pixels alone, named on hover or focus over a dark backing */
+  @media (min-width: 60.01rem) and (max-width: 79.99rem) {
+    .rail__link,
+    .rail__link[data-state="current"] {
+      color: transparent;
+      text-shadow: none;
+    }
+    .rail__link:hover,
+    .rail__link:focus-visible {
+      background: rgb(5 8 22 / 0.88);
+      color: var(--mist-50);
+    }
+  }
+  /* stacked layouts: one button naming the current beat; it opens the list above it */
+  @media (max-width: 60rem) {
+    .rail {
+      top: auto;
+      right: var(--space-3);
+      bottom: var(--space-3);
+      translate: none;
+    }
+    .rail__toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      min-height: 2.75rem;
+      padding: 0 var(--space-3);
+      border: 1px solid rgb(189 201 234 / 0.22);
+      border-radius: 2px;
+      background: rgb(5 8 22 / 0.92);
+      color: var(--mist-50);
+      font: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .rail__toggle::before {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      background: var(--mist-50);
+    }
+    .rail__count {
+      color: var(--mist-300);
+    }
+    .rail__list {
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + var(--space-2));
+      display: none;
+      min-width: 12rem;
+      padding: var(--space-2) 0;
+      border: 1px solid rgb(189 201 234 / 0.22);
+      border-radius: 2px;
+      background: rgb(5 8 22 / 0.96);
+    }
+    .rail[data-open] .rail__list {
+      display: grid;
+    }
+    .rail__link {
+      text-shadow: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rail,
+    :root[data-js] .rail[data-shown] {
+      transition: none;
+    }
+  }
+
+  .finding__cwe {
+    font-variant-numeric: tabular-nums;
+  }
+  .finding__name {
+    max-width: 0;
+    overflow: hidden;
+    color: var(--mist-300);
+    transition: max-width var(--dur-base) var(--ease-out);
+  }
+  .finding:hover,
+  .finding:focus-within {
+    z-index: 1;
+  }
+  .finding:hover .finding__name {
+    max-width: 18rem;
+  }
+
+  /* The beats: text over the scene, in normal flow */
+  main {
+    position: relative;
+    z-index: 1;
+  }
+  .beat {
+    display: grid;
+    align-content: center;
+    min-height: 100svh;
+    padding: calc(var(--strip-height) + var(--space-6)) var(--gutter) var(--space-7);
+  }
+  .beat__text {
+    max-width: 44rem;
+    text-shadow: var(--text-lift);
+  }
+  .beat__title {
+    font-size: var(--step-4);
+    max-width: 17ch;
+  }
+  .beat__heading {
+    font-size: var(--step-3);
+  }
+  .beat__lede {
+    margin-top: var(--space-5);
+    color: var(--mist-50);
+    font-size: var(--step-1);
+    line-height: 1.45;
+  }
+  .beat__statement {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2.1rem);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    max-width: 26ch;
+  }
+  .beat__actions {
+    margin-top: var(--space-6);
+    text-shadow: none;
+  }
+  .beat__note {
+    margin-top: var(--space-5);
+    color: var(--mist-300);
+    font-size: 1rem;
+  }
+  /* The count of findings the scanner line has passed. Orange, because every crack is an open finding. */
+  .beat__count {
+    margin-top: var(--space-5);
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    color: var(--mist-50);
+    font-size: var(--step-1);
+  }
+  .beat__count-num {
+    min-width: 1.2ch;
+    color: var(--signal-open);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--step-3);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .beat--sky {
+    align-content: start;
+    padding-top: calc(var(--strip-height) + clamp(2rem, 8vh, 5.5rem));
+  }
+  .beat--drop,
+  .beat--city {
+    justify-items: start;
+  }
+
+  /* Scroll distance with no text: the camera drops through the clouds here */
+  .descent__gap {
+    height: 110svh;
+  }
+  .descent__gap--short {
+    height: 30svh;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* A track: a tall section whose inner part stays put while the scene moves behind it. Text on
+     the left, the building in the middle, a panel on the right. Script sets --progress (0 to 1)
+     on the section as it scrolls by; the panel fades in once progress passes --reveal. */
+  .track {
+    position: relative;
+    height: 260svh;
+  }
+  .track--short {
+    height: 200svh;
+  }
+  /* the pick holds for two screens of scroll, not three */
+  .track--pick {
+    height: 220svh;
+  }
+  .track__sticky {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 28rem) minmax(0, 1fr) minmax(0, 26rem);
+    grid-template-areas: "text middle panel";
+    align-items: center;
+    gap: var(--space-6);
+    height: 100svh;
+    padding: calc(var(--strip-height) + var(--space-5)) calc(var(--gutter) + var(--rail-room)) var(--space-6)
+      var(--gutter);
+  }
+  .track__text {
+    grid-area: text;
+  }
+  .track__text .beat__lede {
+    font-size: var(--step-0);
+  }
+  /* step and chapter titles: a size below the hero, so they sit on two or three lines */
+  .track__text .beat__heading,
+  .chapter__text .beat__heading {
+    font-size: clamp(2rem, 1.2rem + 1.9vw, 2.9rem);
+  }
+
+  .picker {
+    margin-top: var(--space-6);
+    padding: 0;
+    border: 0;
+    text-shadow: none;
+  }
+  .picker__option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-control);
+    background: rgb(5 8 22 / 0.6);
+    color: var(--mist-300);
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+  .picker__option + .picker__option {
+    margin-top: var(--space-2);
+  }
+  .picker__option:hover {
+    background: rgb(5 8 22 / 0.85);
+    color: var(--mist-50);
+  }
+  /* the radio is a square pixel: hollow, then lit when chosen */
+  .picker__input {
+    flex: none;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin: 0;
+    border: 1.5px solid var(--mist-300);
+    border-radius: 0;
+    background: transparent;
+    appearance: none;
+    cursor: pointer;
+  }
+  .picker__input:checked {
+    border-color: var(--mist-50);
+    background: var(--mist-50);
+  }
+  .picker__input:focus-visible {
+    outline-offset: 4px;
+  }
+  .picker__option:has(:checked) {
+    background: rgb(5 8 22 / 0.92);
+    color: var(--mist-50);
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.35);
+  }
+  .picker__legend {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+  .picker__name {
+    font-weight: 500;
+  }
+  .picker__cwe {
+    margin-left: auto;
+    color: var(--mist-500);
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A panel: a compact detail beside the building, tied to its object by a leader line.
+     Never the hero (the diff, the test run, the sandbox job). Smaller than a full sidebar card. */
+  .track__panel {
+    --shown: clamp(0, calc((var(--progress, 1) - var(--reveal, 0.3)) * 6), 1);
+    grid-area: panel;
+    max-width: 28rem;
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid rgb(189 201 234 / 0.16);
+    border-radius: var(--radius-control);
+    background: rgb(5 8 22 / 0.82);
+    opacity: var(--shown);
+    translate: 0 calc((1 - var(--shown)) * 1rem);
+  }
+  .panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+  }
+  .panel__file {
+    min-width: 0;
+    color: var(--mist-300);
+    font-family: var(--font-code);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+  }
+  /* a panel's name when it is not a path or code (the sandbox job), in the body face */
+  .panel__label {
+    color: var(--mist-300);
+    font-size: 1rem;
+  }
+  .panel__tag {
+    flex: none;
+    padding: 0.1rem var(--space-2);
+    border: 1px solid rgb(189 201 234 / 0.35);
+    border-radius: var(--radius-control);
+    color: var(--mist-300);
+    font-size: 0.95rem;
+  }
+  .panel__text {
+    margin-top: var(--space-4);
+    color: var(--mist-50);
+    font-size: var(--step-0);
+    line-height: 1.5;
+  }
+  .panel__code {
+    margin-top: var(--space-4);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  /* one block per line; the newlines between them stay in the text for copying, and a flex
+     container does not draw whitespace-only runs */
+  .panel__code code {
+    display: flex;
+    flex-direction: column;
+  }
+  .code-line {
+    display: block;
+    padding: 0 var(--space-2);
+    color: var(--mist-500);
+  }
+  .code-line--del {
+    background: rgb(255 106 43 / 0.1);
+    color: var(--signal-open);
+  }
+  /* the proposed line stays neutral: lime is kept for a fix that has passed every check */
+  .code-line--add {
+    background: rgb(189 201 234 / 0.08);
+    color: var(--mist-50);
+  }
+  /* The orbit area: the middle of the sandbox step, where a sideways drag turns the view */
+  .track__orbit {
+    grid-area: middle;
+    align-self: stretch;
+    border-radius: var(--radius-control);
+    cursor: grab;
+    touch-action: pan-y;
+  }
+  .track__orbit[data-dragging] {
+    cursor: grabbing;
+  }
+
+  /* The sandbox job: what the container allows, then the steps of writing the fix */
+  .manifest {
+    display: grid;
+    gap: var(--space-1);
+    margin-top: var(--space-4);
+    font-size: var(--step-0);
+  }
+  .manifest > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid rgb(189 201 234 / 0.08);
+  }
+  .manifest dt {
+    color: var(--mist-500);
+  }
+  .manifest dd {
+    margin: 0;
+    color: var(--mist-50);
+  }
+  .steps {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+    padding: 0;
+    list-style: none;
+    font-size: var(--step-0);
+  }
+  .steps li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    color: var(--mist-500);
+    transition: color var(--dur-base) var(--ease-out);
+  }
+  /* each step's marker is a pixel: hollow while waiting, lit while running, filled when done */
+  .steps li::before {
+    content: "";
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 1.5px solid currentColor;
+    translate: 0 -0.05rem;
+  }
+  .steps li[data-state="active"],
+  .steps li[data-state="done"] {
+    color: var(--mist-50);
+  }
+  .steps li[data-state="active"]::before {
+    background: var(--mist-50);
+    animation: step-blink 0.9s steps(2, jump-none) infinite;
+  }
+  .steps li[data-state="done"]::before {
+    background: var(--mist-300);
+    border-color: var(--mist-300);
+  }
+  /* the file name wraps to its own line whole rather than breaking inside it */
+  .steps [data-sandbox-file] {
+    font-family: var(--font-code);
+    white-space: nowrap;
+  }
+  @keyframes step-blink {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .steps li[data-state="active"]::before {
+      animation: none;
+    }
+  }
+
+  /* The gates: one row per check. The marker is a pixel: hollow while waiting, lit once passed,
+     orange-red when it refuses, faint when it never ran; lime on every row once all three pass. */
+  .gates {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding: 0;
+    list-style: none;
+    font-size: var(--step-0);
+  }
+  .gates li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--space-3);
+    color: var(--mist-500);
+  }
+  .gates li::before {
+    content: "";
+    grid-row: span 2;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-top: 0.35em;
+    border: 1.5px solid currentColor;
+  }
+  .gates__name {
+    color: var(--mist-300);
+  }
+  .gates__detail {
+    font-family: var(--font-code);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+  .gates li[data-state="passed"] .gates__name {
+    color: var(--mist-50);
+  }
+  .gates li[data-state="passed"]::before {
+    border-color: var(--mist-50);
+    background: var(--mist-50);
+  }
+  .gates li[data-state="refused"],
+  .gates li[data-state="refused"] .gates__name {
+    color: var(--signal-open);
+  }
+  .gates li[data-state="refused"]::before {
+    background: var(--signal-open);
+  }
+  .gates li[data-state="skipped"] {
+    opacity: 0.5;
+  }
+  .gates[data-cleared] li::before {
+    border-color: var(--signal-sealed);
+    background: var(--signal-sealed);
+  }
+  .panel__tag[data-state="cleared"] {
+    border-color: var(--signal-sealed);
+    color: var(--signal-sealed);
+  }
+  .panel__tag[data-state="refused"] {
+    border-color: var(--signal-open);
+    color: var(--signal-open);
+  }
+
+  /* Hold to merge. The lime layer is a copy of the button in dark text, clipped to how far the
+     hold has gone (--hold, 0 to 1), so the label reads on both sides of the edge. */
+  .hold {
+    margin-top: var(--space-6);
+    text-shadow: none;
+  }
+  :root:not([data-js]) .hold {
+    display: none;
+  }
+  .hold__button {
+    position: relative;
+    display: inline-grid;
+    min-height: 3.5rem;
+    padding: 0;
+    overflow: hidden;
+    border: 1.5px solid var(--signal-sealed);
+    border-radius: var(--radius-control);
+    background: rgb(5 8 22 / 0.75);
+    color: var(--mist-50);
+    font-size: var(--step-0);
+    font-weight: 500;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+  }
+  .hold__button > .hold__label,
+  .hold__fill {
+    grid-area: 1 / 1;
+  }
+  .hold__label {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-6);
+    white-space: nowrap;
+  }
+  .hold__fill {
+    display: grid;
+    background: var(--signal-sealed);
+    color: var(--ink-950);
+    clip-path: inset(0 calc((1 - var(--hold, 0)) * 100%) 0 0);
+  }
+  .hold__hint {
+    margin-top: var(--space-3);
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+  .merged .beat__lede {
+    margin-top: var(--space-6);
+    color: var(--signal-sealed);
+  }
+  /* On a phone the copy scrolls over the scene, and once merged the sealed tower, lit lime, can
+     stand behind any line of it: each line gets a tight dark backing (cloned per wrapped line). */
+  @media (max-width: 40rem) {
+    [data-merge][data-merged] :is(.beat__heading, .beat__lede, .beat__note) > span {
+      padding: 0.1em 0.35em;
+      background: rgb(5 8 22 / 0.8);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      text-shadow: none;
+    }
+  }
+  .merged .beat__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .panel__tag[data-state="hold"] {
+    border-color: var(--signal-hold);
+    color: var(--signal-hold);
+  }
+  .pr__title {
+    margin-top: var(--space-4);
+    color: var(--mist-50);
+    font-weight: 500;
+  }
+  .pr__branch {
+    margin-top: var(--space-1);
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+  .pr__branch code {
+    font-size: 0.85em;
+  }
+
+  /* the test run: a terminal inside the panel */
+  .run {
+    /* room for the whole report from the start, so the panel does not grow while it runs */
+    min-height: 12.4em;
+    padding: var(--space-2) 0;
+    border-radius: calc(var(--radius-control) / 2);
+    background: rgb(255 255 255 / 0.03);
+  }
+  .code-line--cmd {
+    color: var(--mist-300);
+  }
+  .code-line--fail {
+    color: var(--signal-open);
+  }
+  .panel__tag[data-state="running"] {
+    color: var(--mist-50);
+  }
+  .panel__tag[data-state="failed"] {
+    border-color: var(--signal-open);
+    color: var(--signal-open);
+  }
+  .panel__note {
+    margin-top: var(--space-4);
+    color: var(--mist-300);
+    font-size: 1rem;
+  }
+
+  @media (max-width: 60rem) {
+    .track {
+      height: auto;
+    }
+    .track__sticky {
+      position: static;
+      display: block;
+      height: auto;
+      padding: 0 var(--gutter);
+    }
+    /* the building shows above the text; the panel follows straight after it */
+    .track__text {
+      margin-top: 20svh;
+    }
+    .track__orbit {
+      height: 40svh;
+      margin-top: var(--space-5);
+    }
+    .track__panel {
+      margin-top: var(--space-5);
+      margin-bottom: 10svh;
+      opacity: 1;
+      translate: none;
+    }
+  }
+
+  /* Chapters: the record and the results, text on the left and a panel on the right, over the
+     city as the camera rises back above it */
+  .chapter {
+    display: grid;
+    grid-template-columns: minmax(0, 28rem) minmax(0, 1fr) minmax(0, 30rem);
+    grid-template-areas: "text . panel";
+    align-items: center;
+    gap: var(--space-6);
+    min-height: 100svh;
+    padding: calc(var(--strip-height) + var(--space-6)) calc(var(--gutter) + var(--rail-room)) var(--space-7)
+      var(--gutter);
+  }
+  .chapter__text {
+    grid-area: text;
+  }
+  .chapter__text .beat__lede {
+    font-size: var(--step-0);
+  }
+  .chapter__panel {
+    grid-area: panel;
+  }
+
+  /* The record: a chain of five blocks. Each block has a lime edge while it matches the sealed
+     record, orange-red once it no longer does, and amber while it waits for a person; the link
+     between two blocks is a short rule carrying the fingerprint of the block above. */
+  .record {
+    display: grid;
+    padding: 0;
+    list-style: none;
+  }
+  .record__block {
+    --edge: var(--signal-sealed);
+  }
+  .record__block[data-state="broken"] {
+    --edge: var(--signal-open);
+  }
+  .record__block[data-state="pending"] {
+    --edge: var(--signal-hold);
+  }
+  .record__link {
+    --edge: var(--signal-sealed);
+    display: flex;
+    align-items: center;
+    height: 1.75rem;
+    margin-left: 0.95rem;
+    padding-left: var(--space-3);
+    border-left: 2px solid color-mix(in srgb, var(--edge) 70%, transparent);
+  }
+  .record__link[data-state="broken"] {
+    --edge: var(--signal-open);
+  }
+  .record__link[data-state="pending"] {
+    --edge: var(--mist-500);
+  }
+  .record__carry {
+    color: color-mix(in srgb, var(--edge) 85%, var(--mist-50));
+    font-family: var(--font-code);
+    font-size: 0.8125rem;
+  }
+  .record__box {
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+    grid-template-areas: "step input fp" ". status status";
+    align-items: center;
+    column-gap: var(--space-3);
+    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+    border: 1px solid rgb(189 201 234 / 0.12);
+    border-left: 3px solid var(--edge);
+    border-radius: 2px;
+    background: rgb(5 8 22 / 0.35);
+  }
+  .record__block[data-state="pending"] .record__box {
+    border-style: dashed;
+    border-left-style: solid;
+  }
+  .record__step {
+    grid-area: step;
+    color: var(--mist-300);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+  .record__input {
+    grid-area: input;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.6rem var(--space-2);
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--mist-50);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.4;
+    overflow: hidden;
+    resize: none;
+    field-sizing: content;
+  }
+  .record__input:hover:not(:disabled) {
+    border-color: rgb(189 201 234 / 0.18);
+  }
+  .record__input:focus-visible {
+    border-color: rgb(189 201 234 / 0.32);
+    outline-offset: 1px;
+  }
+  .record__input:disabled {
+    color: var(--mist-300);
+  }
+  .record__block[data-state="broken"] .record__input {
+    color: var(--signal-open);
+  }
+  /* The fingerprint: short, in the block's colour; the full value opens beside it on hover or
+     focus, on one line (two fixed halves on a narrow screen) and never wrapped mid-value */
+  .record__fp {
+    grid-area: fp;
+    position: relative;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: color-mix(in srgb, var(--edge) 80%, var(--mist-50));
+    font-family: var(--font-code);
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  .record__fp:disabled {
+    color: var(--mist-500);
+    cursor: default;
+  }
+  .record__tip {
+    position: absolute;
+    top: calc(100% + 0.25rem);
+    right: 0;
+    z-index: 2;
+    display: none;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid rgb(189 201 234 / 0.2);
+    border-radius: 2px;
+    background: var(--ink-950);
+    color: var(--mist-50);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .record__fp:hover:not(:disabled) .record__tip,
+  .record__fp:focus-visible .record__tip,
+  .record__fp[data-pinned] .record__tip {
+    display: block;
+  }
+  .record__status {
+    grid-area: status;
+    padding-left: var(--space-2);
+    color: var(--edge);
+    font-size: var(--step--1);
+  }
+  .record__status:empty {
+    display: none;
+  }
+  .record__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    max-width: none;
+    margin-top: var(--space-4);
+  }
+  .record__live {
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  /* The results: sixteen runs as sixteen pixels; lime for a verified fix, amber for inconclusive */
+  .matrix {
+    display: grid;
+    grid-template-columns: repeat(8, 1.35rem);
+    gap: 0.45rem;
+  }
+  .matrix__dot {
+    aspect-ratio: 1;
+  }
+  .matrix__dot[data-kind="fixed"] {
+    background: var(--signal-sealed);
+  }
+  .matrix__dot[data-kind="held"] {
+    background: var(--signal-hold);
+  }
+  /* The numbers: each drawn in the dot matrix (numerals.ts), its caveat directly under it */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+  .stats > div {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+  .stats__n {
+    --lit: var(--mist-50);
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stats__n[data-kind="fixed"] {
+    --lit: var(--signal-sealed);
+  }
+  .stats__n[data-kind="held"] {
+    --lit: var(--signal-hold);
+  }
+  /* once the squares are drawn, the text stays for screen readers only */
+  .stats__n[data-drawn] .stats__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .stats__fixed {
+    color: var(--signal-sealed);
+  }
+  .stats__held {
+    color: var(--signal-hold);
+  }
+  .stats__of {
+    color: var(--mist-500);
+    font-size: 0.5em;
+  }
+  .stats dd {
+    margin: 0;
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+  .stats__caveat {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid rgb(189 201 234 / 0.12);
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+
+  /* A dot-matrix numeral: square pixels on a 5 by 7 grid, unlit ones faintly there */
+  .numeral {
+    --px: 0.3rem;
+    --gap: 0.08rem;
+    display: inline-flex;
+    align-items: flex-end;
+    gap: var(--px);
+  }
+  .numeral__glyph {
+    display: grid;
+    grid-template-columns: repeat(5, var(--px));
+    grid-auto-rows: var(--px);
+    gap: var(--gap);
+  }
+  .numeral__glyph > span {
+    background: rgb(189 201 234 / 0.08);
+    transition: background-color 0.12s linear;
+  }
+  .numeral__glyph > .is-lit {
+    background: var(--lit);
+  }
+  .numeral__of {
+    --px: 0.16rem;
+    --gap: 0.04rem;
+    --lit: var(--mist-300);
+    display: inline-flex;
+    gap: var(--px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .numeral__glyph > span {
+      transition: none;
+    }
+  }
+
+  /* The application: the email the live site asks for, composed from a few answers */
+  .closing__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 30rem) minmax(0, 38rem);
+    justify-content: space-between;
+    gap: var(--space-7);
+    max-width: 82rem;
+  }
+  .closing__text .beat__heading {
+    font-size: var(--step-2);
+  }
+  .apply {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .apply__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  /* a text input keeps its default width unless told otherwise; in a narrow column that pushed the
+     page wider than a phone */
+  .apply__field {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .apply__label {
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+  .apply__input {
+    width: 100%;
+    min-width: 0;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid rgb(189 201 234 / 0.25);
+    border-radius: var(--radius-control);
+    background: var(--ink-900);
+    color: var(--mist-50);
+  }
+  .apply__input::placeholder {
+    color: var(--mist-500);
+  }
+  textarea.apply__input {
+    resize: vertical;
+  }
+  .apply__scanners {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .apply__scanners legend {
+    width: 100%;
+    margin-bottom: var(--space-2);
+    padding: 0;
+  }
+  .apply__check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-min);
+    cursor: pointer;
+  }
+  /* checkboxes are pixels too: hollow, filled when ticked */
+  .apply__check input {
+    width: 0.8rem;
+    height: 0.8rem;
+    margin: 0;
+    border: 1.5px solid var(--mist-300);
+    border-radius: 0;
+    appearance: none;
+    cursor: pointer;
+  }
+  .apply__check input:checked {
+    border-color: var(--mist-50);
+    background: var(--mist-50);
+  }
+  .apply__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    max-width: none;
+  }
+  .apply__how,
+  .apply__status {
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+
+  @media (max-width: 60rem) {
+    .chapter {
+      display: block;
+      min-height: 0;
+      padding: var(--space-8) var(--gutter) var(--space-6);
+    }
+    .chapter__panel {
+      margin-top: var(--space-6);
+    }
+    .closing__inner {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+    .apply__row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* The form stands in the world at dawn, on a solid surface of its own; the sky and the visitor's
+     tower are beside it. Without the world, the section is the surface. */
+  .closing {
+    position: relative;
+    padding: var(--space-8) calc(var(--gutter) + var(--rail-room)) var(--space-8) var(--gutter);
+  }
+  :root[data-world="off"] .closing,
+  :root:not([data-js]) .closing {
+    background: var(--ink-950);
+    border-top: 1px solid rgb(189 201 234 / 0.1);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .closing {
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    padding: calc(var(--strip-height) + var(--space-4)) var(--gutter) var(--space-6);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .closing__inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    width: min(100%, 37rem);
+    max-width: none;
+    padding: var(--space-5) var(--space-6);
+    border-radius: var(--radius-control);
+    background: var(--ink-950);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .closing__text .beat__lede {
+    margin-top: var(--space-3);
+    font-size: var(--step-0);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .apply {
+    gap: var(--space-3);
+  }
+  /* it says what the tower shows, so it is there only when there is a tower */
+  .apply__illustrative {
+    display: none;
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .apply__illustrative {
+    display: block;
+    margin-top: calc(var(--space-1) * -1);
+  }
+
+  .foot {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--gutter);
+    background: var(--ink-950);
+    color: var(--mist-500);
+    font-size: var(--step--1);
+  }
+  .foot a {
+    color: var(--mist-300);
+  }
+
+  @media (max-width: 40rem) {
+    /* a phone gets a shorter descent: the same beats, less empty scroll between them */
+    .descent__gap {
+      height: 12svh;
+    }
+    .descent__gap--short {
+      height: 4svh;
+    }
+    .beat--sky {
+      min-height: 92svh;
+    }
+    .beat--drop,
+    .beat--city {
+      min-height: 46svh;
+    }
+    .run {
+      min-height: 10.5em;
+    }
+    /* tighter reading on a phone: body-size ledes, slimmer panels and records */
+    .beat__lede {
+      margin-top: var(--space-4);
+      font-size: var(--step-0);
+    }
+    .track__panel {
+      padding: var(--space-4);
+      margin-top: var(--space-4);
+      margin-bottom: 6svh;
+    }
+    .record__link {
+      height: 0.875rem;
+    }
+    .record__box {
+      padding-block: 0;
+    }
+    .record__tip > span {
+      display: block;
+    }
+    .record__foot {
+      margin-top: var(--space-3);
+    }
+    /* on a phone the sixteen runs repeat what 14/16 and 2/2 already show, in the same squares */
+    .matrix {
+      display: none;
+    }
+    .stats {
+      grid-template-columns: minmax(0, 1fr);
+      margin-top: 0;
+      gap: var(--space-3);
+    }
+    .stats > div {
+      gap: var(--space-2);
+    }
+    .stats__caveat {
+      margin-top: var(--space-3);
+      padding-top: var(--space-3);
+    }
+    .numeral {
+      --px: 0.28rem;
+      --gap: 0.07rem;
+    }
+    .apply {
+      gap: var(--space-3);
+    }
+    .apply__row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+    .closing {
+      padding-top: var(--space-7);
+    }
+    /* on a phone the tower stands above the form, over the company field as it comes up */
+    :root:is([data-world="live"], [data-world="still"]) .closing {
+      display: block;
+      padding: 42svh var(--space-3) var(--space-4);
+    }
+    :root:is([data-world="live"], [data-world="still"]) .closing__inner {
+      width: 100%;
+      padding: var(--space-4);
+    }
+    /* no drag area on a phone: a sideways swipe fights the scroll; the sandbox turns by itself */
+    .track__orbit,
+    .track--orbit .beat__note {
+      display: none;
+    }
+    .chapter {
+      padding-top: var(--space-6);
+      padding-bottom: var(--space-4);
+    }
+    /* on a phone the night scrim rises from the bottom, so the copy sits there */
+    .beat--drop,
+    .beat--city {
+      align-content: end;
+    }
+  }
+
+  /* The results: a flight along the row of towers. The large numerals are on the towers
+     (world/skyline.ts), so while the world runs the panel holds only the words: the three statements,
+     the one the flight has reached put forward, and the caveat, always on screen. Without the world
+     the panel keeps its sixteen squares and drawn numbers, in the page flow. */
+  .track--results {
+    height: auto;
+  }
+  .track--results .track__sticky {
+    position: static;
+    display: block;
+    height: auto;
+  }
+  .track--results .track__panel {
+    max-width: 34rem;
+    background: rgb(5 8 22 / 0.9);
+  }
+  .track--results .beat__heading {
+    font-size: var(--step-2);
+  }
+  .track--results .matrix {
+    margin-top: var(--space-4);
+  }
+  .track--results .stats dd,
+  .track--results .stats__caveat {
+    font-size: var(--step-0);
+    line-height: 1.4;
+  }
+  :root[data-js]:not([data-world="off"]) .track--results {
+    height: 520svh;
+  }
+  :root[data-world="still"] .track--results {
+    height: 320svh;
+  }
+  :root[data-js]:not([data-world="off"]) .track--results .track__sticky {
+    position: sticky;
+    display: grid;
+    grid-template-columns: minmax(0, 34rem);
+    grid-template-areas: "panel";
+    align-items: end;
+    height: 100svh;
+    padding: calc(var(--strip-height) + var(--space-4)) var(--gutter) var(--space-6);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .track--results .matrix,
+  :root:is([data-world="live"], [data-world="still"]) .track--results .numeral {
+    display: none;
+  }
+  :root:is([data-world="live"], [data-world="still"]) .track--results .stats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .track--results .stats > div {
+    grid-template-columns: 4.25rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .track--results .stats__n {
+    font-size: var(--step-1);
+  }
+  :root:is([data-world="live"], [data-world="still"]) .track--results .stats__n[data-drawn] .stats__text {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+  .track--results .stats dd {
+    transition: color var(--dur-base) var(--ease-out);
+  }
+  .track--results[data-stat] .stats dd {
+    color: var(--mist-500);
+  }
+  .track--results[data-stat="0"] .stats > div:nth-child(1) dd,
+  .track--results[data-stat="1"] .stats > div:nth-child(2) dd,
+  .track--results[data-stat="2"] .stats > div:nth-child(3) dd {
+    color: var(--mist-50);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .track--results .stats dd {
+      transition: none;
+    }
+  }
+  @media (max-width: 60rem) {
+    :root[data-js]:not([data-world="off"]) .track--results {
+      height: 320svh;
+    }
+    :root[data-js]:not([data-world="off"]) .track--results .track__sticky {
+      grid-template-columns: minmax(0, 1fr);
+      /* room under the panel for the rail's button, which stays above the page */
+      padding: var(--strip-height) var(--space-3) calc(var(--target-min) + var(--space-5));
+    }
+    .track--results .track__panel {
+      max-width: none;
+      margin: 0;
+    }
+    /* a small screen holds the statement the flight has reached; the others stay for screen readers */
+    .track--results[data-stat="0"] .stats > div:not(:nth-child(1)),
+    .track--results[data-stat="1"] .stats > div:not(:nth-child(2)),
+    .track--results[data-stat="2"] .stats > div:not(:nth-child(3)) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .track--results .stats__caveat {
+      margin-top: var(--space-3);
+      padding-top: var(--space-3);
+      font-size: var(--step--1);
+    }
+  }
+
+  /* the rail's names keep clear of whatever the world lights behind them */
+  .rail__link {
+    text-shadow:
+      0 0 0.2rem var(--ink-950),
+      0 0 0.6rem var(--ink-950);
+  }
+
+  /* The first screen: a headline across the whole width, the rest low on the left, and the tear in the
+     cloud deck (world/tear.ts) filling what is left. The deck is bright, so while the visitor is on it
+     everything is in ink; without the world there is no deck, and it all stays white on the night. */
+  .beat--sky {
+    min-height: 100svh;
+    padding-top: calc(var(--strip-height) + clamp(0.75rem, 3vh, 2rem));
+    padding-bottom: clamp(1.5rem, 5vh, 3rem);
+  }
+  .beat--sky .beat__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-6);
+    width: 100%;
+    max-width: none;
+    min-height: calc(100svh - var(--strip-height) - clamp(2.25rem, 8vh, 5rem));
+  }
+  .beat--sky .beat__title {
+    width: fit-content;
+    max-width: none;
+    font-size: clamp(3rem, 7.35vw, 9rem);
+    line-height: 0.94;
+    text-wrap: balance;
+  }
+  .hero__foot {
+    width: min(100%, 33rem);
+  }
+  .hero__foot .beat__lede {
+    margin-top: 0;
+  }
+  .hero__foot .beat__actions {
+    margin-top: var(--space-5);
+  }
+  .hero__foot .beat__note {
+    margin-top: var(--space-4);
+  }
+  /* before the world is up the page is already on the deck, so nothing flashes white on pale */
+  :root[data-js]:not([data-world="off"]) body {
+    background-color: var(--atmo-deck-shade);
+  }
+  :root[data-js]:not([data-world="off"]):not([data-scrolled]) .strip,
+  :root[data-js]:not([data-world="off"]) .beat--sky,
+  :root[data-js]:not([data-world="off"]) .beat--sky .beat__title,
+  :root[data-js]:not([data-world="off"]) .beat--sky .beat__lede,
+  :root[data-js]:not([data-world="off"]) .beat--sky .beat__note {
+    color: var(--ink-950);
+    text-shadow: none;
+  }
+  :root[data-js]:not([data-world="off"]):not([data-scrolled]) .strip :is(a, span) {
+    color: var(--ink-950);
+    text-shadow: none;
+  }
+  :root[data-js]:not([data-world="off"]) .beat--sky .btn--primary,
+  :root[data-js]:not([data-world="off"]):not([data-scrolled]) .strip .btn--primary {
+    background: var(--ink-950);
+    color: var(--mist-50);
+  }
+}

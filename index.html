@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="en" data-experience="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AUTOSP: Verified fixes for what your scanner finds</title>
+    <meta
+      name="description"
+      content="AUTOSP reproduces each finding with a failing test, writes the fix in a sealed sandbox and opens a pull request with the evidence. A person still decides what merges."
+    />
+    <meta name="theme-color" content="#04070f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/cabinet-grotesk-800.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/general-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/general-sans-500.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      // One address, two experiences (src/lib/experience.ts). The page is the calm phone page as written;
+      // it turns cinematic here, before anything is painted, on a wide screen that can draw WebGL. The
+      // hero then waits for its reveal (src/modules/reveal.ts); a CSS failsafe shows it if that never runs.
+      (function () {
+        var root = document.documentElement;
+        if (window.matchMedia('(max-width: 59.99rem)').matches) return;
+        try {
+          var gl = document.createElement('canvas').getContext('webgl2');
+          if (!gl) return;
+          var lose = gl.getExtension('WEBGL_lose_context');
+          if (lose) lose.loseContext();
+        } catch (error) {
+          return;
+        }
+        root.dataset.experience = 'cinematic';
+        document.querySelector('meta[name="theme-color"]').content = '#1b63d8';
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) root.dataset.reveal = 'pending';
+      })();
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="strip">
+      <nav class="strip__inner" aria-label="Primary">
+        <p class="strip__brand">
+          <a class="strip__nexarise" href="https://nexarise-website.vercel.app/">Nexarise</a>
+          <span class="strip__slash" aria-hidden="true">/</span>
+          <a class="strip__product" href="#top">AUTOSP</a>
+        </p>
+        <a class="btn btn--primary btn--small" href="#apply">Apply for the pilot</a>
+      </nav>
+    </header>
+
+    <nav class="rail" aria-label="Steps of the proof" data-rail>
+      <button
+        type="button"
+        class="rail__toggle"
+        aria-expanded="false"
+        aria-controls="rail-list"
+        data-rail-toggle
+      >
+        <span class="rail__current" data-rail-current>The proof</span>
+        <span class="rail__count" data-rail-count></span>
+      </button>
+      <ol class="rail__list" id="rail-list">
+        <li><a class="rail__link" href="#reproduce">Reproduce</a></li>
+        <li><a class="rail__link" href="#sandbox">Sandbox</a></li>
+        <li><a class="rail__link" href="#gates">Gates</a></li>
+        <li><a class="rail__link" href="#merge">Merge</a></li>
+        <li><a class="rail__link" href="#record">Record</a></li>
+        <li><a class="rail__link" href="#results">Results</a></li>
+        <li><a class="rail__link" href="#apply">Pilot</a></li>
+      </ol>
+    </nav>
+
+    <div class="stage" data-world-stage>
+      <canvas class="stage__canvas" data-world-canvas aria-hidden="true"></canvas>
+      <svg class="stage__leader leader" data-leader aria-hidden="true">
+        <path class="leader__line" d="" />
+        <rect class="leader__anchor" width="6" height="6" />
+        <rect class="leader__dot" width="12" height="12" />
+      </svg>
+      <ol class="findings" data-findings aria-label="Open findings in the illustration" hidden></ol>
+      <!-- the check that refused the fix, on its barrier; the panel's status announces it -->
+      <p class="gate-flag" data-gate-flag aria-hidden="true" hidden></p>
+    </div>
+
+    <main id="main" tabindex="-1">
+      <div class="descent" data-descent>
+        <section class="beat beat--sky" id="top" aria-labelledby="sky-title">
+          <div class="beat__text">
+            <h1 class="beat__title" id="sky-title">Verified fixes for what your scanner finds.</h1>
+            <div class="hero__foot">
+              <p class="beat__lede">
+                AUTOSP reproduces each finding with a failing test, writes the fix in a sealed sandbox and
+                opens a pull request with the evidence. A person still decides what merges.
+              </p>
+              <p class="beat__actions">
+                <a class="btn btn--primary" href="#apply">Apply for the free pilot</a>
+              </p>
+              <p class="beat__note">Illustrative scene. The city and its findings are made up.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="descent__gap" aria-hidden="true"></div>
+
+        <section class="beat beat--drop" aria-label="Below the clouds">
+          <div class="beat__text">
+            <p class="beat__statement">
+              Under the clouds is the software you run. Each orange crack is a finding nobody has fixed yet.
+            </p>
+          </div>
+        </section>
+
+        <div class="descent__gap descent__gap--short" aria-hidden="true"></div>
+
+        <section class="beat beat--city" id="backlog" aria-labelledby="city-title">
+          <div class="beat__text">
+            <h2 class="beat__heading" id="city-title">This is the backlog.</h2>
+            <p class="beat__lede">
+              Each crack carries the CWE number of the weakness behind it. The next step lets you pick one and
+              watch it get fixed.
+            </p>
+            <!-- counts the cracks the scanner line passes; shown once the world is running -->
+            <p class="beat__count" data-count hidden>
+              <span aria-hidden="true">
+                <span class="beat__count-num" data-count-num>0</span>
+                <span class="beat__count-label">findings in this scene</span>
+              </span>
+              <span class="visually-hidden" data-count-total></span>
+            </p>
+            <p class="beat__note">Illustrative scene. The city and its findings are made up.</p>
+          </div>
+        </section>
+      </div>
+
+      <section class="track track--pick" id="pick" data-track data-push aria-labelledby="pick-title">
+        <div class="track__sticky">
+          <div class="track__text beat__text">
+            <h2 class="beat__heading" id="pick-title">Pick one to fix.</h2>
+            <p class="beat__lede">The three choices match the categories the published results cover.</p>
+            <fieldset class="picker" data-picker>
+              <legend class="visually-hidden">Finding to follow</legend>
+              <label class="picker__option">
+                <input class="picker__input" type="radio" name="finding" value="CWE-89" checked />
+                <span class="picker__name">SQL injection</span>
+                <span class="picker__cwe">CWE-89</span>
+              </label>
+              <label class="picker__option">
+                <input class="picker__input" type="radio" name="finding" value="CWE-79" />
+                <span class="picker__name">Cross-site scripting</span>
+                <span class="picker__cwe">CWE-79</span>
+              </label>
+              <label class="picker__option">
+                <input class="picker__input" type="radio" name="finding" value="CWE-639" />
+                <span class="picker__name">IDOR</span>
+                <span class="picker__cwe">CWE-639</span>
+              </label>
+            </fieldset>
+          </div>
+
+          <figure class="track__panel" data-diff data-avoid aria-labelledby="diff-file">
+            <figcaption class="panel__head">
+              <span class="panel__file" id="diff-file" data-diff-file>app/repositories/invoices.py</span>
+              <span class="panel__tag">Proposed fix</span>
+            </figcaption>
+            <p class="panel__text" data-diff-problem>
+              The invoice id goes straight into the SQL string, so a crafted id can rewrite the query.
+            </p>
+            <pre
+              class="panel__code"
+              data-diff-code
+            ><code><span class="code-line"> def find_invoice(cur, invoice_id):</span>
+<span class="code-line code-line--del">-    cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</span>
+<span class="code-line code-line--add">+    cur.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))</span>
+<span class="code-line">     return cur.fetchone()</span></code></pre>
+            <p class="panel__note">Illustrative example.</p>
+            <p class="tape__fp">Fingerprint <code data-tape-fp="0">----</code></p>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        class="track track--short"
+        id="reproduce"
+        data-track
+        data-reproduce
+        aria-labelledby="repro-title"
+        style="--reveal: 0.04"
+      >
+        <div class="track__sticky">
+          <div class="track__text beat__text">
+            <h2 class="beat__heading" id="repro-title">It has to fail first.</h2>
+            <p class="beat__lede">
+              Before any fix is written, AUTOSP writes a test that exploits the finding and runs it against
+              your code as it is. If the bug can’t be reproduced, no patch is written.
+            </p>
+            <p class="beat__actions">
+              <button type="button" class="btn btn--quiet" data-rerun>Run the test again</button>
+            </p>
+          </div>
+
+          <figure class="track__panel" data-run data-avoid aria-labelledby="run-file">
+            <figcaption class="panel__head">
+              <span class="panel__file" id="run-file" data-run-file>tests/test_invoices.py</span>
+              <span class="panel__tag" data-run-status data-state="failed" aria-live="polite"
+                >Fails on your code</span
+              >
+            </figcaption>
+            <pre
+              class="panel__code"
+              data-run-test
+            ><code><span class="code-line">def test_invoice_id_cannot_change_the_query(db):</span>
+<span class="code-line">    row = find_invoice(db.cursor(), "1' OR '1'='1")</span>
+<span class="code-line">    assert row is None</span></code></pre>
+            <pre
+              class="panel__code run"
+              data-run-output
+            ><code><span class="code-line code-line--cmd">$ pytest tests/test_invoices.py -q</span>
+<span class="code-line code-line--fail">F</span>
+<span class="code-line code-line--fail">FAILED tests/test_invoices.py::test_invoice_id_cannot_change_the_query</span>
+<span class="code-line">&gt;       assert row is None</span>
+<span class="code-line code-line--fail">E       AssertionError: assert (1, 'ACME Ltd', 1200.0) is None</span>
+<span class="code-line code-line--fail">1 failed in 0.21s</span></code></pre>
+            <p class="panel__note">Illustrative example. The same test later proves the fix.</p>
+            <p class="tape__fp">Fingerprint <code data-tape-fp="1">----</code></p>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        class="track track--orbit"
+        id="sandbox"
+        data-track
+        data-sandbox
+        aria-labelledby="sandbox-title"
+        style="--reveal: 0.08"
+      >
+        <div class="track__sticky">
+          <div class="track__text beat__text">
+            <h2 class="beat__heading" id="sandbox-title">Written where it can’t reach anything.</h2>
+            <p class="beat__lede">
+              A second agent writes the smallest fix it can, inside a throwaway container with no internet, a
+              read-only file system and hard time limits. The container is gone when the job ends.
+            </p>
+            <p class="beat__note">Drag the sandbox to turn it, or focus it and use the arrow keys.</p>
+          </div>
+
+          <div
+            class="track__orbit"
+            data-orbit
+            tabindex="0"
+            role="slider"
+            aria-label="Turn the sandbox"
+            aria-valuemin="-180"
+            aria-valuemax="180"
+            aria-valuenow="0"
+            aria-valuetext="Facing the front"
+          ></div>
+
+          <figure class="track__panel" data-avoid aria-labelledby="sandbox-job">
+            <figcaption class="panel__head">
+              <span class="panel__label" id="sandbox-job">Job sbx-7f3a</span>
+              <span class="panel__tag">Isolated</span>
+            </figcaption>
+            <dl class="manifest">
+              <div>
+                <dt>Container</dt>
+                <dd>Throwaway</dd>
+              </div>
+              <div>
+                <dt>Network</dt>
+                <dd>None</dd>
+              </div>
+              <div>
+                <dt>File system</dt>
+                <dd>Read-only</dd>
+              </div>
+              <div>
+                <dt>User</dt>
+                <dd>Non-root</dd>
+              </div>
+              <div>
+                <dt>Time limit</dt>
+                <dd>Hard</dd>
+              </div>
+            </dl>
+            <ol class="steps" data-sandbox-steps aria-live="polite">
+              <li data-step="write" data-state="done">
+                <span>Writing the fix in <span data-sandbox-file>app/repositories/invoices.py</span></span>
+              </li>
+              <li data-step="written" data-state="done">
+                <span>Patch written: <span data-sandbox-count>1 line removed, 1 added</span></span>
+              </li>
+              <li data-step="next" data-state="done">Not verified yet. The gates come next.</li>
+            </ol>
+            <p class="panel__note">Illustrative example.</p>
+            <p class="tape__fp">Fingerprint <code data-tape-fp="2">----</code></p>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        class="track"
+        id="gates"
+        data-track
+        data-gates
+        aria-labelledby="gates-title"
+        style="--reveal: 0.06"
+      >
+        <div class="track__sticky">
+          <div class="track__text beat__text">
+            <h2 class="beat__heading" id="gates-title">Any one of three checks can send it back.</h2>
+            <p class="beat__lede">
+              The reproduction test has to pass now, your existing suite has to pass, and a fresh static scan
+              has to come back clear. The agents can’t reach these checks. A fix that fails one goes back to
+              the sandbox.
+            </p>
+            <fieldset class="picker" data-choice>
+              <legend class="picker__legend">Which fix goes through</legend>
+              <label class="picker__option">
+                <input class="picker__input" type="radio" name="choice" value="sandbox" checked />
+                <span class="picker__name">The fix from the sandbox</span>
+              </label>
+              <label class="picker__option">
+                <input class="picker__input" type="radio" name="choice" value="careless" />
+                <span class="picker__name">A careless fix</span>
+              </label>
+            </fieldset>
+          </div>
+
+          <figure class="track__panel" data-avoid aria-labelledby="gates-file">
+            <figcaption class="panel__head">
+              <span class="panel__file" id="gates-file" data-gates-file>app/repositories/invoices.py</span>
+              <span class="panel__tag" data-gates-status data-state="cleared" aria-live="polite"
+                >Passed every check</span
+              >
+            </figcaption>
+            <pre
+              class="panel__code"
+              data-gates-diff
+            ><code><span class="code-line code-line--del">-    cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</span>
+<span class="code-line code-line--add">+    cur.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))</span></code></pre>
+            <ol class="gates" data-gates-list data-cleared>
+              <li data-state="passed">
+                <span class="gates__name">Reproduction test passes</span
+                ><span class="gates__detail">1 passed</span>
+              </li>
+              <li data-state="passed">
+                <span class="gates__name">Existing test suite passes</span
+                ><span class="gates__detail">214 passed</span>
+              </li>
+              <li data-state="passed">
+                <span class="gates__name">Static scan is clear</span
+                ><span class="gates__detail">0 findings</span>
+              </li>
+            </ol>
+            <p class="panel__note">Illustrative example.</p>
+            <p class="tape__fp">Fingerprint <code data-tape-fp="3">----</code></p>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        class="track track--short"
+        id="merge"
+        data-track
+        data-merge
+        aria-labelledby="merge-title"
+        style="--reveal: 0.06"
+      >
+        <div class="track__sticky">
+          <div class="track__text beat__text">
+            <h2 class="beat__heading" id="merge-title"><span>Every merge is made by a person.</span></h2>
+            <p class="beat__lede">
+              <span
+                >AUTOSP opens a pull request with the evidence and stops there. Your reviewers approve and
+                merge under your own branch protection, and the GitHub App can’t change or bypass it.</span
+              >
+            </p>
+            <p class="beat__note" data-merge-careless hidden>
+              <span
+                >The careless fix never became a pull request. This is the sandbox’s fix, which passed all
+                three checks.</span
+              >
+            </p>
+            <div class="hold" data-hold-area>
+              <button type="button" class="hold__button" data-hold aria-describedby="hold-hint">
+                <span class="hold__label">Hold to approve and merge</span>
+                <span class="hold__fill" aria-hidden="true"
+                  ><span class="hold__label">Hold to approve and merge</span></span
+                >
+              </button>
+              <p class="hold__hint" id="hold-hint">
+                Press and hold for a moment. Letting go early cancels it.
+              </p>
+            </div>
+            <p class="visually-hidden" role="status" data-hold-status></p>
+            <div class="merged" data-merged-note hidden>
+              <p class="beat__lede"><span>Merged. You made the call, and the test stays.</span></p>
+              <p class="beat__actions">
+                <a class="btn btn--primary" href="#apply">Apply for the free pilot</a>
+                <button type="button" class="btn btn--quiet" data-unmerge>Undo the demo merge</button>
+              </p>
+            </div>
+          </div>
+
+          <figure class="track__panel" data-avoid aria-labelledby="pr-title">
+            <figcaption class="panel__head">
+              <span class="panel__file" data-pr-number>Pull request #412</span>
+              <span class="panel__tag" data-pr-status data-state="hold">Waiting for a person</span>
+            </figcaption>
+            <p class="pr__title" id="pr-title" data-pr-title>Fix SQL injection in find_invoice</p>
+            <p class="pr__branch"><code data-pr-branch>autosp/fix-cwe-89</code> into <code>main</code></p>
+            <dl class="manifest">
+              <div>
+                <dt>Reproduction test</dt>
+                <dd>Failed before, passes now</dd>
+              </div>
+              <div>
+                <dt>Existing suite</dt>
+                <dd data-pr-suite>214 passed</dd>
+              </div>
+              <div>
+                <dt>Static scan</dt>
+                <dd>Clear</dd>
+              </div>
+              <div>
+                <dt>Regression test</dt>
+                <dd>Offered in a second pull request</dd>
+              </div>
+              <div>
+                <dt>Review</dt>
+                <dd data-pr-review>1 approving review required</dd>
+              </div>
+            </dl>
+            <p class="panel__note">Illustrative example.</p>
+            <p class="tape__fp">Fingerprint <code data-tape-fp="4">----</code></p>
+          </figure>
+        </div>
+      </section>
+
+      <div class="outro" data-outro>
+        <section class="chapter" id="record" data-record aria-labelledby="record-title">
+          <div class="chapter__text beat__text">
+            <h2 class="beat__heading" id="record-title">A record you can’t quietly change.</h2>
+            <p class="beat__lede">
+              Every step of your fix was written to an append-only log, and each entry carries the fingerprint
+              of the one before it. Edit any entry and every fingerprint after it stops matching.
+            </p>
+            <p class="beat__note">Your auditor gets an evidence pack for each assessment.</p>
+          </div>
+          <div class="chapter__panel track__panel" data-avoid>
+            <ol class="record" aria-label="The record of this fix, a chain of five entries">
+              <li class="record__block" data-record-row data-state="matches">
+                <div class="record__box">
+                  <label class="record__step" for="record-1"
+                    ><span class="visually-hidden">Entry </span>1</label
+                  >
+                  <textarea
+                    class="record__input"
+                    id="record-1"
+                    spellcheck="false"
+                    autocomplete="off"
+                    rows="1"
+                  >
+Reported: CWE-89 in app/repositories/invoices.py</textarea>
+                  <button
+                    type="button"
+                    class="record__fp"
+                    data-record-fp
+                    aria-label="Fingerprint of entry 1: d84ab5e4ca8fe5840de48f4f74ed3ceccb311abeb18949aebdb8e41eb1f4ac11"
+                  >
+                    <span data-record-short>d84a</span>
+                    <span class="record__tip" aria-hidden="true"
+                      ><span data-record-half>d84ab5e4ca8fe5840de48f4f74ed3cec</span
+                      ><span data-record-half>cb311abeb18949aebdb8e41eb1f4ac11</span></span
+                    >
+                  </button>
+                  <span class="record__status" data-record-status></span>
+                </div>
+              </li>
+              <li class="record__block" data-record-row data-state="matches">
+                <span class="record__link" data-state="matches" aria-hidden="true"
+                  ><span class="record__carry" data-record-carry>d84a</span></span
+                >
+                <div class="record__box">
+                  <label class="record__step" for="record-2"
+                    ><span class="visually-hidden">Entry </span>2</label
+                  >
+                  <textarea
+                    class="record__input"
+                    id="record-2"
+                    spellcheck="false"
+                    autocomplete="off"
+                    rows="1"
+                  >
+Reproduced: test_invoice_id_cannot_change_the_query failed</textarea>
+                  <button
+                    type="button"
+                    class="record__fp"
+                    data-record-fp
+                    aria-label="Fingerprint of entry 2: fead3b3a5eced2cd326382e3800b5b8fc1ece4d5ac7d9b64e93eeab444d823f0"
+                  >
+                    <span data-record-short>fead</span>
+                    <span class="record__tip" aria-hidden="true"
+                      ><span data-record-half>fead3b3a5eced2cd326382e3800b5b8f</span
+                      ><span data-record-half>c1ece4d5ac7d9b64e93eeab444d823f0</span></span
+                    >
+                  </button>
+                  <span class="record__status" data-record-status></span>
+                </div>
+              </li>
+              <li class="record__block" data-record-row data-state="matches">
+                <span class="record__link" data-state="matches" aria-hidden="true"
+                  ><span class="record__carry" data-record-carry>fead</span></span
+                >
+                <div class="record__box">
+                  <label class="record__step" for="record-3"
+                    ><span class="visually-hidden">Entry </span>3</label
+                  >
+                  <textarea
+                    class="record__input"
+                    id="record-3"
+                    spellcheck="false"
+                    autocomplete="off"
+                    rows="1"
+                  >
+Patched in sandbox sbx-7f3a: 1 line removed, 1 added</textarea>
+                  <button
+                    type="button"
+                    class="record__fp"
+                    data-record-fp
+                    aria-label="Fingerprint of entry 3: 9e267cd2a625451e62887a4ecadd1dfd755d72774268f02d5df8ad05244a1765"
+                  >
+                    <span data-record-short>9e26</span>
+                    <span class="record__tip" aria-hidden="true"
+                      ><span data-record-half>9e267cd2a625451e62887a4ecadd1dfd</span
+                      ><span data-record-half>755d72774268f02d5df8ad05244a1765</span></span
+                    >
+                  </button>
+                  <span class="record__status" data-record-status></span>
+                </div>
+              </li>
+              <li class="record__block" data-record-row data-state="matches">
+                <span class="record__link" data-state="matches" aria-hidden="true"
+                  ><span class="record__carry" data-record-carry>9e26</span></span
+                >
+                <div class="record__box">
+                  <label class="record__step" for="record-4"
+                    ><span class="visually-hidden">Entry </span>4</label
+                  >
+                  <textarea
+                    class="record__input"
+                    id="record-4"
+                    spellcheck="false"
+                    autocomplete="off"
+                    rows="1"
+                  >
+Verified: all three gates passed</textarea>
+                  <button
+                    type="button"
+                    class="record__fp"
+                    data-record-fp
+                    aria-label="Fingerprint of entry 4: c16297b38bb8adb8402e32409b9fd46bc03caeafcea9cf734a4a6f17a1b4e59f"
+                  >
+                    <span data-record-short>c162</span>
+                    <span class="record__tip" aria-hidden="true"
+                      ><span data-record-half>c16297b38bb8adb8402e32409b9fd46b</span
+                      ><span data-record-half>c03caeafcea9cf734a4a6f17a1b4e59f</span></span
+                    >
+                  </button>
+                  <span class="record__status" data-record-status></span>
+                </div>
+              </li>
+              <li class="record__block" data-record-row data-state="pending">
+                <span class="record__link" data-state="matches" aria-hidden="true"
+                  ><span class="record__carry" data-record-carry>c162</span></span
+                >
+                <div class="record__box">
+                  <label class="record__step" for="record-5"
+                    ><span class="visually-hidden">Entry </span>5</label
+                  >
+                  <textarea
+                    class="record__input"
+                    id="record-5"
+                    spellcheck="false"
+                    autocomplete="off"
+                    rows="1"
+                    disabled
+                  >
+Waiting for a person to merge</textarea>
+                  <button
+                    type="button"
+                    class="record__fp"
+                    data-record-fp
+                    aria-label="Entry 5 has no fingerprint yet"
+                    disabled
+                  >
+                    <span data-record-short>----</span>
+                    <span class="record__tip" aria-hidden="true"
+                      ><span data-record-half></span><span data-record-half></span
+                    ></span>
+                  </button>
+                  <span class="record__status" data-record-status></span>
+                </div>
+              </li>
+            </ol>
+            <p class="record__foot">
+              <button type="button" class="btn btn--quiet btn--small" data-record-tamper>
+                Rewrite entry 2
+              </button>
+              <button type="button" class="btn btn--quiet btn--small" data-record-restore disabled>
+                Restore the record
+              </button>
+              <span class="record__live" data-record-live aria-live="polite"></span>
+            </p>
+            <p class="panel__note">
+              Illustrative example. The fingerprints are real SHA-256, computed in your browser.
+            </p>
+          </div>
+        </section>
+
+        <section class="track track--results" id="results" aria-labelledby="results-title">
+          <div class="track__sticky">
+            <div class="track__panel" data-avoid>
+              <h2 class="beat__heading" id="results-title">Early results, on test applications.</h2>
+              <div
+                class="matrix"
+                role="img"
+                aria-label="16 runs: 14 ended with a verified fix, 2 were closed as inconclusive"
+              >
+                <span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="fixed"></span
+                ><span class="matrix__dot" data-kind="held"></span
+                ><span class="matrix__dot" data-kind="held"></span>
+              </div>
+              <dl class="stats">
+                <div>
+                  <dt class="stats__n" data-numeral="14" data-of="16" data-kind="fixed">
+                    <span class="stats__text"
+                      ><span class="stats__fixed">14</span><span class="stats__of">/16</span></span
+                    >
+                  </dt>
+                  <dd>runs ended with a verified fix (SQL injection, XSS, IDOR and a dependency upgrade).</dd>
+                </div>
+                <div>
+                  <dt class="stats__n" data-numeral="2" data-of="2" data-kind="held">
+                    <span class="stats__text"
+                      ><span class="stats__held">2</span><span class="stats__of">/2</span></span
+                    >
+                  </dt>
+                  <dd>misses were closed as inconclusive, with no patch written.</dd>
+                </div>
+                <div>
+                  <dt class="stats__n" data-numeral="0" data-kind="none">
+                    <span class="stats__text">0</span>
+                  </dt>
+                  <dd>merges made by AUTOSP. Every merge is made by a person.</dd>
+                </div>
+              </dl>
+              <p class="stats__caveat">
+                Test applications and a development model, not customer code. A small sample from our 15
+                October 2026 baseline: an early signal, not a benchmark.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="closing" id="apply" aria-labelledby="apply-title">
+        <div class="closing__inner">
+          <div class="closing__text">
+            <h2 class="beat__heading" id="apply-title">
+              For teams with a scanner backlog and no AppSec hire.
+            </h2>
+            <p class="beat__lede">
+              Engineering teams of 20 to 150 running a scanner on GitHub-hosted Python services. The pilot is
+              free.
+            </p>
+            <p class="beat__note">Nothing touches your code until you’ve signed a scope agreement.</p>
+          </div>
+
+          <form
+            class="apply"
+            data-apply
+            action="mailto:nexarise.office@gmail.com?subject=AUTOSP%20free%20pilot"
+            method="post"
+            enctype="text/plain"
+          >
+            <div class="apply__row">
+              <label class="apply__field">
+                <span class="apply__label">Your name</span>
+                <input class="apply__input" name="name" type="text" autocomplete="name" required />
+              </label>
+              <label class="apply__field">
+                <span class="apply__label">Company</span>
+                <input
+                  class="apply__input"
+                  name="company"
+                  type="text"
+                  autocomplete="organization"
+                  aria-describedby="company-note"
+                  required
+                />
+              </label>
+            </div>
+            <p class="apply__illustrative" id="company-note">
+              Illustrative: the tower shows what you type here. Nothing has been scanned.
+            </p>
+            <div class="apply__row">
+              <label class="apply__field">
+                <span class="apply__label">Engineering team size</span>
+                <select class="apply__input" name="team" required>
+                  <option value="">Choose one</option>
+                  <option>Under 20</option>
+                  <option>20 to 150</option>
+                  <option>Over 150</option>
+                </select>
+              </label>
+              <label class="apply__field">
+                <span class="apply__label">Python services on GitHub</span>
+                <input
+                  class="apply__input"
+                  name="services"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="For example, 12"
+                />
+              </label>
+            </div>
+            <fieldset class="apply__scanners">
+              <legend class="apply__label">Scanners you run</legend>
+              <label class="apply__check"
+                ><input type="checkbox" name="scanner" value="Semgrep" /> Semgrep</label
+              >
+              <label class="apply__check"
+                ><input type="checkbox" name="scanner" value="CodeQL" /> CodeQL</label
+              >
+              <label class="apply__check"
+                ><input type="checkbox" name="scanner" value="Snyk Code" /> Snyk Code</label
+              >
+              <label class="apply__check"
+                ><input type="checkbox" name="scanner" value="osv-scanner" /> osv-scanner</label
+              >
+            </fieldset>
+            <label class="apply__field">
+              <span class="apply__label">Anything we should know (optional)</span>
+              <textarea class="apply__input" name="note" rows="2"></textarea>
+            </label>
+            <p class="apply__actions">
+              <button type="submit" class="btn btn--primary">Apply for the free pilot</button>
+              <span class="apply__how"
+                >Opens an email to nexarise.office@gmail.com with your answers filled in.</span
+              >
+            </p>
+            <p class="apply__status" data-apply-status aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p><a href="https://nexarise-website.vercel.app/">Nexarise</a> / AUTOSP</p>
+      <p>Every scene on this page is illustrative.</p>
+    </footer>
+
+    <div class="calm" data-calm>
+      <a class="calm__skip" href="#calm-main">Skip to content</a>
+      <div class="calm__sky" aria-hidden="true">
+        <div class="calm__plates" data-calm-plates>
+          <i class="sky sky--night"></i>
+          <i class="sky sky--predawn" data-sky-predawn></i>
+          <i class="sky sky--dawn" data-sky-dawn></i>
+        </div>
+        <i class="calm__sun" data-calm-sun></i>
+      </div>
+      <div class="calm__mist" aria-hidden="true" data-calm-mist>
+        <div class="mist mist--back">
+          <i class="mist__tone mist__tone--night"></i>
+          <i class="mist__tone mist__tone--dawn" data-mist-dawn></i>
+        </div>
+        <div class="mist mist--front">
+          <i class="mist__tone mist__tone--night"></i>
+          <i class="mist__tone mist__tone--dawn" data-mist-dawn></i>
+        </div>
+      </div>
+
+      <header class="calm__head">
+        <p><a href="https://nexarise-website.vercel.app/">Nexarise</a> / <strong>AUTOSP</strong></p>
+        <a href="#pilot">Apply for the pilot</a>
+      </header>
+
+      <main class="calm__main" id="calm-main" tabindex="-1">
+        <section class="calm-hero">
+          <h1 data-words>Verified fixes for what your scanner finds.</h1>
+          <div class="calm-hero__foot">
+            <p>
+              AUTOSP reproduces each finding with a failing test, writes the fix in a sealed sandbox and opens
+              a pull request with the evidence. A person still decides what merges.
+            </p>
+            <a class="calm-button" href="#pilot">Apply for the free pilot</a>
+          </div>
+        </section>
+
+        <section class="calm-step calm-step--fail">
+          <h2 data-rise data-words>It has to fail first.</h2>
+          <div class="calm-step__text">
+            <p data-rise>
+              Before any fix is written, AUTOSP writes a test that exploits the finding and runs it against
+              your code as it is. If the bug can’t be reproduced, no patch is written.
+            </p>
+            <p class="calm-state" data-state="open" data-rise><i></i>Fails on your code</p>
+          </div>
+        </section>
+
+        <section class="calm-step calm-step--sealed">
+          <h2 data-rise data-words>Written where it can’t reach anything.</h2>
+          <div class="calm-sealed" data-rise>
+            <p>
+              A second agent writes the smallest fix it can, inside a throwaway container with no internet, a
+              read-only file system and hard time limits. The container is gone when the job ends.
+            </p>
+          </div>
+        </section>
+
+        <section class="calm-step calm-step--gates">
+          <h2 data-rise data-words>Any one of three checks can send it back.</h2>
+          <ul class="calm-gates">
+            <li data-rise><i></i>The reproduction test has to pass now,</li>
+            <li data-rise><i></i>your existing suite has to pass,</li>
+            <li data-rise><i></i>and a fresh static scan has to come back clear.</li>
+          </ul>
+          <div class="calm-step__text">
+            <p data-rise>
+              The agents can’t reach these checks. A fix that fails one goes back to the sandbox.
+            </p>
+            <p class="calm-state" data-state="sealed" data-rise><i></i>Passed every check</p>
+          </div>
+        </section>
+
+        <section class="calm-step calm-step--person">
+          <p class="calm-state calm-state--large" data-state="hold" data-rise><i></i>Waiting for a person</p>
+          <h2 data-rise data-words>Every merge is made by a person.</h2>
+          <div class="calm-step__text">
+            <p data-rise>
+              AUTOSP opens a pull request with the evidence and stops there. Your reviewers approve and merge
+              under your own branch protection, and the GitHub App can’t change or bypass it.
+            </p>
+          </div>
+        </section>
+
+        <section class="calm-step calm-step--record">
+          <h2 data-rise data-words>A record you can’t quietly change.</h2>
+          <div class="calm-chain" aria-hidden="true" data-rise>
+            <code>d84a</code><code>fead</code><code>9e26</code><code>c162</code>
+          </div>
+          <div class="calm-step__text">
+            <p data-rise>
+              Every step of your fix was written to an append-only log, and each entry carries the fingerprint
+              of the one before it. Edit any entry and every fingerprint after it stops matching.
+            </p>
+            <p data-rise>Your auditor gets an evidence pack for each assessment.</p>
+          </div>
+        </section>
+
+        <section class="calm-results" data-calm-results>
+          <h2 data-rise data-words>Early results, on test applications.</h2>
+          <dl>
+            <div class="calm-results__lead" data-rise>
+              <dt>14<small>/16</small></dt>
+              <dd>runs ended with a verified fix (SQL injection, XSS, IDOR and a dependency upgrade).</dd>
+            </div>
+          </dl>
+          <div
+            class="calm-matrix"
+            role="img"
+            aria-label="Sixteen runs: fourteen ended with a verified fix, two were closed as inconclusive."
+            data-rise
+          >
+            <i data-kind="fixed"></i><i data-kind="fixed"></i><i data-kind="fixed"></i
+            ><i data-kind="fixed"></i><i data-kind="fixed"></i><i data-kind="fixed"></i
+            ><i data-kind="fixed"></i><i data-kind="fixed"></i><i data-kind="fixed"></i
+            ><i data-kind="fixed"></i><i data-kind="fixed"></i><i data-kind="fixed"></i
+            ><i data-kind="fixed"></i><i data-kind="fixed"></i><i data-kind="held"></i
+            ><i data-kind="held"></i>
+          </div>
+          <dl>
+            <div data-rise>
+              <dt>2<small>/2</small></dt>
+              <dd>misses were closed as inconclusive, with no patch written.</dd>
+            </div>
+            <div data-rise>
+              <dt>0</dt>
+              <dd>merges made by AUTOSP. Every merge is made by a person.</dd>
+            </div>
+          </dl>
+          <p class="calm-results__caveat" data-rise>
+            Test applications and a development model, not customer code. A small sample from our 15 October
+            2026 baseline: an early signal, not a benchmark.
+          </p>
+        </section>
+
+        <div class="calm-rest" aria-hidden="true"></div>
+
+        <section class="calm-pilot" id="pilot" tabindex="-1" data-calm-pilot aria-labelledby="pilot-title">
+          <h2 id="pilot-title" data-rise data-words>For teams with a scanner backlog and no AppSec hire.</h2>
+          <p data-rise>
+            Engineering teams of 20 to 150 running a scanner on GitHub-hosted Python services. The pilot is
+            free.
+          </p>
+          <p data-rise>Nothing touches your code until you’ve signed a scope agreement.</p>
+          <form
+            class="calm-form"
+            data-calm-apply
+            action="mailto:nexarise.office@gmail.com?subject=AUTOSP%20free%20pilot"
+            method="post"
+            enctype="text/plain"
+          >
+            <label
+              ><span>Your name</span><input name="name" type="text" autocomplete="name" required
+            /></label>
+            <label
+              ><span>Company</span><input name="company" type="text" autocomplete="organization" required
+            /></label>
+            <label>
+              <span>Engineering team size</span>
+              <select name="team" required>
+                <option value="">Choose one</option>
+                <option>Under 20</option>
+                <option>20 to 150</option>
+                <option>Over 150</option>
+              </select>
+            </label>
+            <label
+              ><span>Python services on GitHub</span
+              ><input name="services" type="text" inputmode="numeric" placeholder="For example, 12"
+            /></label>
+            <fieldset>
+              <legend>Scanners you run</legend>
+              <label class="calm-check"
+                ><input type="checkbox" name="scanner" value="Semgrep" /> Semgrep</label
+              >
+              <label class="calm-check"><input type="checkbox" name="scanner" value="CodeQL" /> CodeQL</label>
+              <label class="calm-check"
+                ><input type="checkbox" name="scanner" value="Snyk Code" /> Snyk Code</label
+              >
+              <label class="calm-check"
+                ><input type="checkbox" name="scanner" value="osv-scanner" /> osv-scanner</label
+              >
+            </fieldset>
+            <label
+              ><span>Anything we should know (optional)</span><textarea name="note" rows="3"></textarea>
+            </label>
+            <button class="calm-button" type="submit">Apply for the free pilot</button>
+            <p class="calm-form__how">
+              Opens an email to nexarise.office@gmail.com with your answers filled in.
+            </p>
+            <p class="calm-form__how" data-apply-status aria-live="polite"></p>
+          </form>
+        </section>
+      </main>
+
+      <footer class="calm-foot">
+        <p class="calm-foot__name">AUTOSP</p>
+        <p><a href="https://nexarise-website.vercel.app/">Nexarise</a> / AUTOSP</p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,174 @@
+/* World tokens: the single source of colour, type, spacing and motion for the AUTOSP world.
+   CSS reads these as custom properties; the WebGL scene reads the same properties through
+   src/world/palette.ts, so a colour changed here changes the page and the scene together.
+
+   Meaning is fixed. Ink and mist are the night ground and its text. The three signals carry state
+   and are never used as decoration: open is a finding nobody has fixed, hold is a result that
+   needs a person, sealed is a fix that passed every check. */
+@layer reset, tokens, base, components, utilities, notes, light;
+
+@layer tokens {
+  @font-face {
+    font-family: "Cabinet Grotesk";
+    src: url("/fonts/cabinet-grotesk-800.woff2") format("woff2");
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "General Sans";
+    src: url("/fonts/general-sans-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "General Sans";
+    src: url("/fonts/general-sans-500.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "JetBrains Mono";
+    src: url("/fonts/jetbrains-mono-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    color-scheme: dark;
+
+    /* Ink: the night ground, from page background to raised surface */
+    --ink-950: #050816;
+    --ink-900: #0a1030;
+    --ink-800: #111a47;
+    --ink-700: #1d2b6b;
+
+    /* Mist: text and light surfaces. Contrast on ink-950: 50 = 18.5:1, 300 = 12.1:1, 500 = 7.7:1 */
+    --mist-50: #f3f6ff;
+    --mist-300: #bdc9ea;
+    --mist-500: #8fa0cf;
+
+    /* Signals. They carry state; see the note at the top of this file. */
+    --signal-open: #ff6a2b; /* a finding nobody has fixed */
+    --signal-hold: #ffb931; /* inconclusive, needs a person */
+    --signal-sealed: #c8f245; /* a fix that passed every check */
+
+    /* World materials: what the city is built from */
+    --world-body: #0b1232; /* building walls */
+    --world-edge: #1d2b6b; /* lit vertical edges of a wall */
+    --world-ground: #070c24; /* streets and lots */
+    --world-pixel-dim: #1a2760; /* a window that is off */
+    --world-pixel-lit: #dce6ff; /* a window that is on */
+
+    /* The city: New York at night, built from brick, stone and glass. Every material is muted and
+       every light is cool white or pale cream, so the three signals stay the only saturated
+       colours in the scene. No yellow cabs and no red or amber traffic lights, for the same reason. */
+    --city-brick: #4b2c27; /* walk-ups and pre-war blocks */
+    --city-stone: #6c665c; /* limestone mid-rises */
+    --city-deco: #857d70; /* stepped towers */
+    --city-glass: #18243a; /* curtain-wall towers, before the sky they reflect */
+    --city-trim: #57524a; /* cornices, parapets, water tanks */
+    --city-roof: #1b2030;
+    --city-window-dark: #0f1626; /* a window with the light off */
+    --city-window-cool: #dbe5ff; /* office and LED light */
+    --city-window-warm: #eee6d2; /* a lamp in a flat: pale cream, never amber */
+    --street-asphalt: #0f1424;
+    --street-sidewalk: #262b3a;
+    --street-paint: #b7bfd4; /* lane lines and crosswalks */
+    --street-light: #e6edff; /* LED streetlights */
+    --car-headlight: #f2f6ff;
+    --car-taillight: #7c2630; /* deliberately dim: a red lamp, not an open finding */
+    --car-paint-a: #15171c;
+    --car-paint-b: #bfc3ca;
+    --car-paint-c: #2f3949;
+    --car-paint-d: #5d6168;
+    --car-paint-e: #1c2740;
+    --city-tree-a: #1c3a33; /* street trees: dark, so they never compete with the lime of a sealed fix */
+    --city-tree-b: #24443c;
+    --city-tree-bark: #2a2622;
+    --person-a: #2b2f38;
+    --person-b: #5b5f68;
+    --person-c: #8a8e96;
+
+    /* Atmosphere: the stops the scene blends between as the visitor descends, and at the end rises.
+       Day matches the Nexarise sky (white text on day-zenith is 5.5:1). */
+    --atmo-day-zenith: #1b63d8;
+    --atmo-day-horizon: #bcd5fb;
+    --atmo-day-cloud-lit: #ffffff;
+    --atmo-day-cloud-shade: #9fb9ea;
+    --atmo-dusk-zenith: #26357f;
+    --atmo-dusk-horizon: #f08d62;
+    --atmo-dusk-cloud-lit: #ffb690;
+    --atmo-dusk-cloud-shade: #5e4f96;
+    --atmo-dusk-glow: #ff9a5c;
+    --atmo-night-zenith: #040716;
+    --atmo-night-horizon: #101c4a;
+    --atmo-night-cloud-lit: #2c428f;
+    --atmo-night-cloud-shade: #0d1642;
+    /* The cloud deck of the first screen (world/tear.ts), in the Nexarise sky: its blue, sampled from
+       the live site, showing through thin cloud; ink on that blue is above 5:1, and more on cloud */
+    --atmo-deck-sky: #298ce1;
+    --atmo-deck-lit: #ffffff;
+    --atmo-deck-shade: #a9c4ee;
+    /* Dawn: the night lifting at the end of the page, with Nexarise blue back at the horizon */
+    --atmo-dawn-zenith: #12286e;
+    --atmo-dawn-horizon: #4f90ee;
+    --atmo-dawn-cloud-lit: #cfe0ff;
+    --atmo-dawn-cloud-shade: #3f5cab;
+
+    /* Type families: Cabinet Grotesk carries headlines, General Sans everything else, and
+       JetBrains Mono appears only where the content is real code. */
+    --font-display: "Cabinet Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "General Sans", "Helvetica Neue", Arial, sans-serif;
+    --font-code: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    /* Type scale (fluid) */
+    --step--1: clamp(0.82rem, 0.79rem + 0.15vw, 0.9rem);
+    --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+    --step-1: clamp(1.25rem, 1.15rem + 0.5vw, 1.55rem);
+    --step-2: clamp(1.6rem, 1.35rem + 1.2vw, 2.4rem);
+    --step-3: clamp(2.2rem, 1.6rem + 2.8vw, 4rem);
+    --step-4: clamp(2.9rem, 1.7rem + 5.4vw, 7rem);
+
+    --leading-body: 1.55;
+    --leading-display: 0.96;
+    --tracking-display: -0.035em;
+    --measure: 34rem; /* longest line of body copy */
+
+    /* Spacing (8px base) */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 4.5rem;
+
+    /* Layout */
+    --gutter: clamp(1.25rem, 4vw, 3.5rem);
+    --strip-height: 4.5rem; /* the top strip; anchors land this far below the top */
+    --target-min: 2.75rem; /* 44px minimum touch target */
+
+    /* Radius: controls only. The world has no cards. */
+    --radius-control: 0.5rem;
+
+    /* Focus */
+    --focus-width: 2px;
+    --focus-offset: 3px;
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 140ms;
+    --dur-base: 280ms;
+  }
+
+  @media (max-width: 40rem) {
+    :root {
+      --strip-height: 4rem;
+    }
+  }
+}

@@ -1,0 +1,249 @@
+/* The box. Each beat's panel is one component, adapted in plain CSS from Magic UI's Magic Card and Border Beam
+   (MIT, github.com/magicuidesign/magicui): a light on the edge follows the pointer, a soft spotlight follows it
+   inside, and a beam travels round the edge. Here the beam's colour carries the step's state: orange while a
+   test fails or a fix is refused, amber while it waits for a person, lime once it has passed or merged.
+
+   The panels keep the positions, sizes and grounds the cameras were tuned for (world.css). Nothing here reaches
+   outside its own box. The form follows Aceternity's Signup Form: labels above, filled fields, one action. */
+
+@layer notes {
+  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner) {
+    --beam: var(--mist-300);
+    --edge-light: var(--mist-50);
+    position: relative;
+    isolation: isolate;
+    border: 1px solid rgb(189 201 234 / 0.16);
+    border-radius: 14px;
+  }
+  [data-experience="cinematic"]
+    .track__panel:has(.pixel-state:is([data-state="failed"], [data-state="refused"])) {
+    --beam: var(--signal-open);
+    --edge-light: var(--signal-open);
+  }
+  [data-experience="cinematic"] .track__panel:has(.pixel-state[data-state="hold"]) {
+    --beam: var(--signal-hold);
+    --edge-light: var(--signal-hold);
+  }
+  [data-experience="cinematic"] .track__panel:has(.pixel-state[data-state="cleared"]) {
+    --beam: var(--signal-sealed);
+    --edge-light: var(--signal-sealed);
+  }
+
+  /* The light on the edge, where the pointer is */
+  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner)::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    padding: 1px;
+    border-radius: inherit;
+    background: radial-gradient(
+      240px circle at var(--mx, 50%) var(--my, 50%),
+      var(--edge-light),
+      transparent 70%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    opacity: 0;
+    transition: opacity 300ms ease-out;
+    pointer-events: none;
+  }
+  /* And its glow inside the box, behind the words */
+  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(
+      240px circle at var(--mx, 50%) var(--my, 50%),
+      rgb(243 246 255 / 0.05),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 300ms ease-out;
+    pointer-events: none;
+  }
+  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner):hover::before,
+  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner):hover::after {
+    opacity: 1;
+  }
+
+  /* The beam: a short streak running round the edge, shown only through the width of the border */
+  .card-beam {
+    display: none;
+  }
+  [data-experience="cinematic"] .card-beam {
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    display: block;
+    border: 1.5px solid transparent;
+    border-radius: inherit;
+    -webkit-mask:
+      linear-gradient(transparent, transparent) padding-box,
+      linear-gradient(#000, #000) border-box;
+    -webkit-mask-composite: source-in;
+    mask:
+      linear-gradient(transparent, transparent) padding-box intersect,
+      linear-gradient(#000, #000) border-box;
+    pointer-events: none;
+  }
+  [data-experience="cinematic"] .card-beam i {
+    position: absolute;
+    display: block;
+    width: 140px;
+    aspect-ratio: 1;
+    background: linear-gradient(to left, var(--beam), var(--beam) 18%, transparent);
+    offset-path: rect(0 auto auto 0 round 140px);
+    animation: card-beam 7s linear infinite paused;
+  }
+  [data-experience="cinematic"] .card-beam[data-live] i {
+    animation-play-state: running;
+  }
+  @keyframes card-beam {
+    from {
+      offset-distance: 0%;
+    }
+    to {
+      offset-distance: 100%;
+    }
+  }
+  /* the form's beam waits until the visitor is filling it in */
+  [data-experience="cinematic"] .closing__inner:not(:focus-within) .card-beam {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-experience="cinematic"] .card-beam {
+      display: none;
+    }
+    [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner)::before,
+    [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner)::after {
+      transition: none;
+    }
+  }
+
+  /* --- The state, in the pixel letters the towers use; its words stay in the page ------------------------- */
+  [data-experience="cinematic"] .panel__head .panel__tag {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .pixel-state {
+    display: none;
+  }
+  [data-experience="cinematic"] .pixel-state {
+    display: block;
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+    height: 1.25rem;
+    color: var(--mist-50);
+    fill: currentcolor;
+  }
+  [data-experience="cinematic"] .pixel-state:is([data-state="failed"], [data-state="refused"]) {
+    color: var(--signal-open);
+  }
+  [data-experience="cinematic"] .pixel-state[data-state="hold"] {
+    color: var(--signal-hold);
+  }
+  [data-experience="cinematic"] .pixel-state[data-state="cleared"] {
+    color: var(--signal-sealed);
+  }
+
+  /* --- The fingerprint at the foot of each step ------------------------------------------------------------ */
+  .tape__fp {
+    display: none;
+  }
+  [data-experience="cinematic"] .tape__fp {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--space-2);
+    color: var(--mist-300);
+    font-size: 1rem;
+  }
+  [data-experience="cinematic"] .tape__fp code {
+    color: var(--mist-50);
+    font-family: var(--font-code);
+  }
+
+  /* --- The form --------------------------------------------------------------------------------------------- */
+  [data-experience="cinematic"] .apply__label {
+    color: var(--mist-50);
+    font-weight: 500;
+  }
+  [data-experience="cinematic"] .apply__input {
+    border: 0;
+    border-radius: 8px;
+    background: rgb(243 246 255 / 0.08);
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.06);
+    transition:
+      background-color 160ms ease-out,
+      box-shadow 160ms ease-out;
+  }
+  [data-experience="cinematic"] .apply__input:hover {
+    background: rgb(243 246 255 / 0.11);
+  }
+  [data-experience="cinematic"] .apply__input:focus-visible {
+    outline: none;
+    background: rgb(243 246 255 / 0.11);
+    box-shadow:
+      inset 0 0 0 1px var(--mist-300),
+      0 0 0 3px rgb(189 201 234 / 0.22);
+  }
+  [data-experience="cinematic"] .apply__input option {
+    background: var(--ink-900);
+  }
+  [data-experience="cinematic"] .apply__check input {
+    border-radius: 4px;
+    accent-color: var(--mist-50);
+  }
+  /* one action, the full width of the form, with a line of light under it on hover */
+  [data-experience="cinematic"] .apply__actions {
+    display: grid;
+    gap: var(--space-2);
+  }
+  [data-experience="cinematic"] .apply__actions .btn--primary {
+    position: relative;
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 8px;
+  }
+  [data-experience="cinematic"] .apply__actions .btn--primary::after {
+    content: "";
+    position: absolute;
+    inset: auto 12% -1px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--ink-700), transparent);
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+  }
+  [data-experience="cinematic"] .apply__actions .btn--primary:hover::after,
+  [data-experience="cinematic"] .apply__actions .btn--primary:focus-visible::after {
+    opacity: 1;
+  }
+
+  /* a short window: the form keeps all of itself on screen */
+  @media (min-width: 60.01rem) and (max-height: 760px) {
+    [data-experience="cinematic"] .closing__inner {
+      padding-block: var(--space-4);
+    }
+    [data-experience="cinematic"] .apply {
+      gap: var(--space-2);
+    }
+    [data-experience="cinematic"] .apply__actions .btn--primary {
+      min-height: 2.75rem;
+    }
+  }
+}

@@ -1,0 +1,619 @@
+/* The calm phone page (lib/experience.ts): type over one sky, and nothing else. A layer of its own, last
+   in the order. Everything is scoped to .calm, so the cinematic page is untouched by it.
+
+   Colour: the words are light on the night sky and ink once the sun is up, and the empty stretch between
+   is where the sky changes, so no text ever sits on the middle of that change. The signal colours appear
+   only where they mean something: the state a step ends in, and the sixteen runs. */
+
+@layer light {
+  /* --- Which page ------------------------------------------------------------------------------------ */
+  [data-experience="cinematic"] .calm {
+    display: none;
+  }
+  [data-experience="light"] body > :not(.calm, script) {
+    display: none;
+  }
+  [data-experience="light"] {
+    scroll-padding-top: 0;
+  }
+  [data-experience="light"] body {
+    background: #04070f;
+  }
+
+  .calm {
+    --calm-gutter: clamp(1.25rem, 5.5vw, 3rem);
+    --calm-ink: #060a1e;
+    --calm-display: "Cabinet Grotesk", "General Sans", system-ui, sans-serif;
+    position: relative;
+    overflow-x: clip;
+    color: var(--mist-50);
+    font-family: "General Sans", system-ui, sans-serif;
+    font-size: 1.125rem;
+    line-height: 1.55;
+  }
+  .calm h1,
+  .calm h2 {
+    margin: 0;
+    color: inherit;
+    font-family: var(--calm-display);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .calm h2 {
+    font-size: clamp(2.5rem, 10.6vw, 5.25rem);
+    line-height: 1;
+  }
+  .calm p {
+    margin: 0;
+    max-width: 34rem;
+  }
+  .calm a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+  }
+  .calm__skip {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 5;
+    padding: 0.75rem 1rem;
+    background: var(--mist-50);
+    color: var(--calm-ink) !important;
+    transform: translateY(-300%);
+  }
+  .calm__skip:focus-visible {
+    transform: none;
+  }
+  .calm :focus-visible {
+    outline: 2px solid currentcolor;
+    outline-offset: 3px;
+  }
+  .calm__main:focus,
+  .calm-pilot:focus {
+    outline: none;
+  }
+
+  /* --- The sky: three plates of one sky, fixed behind the page, moved only by opacity and transform ---- */
+  .calm__sky {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 0;
+    height: 100lvh;
+    overflow: hidden;
+    background: #04070f;
+  }
+  .calm__sky::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("/sky-grain.png") 0 0 / 64px 64px;
+  }
+  .calm__plates {
+    position: absolute;
+    inset: 0 0 -12%;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  .sky {
+    position: absolute;
+    inset: 0;
+    background-position: 50% 100%;
+    background-size: cover;
+  }
+  .sky--night {
+    background-image: url("/sky-night.webp");
+  }
+  .sky--predawn {
+    background-image: url("/sky-predawn.webp");
+    opacity: 0;
+    will-change: opacity;
+  }
+  .sky--dawn {
+    /* the words on this plate are ink: they stay readable if the picture never arrives */
+    background-color: #9cc8f0;
+    background-image: url("/sky-dawn.webp");
+    opacity: 0;
+    will-change: opacity;
+  }
+  .calm__head,
+  .calm__main,
+  .calm-foot {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* The sun, behind the words: it comes up through the mist in the empty stretch after the results */
+  .calm__sun {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(84vw, 36rem);
+    aspect-ratio: 1;
+    margin-left: min(-34vw, -15rem);
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      #fff8ea 0 62%,
+      rgb(255 236 200 / 0.75) 66%,
+      rgb(255 225 175 / 0.22) 82%,
+      rgb(255 220 170 / 0) 100%
+    );
+    opacity: 0;
+    transform: translate3d(0, 70lvh, 0);
+    will-change: transform, opacity;
+  }
+
+  /* The mist, in front of the words: each thing on the page rises up out of it */
+  .calm__mist {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 2;
+    height: 34lvh;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translate3d(0, 52%, 0);
+    will-change: transform;
+  }
+  .mist {
+    position: absolute;
+    inset: 0 -30%;
+    animation: calm-drift 70s ease-in-out infinite alternate;
+  }
+  .mist--front {
+    animation-duration: 46s;
+    animation-direction: alternate-reverse;
+  }
+  .mist__tone {
+    position: absolute;
+    inset: 0;
+    background-position: 50% 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+  .mist--back .mist__tone--night {
+    background-image: url("/mist-back-night.webp");
+  }
+  .mist--back .mist__tone--dawn {
+    background-image: url("/mist-back-dawn.webp");
+    opacity: 0;
+  }
+  .mist--front .mist__tone--night {
+    background-image: url("/mist-front-night.webp");
+  }
+  .mist--front .mist__tone--dawn {
+    background-image: url("/mist-front-dawn.webp");
+    opacity: 0;
+  }
+  @keyframes calm-drift {
+    from {
+      transform: translate3d(-7%, 0, 0);
+    }
+    to {
+      transform: translate3d(7%, 0, 0);
+    }
+  }
+
+  /* --- The bar: not a bar. The name and one link, on the sky, and it scrolls away ------------------------ */
+  .calm__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem var(--calm-gutter) 0;
+    font-size: 1rem;
+  }
+  .calm__head a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+  .calm__head p a {
+    text-decoration: none;
+  }
+  .calm__head strong {
+    font-weight: 500;
+  }
+
+  /* --- The first screen ----------------------------------------------------------------------------------- */
+  .calm-hero {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: 2rem;
+    min-height: calc(100svh - 3.25rem);
+    padding: 8svh var(--calm-gutter) 21svh;
+  }
+  .calm h1 {
+    max-width: 11ch;
+    font-size: clamp(3.1rem, 14.2vw, 7.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+  .calm-hero__foot {
+    display: grid;
+    justify-items: start;
+    gap: 1.5rem;
+  }
+  .calm-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.25rem;
+    padding: 0 1.75rem;
+    border: 0;
+    border-radius: 2px;
+    background: var(--mist-50);
+    color: var(--calm-ink) !important;
+    font: inherit;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform 180ms ease-out,
+      background-color 180ms ease-out;
+  }
+  .calm-button:active {
+    transform: scale(0.98);
+  }
+
+  /* --- Each step takes its shape from what it says ----------------------------------------------------------- */
+  .calm-step {
+    display: grid;
+    align-content: start;
+    gap: 2.5rem;
+    padding: 24svh var(--calm-gutter) 0;
+  }
+  .calm-step__text {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .calm-state {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+  }
+  .calm-state i,
+  .calm-gates i {
+    flex: none;
+    width: 0.8125rem;
+    height: 0.8125rem;
+  }
+  .calm-state[data-state="open"] i {
+    background: var(--signal-open);
+  }
+  .calm-state[data-state="hold"] i {
+    background: var(--signal-hold);
+  }
+  .calm-state[data-state="sealed"] i,
+  .calm-gates i {
+    background: var(--signal-sealed);
+  }
+
+  /* It has to fail first: the plainest statement on the page, set as large as it will go */
+  .calm .calm-step--fail h2 {
+    font-size: clamp(3.75rem, 19.5vw, 10rem);
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    max-width: 7ch;
+  }
+
+  /* The sandbox: the words are shut inside a solid block that runs off the side of the screen */
+  .calm-sealed {
+    margin-right: calc(var(--calm-gutter) * -1);
+    margin-left: clamp(1.5rem, 11vw, 9rem);
+    padding: 2rem var(--calm-gutter) 2.25rem 1.5rem;
+    background: var(--ink-950);
+  }
+
+  /* The checks: three things that must all be true, each said at its own size */
+  .calm-gates {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    font-family: var(--calm-display);
+    font-size: clamp(1.5rem, 6.6vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    list-style: none;
+  }
+  .calm-gates li {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    max-width: 34rem;
+  }
+  .calm-gates i {
+    margin-top: 0.42em;
+  }
+
+  /* A person: what the fix is waiting for comes first, large, in amber's square */
+  .calm-state--large {
+    font-family: var(--calm-display);
+    font-size: clamp(1.375rem, 5.6vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .calm-state--large i {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+  .calm-step--person .calm-step__text {
+    margin-left: clamp(1.5rem, 11vw, 9rem);
+  }
+
+  /* The record: each fingerprint climbs from the one before it */
+  .calm-chain {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
+    max-width: 34rem;
+    height: 8.5rem;
+    color: var(--mist-300);
+    font-family: var(--font-mono, "JetBrains Mono", monospace);
+    font-size: clamp(1.25rem, 5.6vw, 2rem);
+    line-height: 1;
+  }
+  .calm-chain code {
+    font: inherit;
+  }
+  .calm-chain code:nth-child(2) {
+    margin-bottom: 2.25rem;
+  }
+  .calm-chain code:nth-child(3) {
+    margin-bottom: 4.5rem;
+  }
+  .calm-chain code:nth-child(4) {
+    margin-bottom: 6.75rem;
+    color: var(--mist-50);
+  }
+
+  /* --- The results: the number is the picture ------------------------------------------------------------------- */
+  .calm-results {
+    padding: 22svh var(--calm-gutter) 0;
+  }
+  .calm-results dl {
+    display: grid;
+    gap: 2.25rem;
+    margin: 2.25rem 0 0;
+  }
+  .calm-results h2 + dl {
+    margin-top: 3.5rem;
+  }
+  .calm-results dl > div {
+    display: grid;
+    grid-template-columns: 5.25rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 1rem;
+  }
+  .calm-results dt {
+    font-family: var(--calm-display);
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .calm-results dt small {
+    font-size: 0.5em;
+    letter-spacing: 0;
+  }
+  .calm-results dd {
+    max-width: 30rem;
+    margin: 0;
+  }
+  .calm-results dl > div.calm-results__lead {
+    display: block;
+  }
+  .calm-results .calm-results__lead dt {
+    font-size: clamp(7.5rem, 37vw, 18rem);
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+  }
+  .calm-results .calm-results__lead dt small {
+    font-size: 0.34em;
+    letter-spacing: -0.02em;
+  }
+  .calm-results .calm-results__lead dd {
+    margin-top: 1.25rem;
+  }
+  .calm-matrix {
+    display: grid;
+    margin-top: 2.25rem;
+    grid-template-columns: repeat(8, minmax(0, 1.75rem));
+    gap: 0.375rem;
+  }
+  .calm-matrix i {
+    aspect-ratio: 1;
+    background: var(--signal-sealed);
+  }
+  .calm-matrix i[data-kind="held"] {
+    background: var(--signal-hold);
+  }
+  .calm .calm-results__caveat {
+    margin-top: 3rem;
+  }
+
+  /* --- The sun comes up: the one stretch with nothing in it -------------------------------------------------------- */
+  .calm-rest {
+    height: 170svh;
+  }
+
+  /* --- The pilot, in daylight ---------------------------------------------------------------------------------------- */
+  .calm-pilot,
+  .calm-foot {
+    color: var(--calm-ink);
+  }
+  .calm-pilot {
+    display: grid;
+    gap: 1.25rem;
+    padding: 0 var(--calm-gutter);
+    scroll-margin-top: 3rem;
+  }
+  .calm-pilot h2 {
+    margin-bottom: 1rem;
+  }
+  .calm-form {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 34rem;
+    margin-top: 2.5rem;
+    color-scheme: light;
+  }
+  .calm-form label > span,
+  .calm-form legend {
+    display: block;
+    margin-bottom: 0.5rem;
+    padding: 0;
+    font-weight: 500;
+  }
+  .calm-form :is(input:not([type="checkbox"]), select, textarea) {
+    display: block;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.75rem 0.875rem;
+    border: 0;
+    border-radius: 2px;
+    background: rgb(255 255 255 / 0.82);
+    color: var(--calm-ink);
+    font: inherit;
+    font-size: 1.0625rem;
+  }
+  .calm-form textarea {
+    resize: vertical;
+  }
+  .calm-form ::placeholder {
+    color: #47536f;
+    opacity: 1;
+  }
+  .calm-form fieldset {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 1rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .calm-form legend {
+    grid-column: 1 / -1;
+  }
+  .calm-check {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 2.75rem;
+  }
+  .calm-check input {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    accent-color: var(--calm-ink);
+  }
+  .calm-form .calm-button {
+    width: 100%;
+    background: var(--calm-ink);
+    color: var(--mist-50) !important;
+  }
+  .calm-form__how {
+    font-size: 1rem;
+  }
+  .calm-form__how:empty {
+    display: none;
+  }
+
+  /* --- The close: the name, at the full width of the screen ------------------------------------------------------------ */
+  .calm-foot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    margin-top: 20svh;
+    padding: 0 var(--calm-gutter) calc(1.75rem + env(safe-area-inset-bottom));
+  }
+  .calm .calm-foot__name {
+    max-width: none;
+    margin-left: -0.04em;
+    font-family: var(--calm-display);
+    font-size: 26vw;
+    white-space: nowrap;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 0.85;
+  }
+  .calm-foot a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  /* --- Without script: no fading sky, so the daylight part brings its own --------------------------------------------- */
+  .calm:not([data-calm-live]) .calm-rest {
+    height: 20svh;
+  }
+  .calm:not([data-calm-live]) :is(.calm__mist, .calm__sun) {
+    display: none;
+  }
+  .calm:not([data-calm-live]) :is(.calm-pilot, .calm-foot) {
+    margin-top: 0;
+    padding-top: 4rem;
+    background: #bcd8f2;
+  }
+
+  /* --- Motion: each part rises in, once ---------------------------------------------------------------------------------- */
+  .calm [data-waiting] {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  .calm [data-waiting][data-risen] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 900ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1100ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* headings rise a word at a time, each from under its own edge */
+  .calm .word {
+    display: inline-block;
+    margin-bottom: -0.12em;
+    padding-bottom: 0.12em;
+    overflow: clip;
+    vertical-align: top;
+  }
+  .calm .word > span {
+    display: inline-block;
+  }
+  .calm [data-words][data-waiting] {
+    opacity: 1;
+    transform: none;
+  }
+  .calm [data-waiting] .word > span {
+    transform: translateY(112%);
+  }
+  .calm [data-waiting][data-risen] .word > span {
+    transform: none;
+    transition: transform 1000ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i) * 55ms);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .calm-button,
+    .calm [data-waiting][data-risen] {
+      transition: none;
+    }
+    .mist {
+      animation: none;
+    }
+    .calm-button:active {
+      transform: none;
+    }
+  }
+
+  /* --- A wide screen that can't draw WebGL: the same page, kept to a comfortable size ------------------------------------- */
+  @media (min-width: 60rem) {
+    .calm {
+      --calm-gutter: max(3rem, calc((100vw - 76rem) / 2));
+    }
+    .calm .calm-foot__name {
+      font-size: clamp(8rem, 25vw, 22rem);
+    }
+  }
+}
