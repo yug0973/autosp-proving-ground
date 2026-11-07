@@ -58,7 +58,8 @@ TARGETS = """() => {
   const seen = new Set();
   for (const el of document.querySelectorAll('.calm a[href], .calm button, .calm input, .calm select, .calm textarea')) {
     const box = el.closest('label') ?? el;
-    if (seen.has(box) || el.matches('.calm__skip')) continue;
+    // the skip link appears on focus; a control that is not displayed at all (the form's bot trap) is no target
+    if (seen.has(box) || el.matches('.calm__skip') || box.getClientRects().length === 0) continue;
     seen.add(box);
     const r = box.getBoundingClientRect();
     if (r.height < 43.5 || r.width < 43.5) small.push(`${el.tagName} ${(el.textContent || el.name).trim().slice(0, 20)} ${r.width.toFixed(0)}x${r.height.toFixed(0)}`);
@@ -167,7 +168,7 @@ def main() -> int:
         # --- the page itself, on a phone -------------------------------------------------------------
         ctx, page, errors, asked = open_page(**PHONE)
         hero = page.evaluate("(() => { const b = document.querySelector('.calm-hero .calm-button').getBoundingClientRect(); return { title: document.querySelector('.calm h1').textContent, bottom: b.bottom, h: innerHeight }; })()")
-        check('the first screen has the title', hero['title'] == 'Verified fixes for what your scanner finds.', hero['title'])
+        check('the first screen has the title', hero['title'] == 'Verified fixes for the findings your scanner keeps reporting.', hero['title'])
         check('and the action', hero['bottom'] <= hero['h'], str(hero))
         clear = page.evaluate("(() => { const b = document.querySelector('.calm-hero .calm-button').getBoundingClientRect(); const m = document.querySelector('.calm__mist').getBoundingClientRect(); return b.bottom <= m.top + m.height * 0.3; })()")
         check('with the mist still low beneath it', clear)
@@ -247,16 +248,26 @@ def main() -> int:
         check('and lands on it, with focus', abs(s['top'] - 48) < 4 and s['focus'] == 'pilot', str(s))
         form = 'document.querySelector("[data-calm-apply]")'
         check('an empty form does not send', not page.evaluate(f'{form}.checkValidity()'))
-        check('the mailto is there', page.evaluate(f'{form}.getAttribute("action")').startswith('mailto:nexarise.office@gmail.com'))
+        check('the mailto is there for readers without script', page.evaluate(f'{form}.getAttribute("action")').startswith('mailto:nexarise.office@gmail.com'))
+        sent = []
+        page.route('https://api.web3forms.com/submit', lambda route, request: (sent.append(request.post_data or ''), route.fulfill(
+            status=200, content_type='application/json', body='{"success":true}')))
         page.fill('.calm-form input[name=name]', 'Pat')
+        page.fill('.calm-form input[name=email]', 'pat@initech.example')
         page.fill('.calm-form input[name=company]', 'Initech')
         page.select_option('.calm-form select[name=team]', '20 to 150')
         page.locator('.calm-check', has_text='Semgrep').tap()
+        mode = page.evaluate(f'{form}.dataset.send')
         page.locator('.calm-form button[type=submit]').tap()
-        page.wait_for_timeout(250)
-        mail = page.evaluate(f'{form}.dataset.mailto ?? ""')
-        check('the form composes its email', 'Initech' in mail and 'Semgrep' in mail and '20%20to%20150' in mail, mail[:90])
-        check('and says what happened', 'email app' in page.evaluate("document.querySelector('[data-calm-apply] [data-apply-status]').textContent"))
+        page.wait_for_timeout(600)
+        if mode == 'direct':
+            body = sent[0] if sent else ''
+            check('the form sends straight to the inbox', 'Initech' in body and 'Semgrep' in body and 'pat@initech.example' in body, body[:90])
+            check('and says it was sent', page.is_visible('.calm-pilot .apply__done'))
+        else:
+            mail = page.evaluate(f'{form}.dataset.mailto ?? ""')
+            check('without a key, the form composes its email', 'Initech' in mail and 'Semgrep' in mail and '20%20to%20150' in mail, mail[:90])
+            check('and says what happened', 'email app' in page.evaluate("document.querySelector('[data-calm-apply] [data-apply-status]').textContent"))
         if args.shots:
             page.screenshot(path=f'{args.shots}/calm-form.png', timeout=180000)
         ctx.close()

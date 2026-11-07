@@ -89,18 +89,24 @@
       <div class="descent" data-descent>
         <section class="beat beat--sky" id="top" aria-labelledby="sky-title">
           <div class="beat__text">
-            <h1 class="beat__title" id="sky-title">Verified fixes for what your scanner finds.</h1>
+            <h1 class="beat__title" id="sky-title">
+              Verified fixes for the findings your scanner keeps reporting.
+            </h1>
             <div class="hero__foot">
               <p class="beat__lede">
-                AUTOSP reproduces each finding with a failing test, writes the fix in a sealed sandbox and
-                opens a pull request with the evidence. A person still decides what merges.
+                AUTOSP, the Autonomous Security Platform, reproduces each finding, patches it in an isolated
+                sandbox, and opens a pull request a person approves.
               </p>
               <p class="beat__actions">
                 <a class="btn btn--primary" href="#apply">Apply for the free pilot</a>
+                <a class="btn btn--quiet" href="#backlog"
+                  >See how it works <span aria-hidden="true">↓</span></a
+                >
               </p>
               <p class="beat__note">Illustrative scene. The city and its findings are made up.</p>
             </div>
           </div>
+          <div class="hero__cue" aria-hidden="true"><span>Scroll</span><i></i></div>
         </section>
 
         <div class="descent__gap" aria-hidden="true"></div>
@@ -622,7 +628,7 @@ Waiting for a person to merge</textarea>
           </div>
         </section>
 
-        <section class="track track--results" id="results" aria-labelledby="results-title">
+        <section class="track track--results" id="results" data-signed aria-labelledby="results-title">
           <div class="track__sticky">
             <div class="track__panel" data-avoid>
               <h2 class="beat__heading" id="results-title">Early results, on test applications.</h2>
@@ -701,51 +707,36 @@ Waiting for a person to merge</textarea>
             method="post"
             enctype="text/plain"
           >
-            <div class="apply__progress" aria-hidden="true"><i data-step-progress></i></div>
-            <p class="apply__step-label" data-step-label aria-live="polite"></p>
-
-            <fieldset class="apply__step" data-form-step="You" data-current>
-              <legend class="visually-hidden">You</legend>
-              <div class="apply__row">
-                <label class="apply__field">
-                  <span class="apply__label">Your name</span>
-                  <input class="apply__input" name="name" type="text" autocomplete="name" required />
-                </label>
-                <label class="apply__field">
-                  <span class="apply__label">Company</span>
-                  <input
-                    class="apply__input"
-                    name="company"
-                    type="text"
-                    autocomplete="organization"
-                    aria-describedby="company-note"
-                    required
-                  />
-                </label>
-              </div>
-              <p class="apply__illustrative" id="company-note">
-                Illustrative: the tower shows what you type here. Nothing has been scanned.
-              </p>
-            </fieldset>
-
-            <fieldset class="apply__step" data-form-step="Your team">
-              <legend class="visually-hidden">Your team</legend>
-              <div class="apply__field">
-                <span class="apply__label" id="team-label">Engineering team size</span>
-                <div class="apply__tiles" role="radiogroup" aria-labelledby="team-label">
-                  <label class="apply__tile"
-                    ><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label
-                  >
-                  <label class="apply__tile"
-                    ><input type="radio" name="team" value="20 to 150" required /><span
-                      >20 to 150</span
-                    ></label
-                  >
-                  <label class="apply__tile"
-                    ><input type="radio" name="team" value="Over 150" required /><span>Over 150</span></label
-                  >
-                </div>
-              </div>
+            <div class="apply__row">
+              <label class="apply__field">
+                <span class="apply__label">Your name</span>
+                <input class="apply__input" name="name" type="text" autocomplete="name" required />
+              </label>
+              <label class="apply__field">
+                <span class="apply__label">Work email</span>
+                <input
+                  class="apply__input"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  inputmode="email"
+                  spellcheck="false"
+                  required
+                />
+              </label>
+            </div>
+            <div class="apply__row">
+              <label class="apply__field">
+                <span class="apply__label">Company</span>
+                <input
+                  class="apply__input"
+                  name="company"
+                  type="text"
+                  autocomplete="organization"
+                  aria-describedby="company-note"
+                  required
+                />
+              </label>
               <label class="apply__field">
                 <span class="apply__label">Python services on GitHub</span>
                 <input
@@ -753,15 +744,35 @@ Waiting for a person to merge</textarea>
                   name="services"
                   type="text"
                   inputmode="numeric"
+                  pattern="[0-9]*"
                   placeholder="For example, 12"
                 />
               </label>
+            </div>
+            <p class="apply__illustrative" id="company-note">
+              Illustrative: the tower shows what you type here. Nothing has been scanned.
+            </p>
+
+            <fieldset class="apply__field apply__choice">
+              <legend class="apply__label">Engineering team size</legend>
+              <div class="apply__tiles">
+                <label class="apply__tile"
+                  ><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label
+                >
+                <label class="apply__tile"
+                  ><input type="radio" name="team" value="20 to 150" /><span>20 to 150</span></label
+                >
+                <label class="apply__tile"
+                  ><input type="radio" name="team" value="Over 150" /><span>Over 150</span></label
+                >
+              </div>
             </fieldset>
 
-            <fieldset class="apply__step" data-form-step="Scanners">
-              <legend class="visually-hidden">Scanners</legend>
-              <div class="apply__scanners" role="group" aria-labelledby="scanner-label">
-                <span class="apply__label" id="scanner-label">Scanners you run</span>
+            <fieldset class="apply__field apply__choice">
+              <legend class="apply__label">
+                Scanners you run <span class="apply__hint">Choose any</span>
+              </legend>
+              <div class="apply__chips">
                 <label class="apply__check"
                   ><input type="checkbox" name="scanner" value="Semgrep" /> Semgrep</label
                 >
@@ -775,26 +786,33 @@ Waiting for a person to merge</textarea>
                   ><input type="checkbox" name="scanner" value="osv-scanner" /> osv-scanner</label
                 >
               </div>
-              <label class="apply__field">
-                <span class="apply__label">Anything we should know (optional)</span>
-                <textarea class="apply__input" name="note" rows="2"></textarea>
-              </label>
             </fieldset>
 
-            <fieldset class="apply__step" data-form-step="Check and send">
-              <legend class="visually-hidden">Check and send</legend>
-              <dl class="apply__summary" data-step-summary></dl>
-            </fieldset>
+            <label class="apply__field">
+              <span class="apply__label"
+                >Anything we should know <span class="apply__hint">Optional</span></span
+              >
+              <textarea class="apply__input" name="note" rows="1"></textarea>
+            </label>
+            <!-- left empty by people, filled in by bots: a submission with it ticked is dropped -->
+            <input
+              class="apply__trap"
+              type="checkbox"
+              name="botcheck"
+              tabindex="-1"
+              autocomplete="off"
+              aria-hidden="true"
+            />
 
             <p class="apply__actions">
-              <button type="button" class="btn btn--quiet" data-step-back hidden>Back</button>
-              <button type="button" class="btn btn--primary" data-step-next hidden>Next</button>
-              <button type="submit" class="btn btn--primary">Apply for the free pilot</button>
-              <span class="apply__how"
+              <button type="submit" class="btn btn--primary apply__send" data-apply-send>
+                Apply for the free pilot
+              </button>
+              <span class="apply__how" data-apply-how
                 >Opens an email to nexarise.office@gmail.com with your answers filled in.</span
               >
             </p>
-            <p class="apply__status" data-apply-status aria-live="polite"></p>
+            <p class="apply__status" data-apply-status role="status"></p>
           </form>
         </div>
       </section>
@@ -833,11 +851,11 @@ Waiting for a person to merge</textarea>
 
       <main class="calm__main" id="calm-main" tabindex="-1">
         <section class="calm-hero">
-          <h1 data-words>Verified fixes for what your scanner finds.</h1>
+          <h1 data-words>Verified fixes for the findings your scanner keeps reporting.</h1>
           <div class="calm-hero__foot">
             <p>
-              AUTOSP reproduces each finding with a failing test, writes the fix in a sealed sandbox and opens
-              a pull request with the evidence. A person still decides what merges.
+              AUTOSP, the Autonomous Security Platform, reproduces each finding, patches it in an isolated
+              sandbox, and opens a pull request a person approves.
             </p>
             <a class="calm-button" href="#pilot">Apply for the free pilot</a>
           </div>
@@ -961,6 +979,16 @@ Waiting for a person to merge</textarea>
               ><span>Your name</span><input name="name" type="text" autocomplete="name" required
             /></label>
             <label
+              ><span>Work email</span
+              ><input
+                name="email"
+                type="email"
+                autocomplete="email"
+                inputmode="email"
+                spellcheck="false"
+                required
+            /></label>
+            <label
               ><span>Company</span><input name="company" type="text" autocomplete="organization" required
             /></label>
             <label>
@@ -974,7 +1002,12 @@ Waiting for a person to merge</textarea>
             </label>
             <label
               ><span>Python services on GitHub</span
-              ><input name="services" type="text" inputmode="numeric" placeholder="For example, 12"
+              ><input
+                name="services"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                placeholder="For example, 12"
             /></label>
             <fieldset>
               <legend>Scanners you run</legend>
@@ -992,8 +1025,16 @@ Waiting for a person to merge</textarea>
             <label
               ><span>Anything we should know (optional)</span><textarea name="note" rows="3"></textarea>
             </label>
-            <button class="calm-button" type="submit">Apply for the free pilot</button>
-            <p class="calm-form__how">
+            <input
+              class="apply__trap"
+              type="checkbox"
+              name="botcheck"
+              tabindex="-1"
+              autocomplete="off"
+              aria-hidden="true"
+            />
+            <button class="calm-button" type="submit" data-apply-send>Apply for the free pilot</button>
+            <p class="calm-form__how" data-apply-how>
               Opens an email to nexarise.office@gmail.com with your answers filled in.
             </p>
             <p class="calm-form__how" data-apply-status aria-live="polite"></p>

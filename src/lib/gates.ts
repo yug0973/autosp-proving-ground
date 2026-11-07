@@ -104,6 +104,21 @@ export const CHECK_SPANS = [
   [0.64, 0.88],
 ] as const;
 
+/**
+ * The fix's flight through the gates in the sky (world/gates.ts): where along its path each barrier
+ * stands (0 is the sandbox's roof, 1 past the last barrier), and where the climb off the roof ends.
+ */
+export const GATE_AT = [0.32, 0.56, 0.8] as const;
+export const RISE_END = 0.12;
+/** The gates come into play this far before their section reaches the top (negative progress), as the
+ * camera comes round behind the fix. */
+export const GATES_FROM = -0.35;
+
+/** Smooth from `a` to `b` over [x0, x1] of `x`: the fix slows into each barrier and away from it. */
+function stretch(x: number, x0: number, x1: number, a: number, b: number): number {
+  return a + (b - a) * smoothstep(x0, x1, x);
+}
+
 export interface GateMoment {
   /** How far each check has got, 0 (not started) to 1 (reported). A check after a refusal never runs. */
   checks: readonly [number, number, number];
@@ -116,6 +131,44 @@ export interface GateMoment {
   /** The section's scroll progress, negative while it is still coming up the screen. The camera
    * moves to the building over ranges of this (shots.ts). */
   at: number;
+  /** How far the fix has flown along its path, 0 (the sandbox's roof) to 1 (past the last barrier). It
+   * reaches each barrier just as that check reports, and a refused fix flies back to the roof. */
+  travel: number;
+  /** The camera: how far it has come round behind the fix (0 to 1), then out to the side to see the
+   * barriers it has been through. */
+  chase: number;
+  side: number;
+}
+
+/** Where the fix is at progress `p`: off the roof, then to each barrier as its check reports. */
+function flight(p: number, refusedAt: GateIndex | null): number {
+  const points: Array<[number, number]> = [
+    // the climb off the roof is the tallest move of the beat: it gets a long stretch of scroll, so the
+    // camera riding behind the fix climbs no faster than the scroll
+    [0.0, 0],
+    [0.26, RISE_END],
+  ];
+  CHECK_SPANS.forEach(([, end], i) => {
+    const at = GATE_AT[i] ?? 1;
+    // a refused fix stops at the barrier that refuses it, a little short of it
+    points.push([end, refusedAt !== null && i === refusedAt ? at - 0.03 : at]);
+  });
+  points.push([0.96, 1]);
+  let travel = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    const [x0, a] = points[i - 1] ?? [0, 0];
+    const [x1, b] = points[i] ?? [1, 1];
+    if (refusedAt !== null && i - 2 > refusedAt) break;
+    if (p >= x0) travel = stretch(p, x0, x1, a, b);
+  }
+  if (refusedAt === null) return travel;
+  // sent back: after the strike it flies home to the sandbox's roof
+  const struck = CHECK_SPANS[refusedAt][1];
+  return travel * (1 - smoothstep(struck + 0.04, struck + 0.3, p));
+}
+
+function ramp(a: number, b: number, x: number): number {
+  return Math.min(Math.max((x - a) / (b - a), 0), 1);
 }
 
 function smoothstep(a: number, b: number, x: number): number {
@@ -139,8 +192,26 @@ export function gateMoment(g: number, refusedAt: GateIndex | null, still: boolea
     number,
   ];
   const done = (i: number): boolean => (checks[i] ?? 0) >= 1;
+  // the camera comes round behind the fix as the section arrives, and out to the side once it is
+  // through (or, for a refused fix, to watch it go back)
+  // Both are plain ramps over long stretches of scroll, eased once by the camera (shots.ts): a short
+  // stretch, or a second ease on top, would swing the camera faster than the scroll that drives it
+  const chase = still ? (g > 0.12 ? 1 : 0) : ramp(GATES_FROM, 0.1, g);
+  const outFrom = refusedAt === null ? 0.8 : CHECK_SPANS[refusedAt][1] + 0.02;
+  // out to the side by the end of the section, so it is done before the merge's camera begins
+  const side = still ? (g > 0.12 ? 1 : 0) : ramp(outFrom, Math.max(outFrom + 0.16, 1), g);
+  const travel = still ? (g > 0.12 ? (refusedAt === null ? 1 : 0) : 0) : flight(g, refusedAt);
   if (refusedAt === null) {
-    return { checks, passed: [0, 1, 2].filter(done).length, refused: false, cleared: done(2), at };
+    return {
+      checks,
+      passed: [0, 1, 2].filter(done).length,
+      refused: false,
+      cleared: done(2),
+      at,
+      travel,
+      chase,
+      side,
+    };
   }
   return {
     checks,
@@ -148,5 +219,8 @@ export function gateMoment(g: number, refusedAt: GateIndex | null, still: boolea
     refused: done(refusedAt),
     cleared: false,
     at,
+    travel,
+    chase,
+    side,
   };
 }

@@ -17,7 +17,6 @@ import { initReveal } from './reveal';
 import { initHandoff } from './handoff';
 import { initTracks } from './tracks';
 import { initAnnotations } from './annotations';
-import { initStepper } from './stepper';
 import { initRolling } from './rolling';
 
 export function initCinematic(): () => void {
@@ -36,7 +35,7 @@ export function initCinematic(): () => void {
   start('#results', initNumerals);
   start('[data-rail]', initRail);
   const form = document.querySelector<HTMLFormElement>('[data-apply]');
-  if (form) cleanups.push(initApply(form), initStepper(form));
+  if (form) cleanups.push(initApply(form));
   cleanups.push(initReveal(), initHandoff());
   // three.js is most of the page's script, so the world loads as its own chunk and the text
   // paints without waiting for it

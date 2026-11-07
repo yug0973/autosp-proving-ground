@@ -24,7 +24,16 @@ from playwright.sync_api import sync_playwright
 GPU = ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu', '--headless=new']
 # where the beats' cameras are, as shares of the page's scroll: the end of the descent, the pick,
 # the failing test, the sandbox, the gates seen from the side, and the merge
-POSES = [('backlog', 0.19), ('pick', 0.29), ('test', 0.42), ('sandbox', 0.52), ('gates', 0.71), ('merge', 0.80)]
+# each beat's pose, as a share of its own section's height from the section's top: the moments these
+# were chosen at, kept wherever the page around them grows or shrinks
+POSES = [
+    ('backlog', ('#backlog', -0.06)),
+    ('pick', ('#pick', 0.317)),
+    ('test', ('#reproduce', 0.391)),
+    ('sandbox', ('#sandbox', 0.208)),
+    ('gates', ('#gates', 0.492)),
+    ('merge', ('#merge', 0.131)),
+]
 results = []
 
 
@@ -78,12 +87,12 @@ def settle(page, frames=3):
     )
 
 
-def scroll_share(page, share):
-    # shares of the story up to the results, plus a fixed tail (the form as it was when these poses
-    # were chosen), so the length of what comes after the story has nothing to do with them
+def scroll_share(page, pose):
+    """Scrolls to a pose: a share of a section's height, from its top."""
+    selector, share = pose
     page.evaluate(
-        f"""(() => {{ const top = document.querySelector('#results').getBoundingClientRect().top + scrollY;
-           scrollTo(0, (top + 700) * {share}); }})()"""
+        f"""(() => {{ const s = document.querySelector('{selector}');
+           scrollTo(0, s.getBoundingClientRect().top + scrollY + s.offsetHeight * {share}); }})()"""
     )
     page.wait_for_timeout(1500)  # the camera glides to a new building; let it arrive
     settle(page, 6)
@@ -259,7 +268,7 @@ def main() -> int:
 
         # 4. colour
         ctx, page, errors = open_page('&dof=off')
-        scroll_share(page, 0.52)
+        scroll_share(page, dict(POSES)['sandbox'])
         expected = {
             'neutral': lambda c: max(c) - min(c) < 0.25 * max(c) and max(c) > 150,
             'sealed': lambda c: c[1] > c[0] * 1.15 and c[1] > c[2] * 1.8,

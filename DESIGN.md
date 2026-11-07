@@ -309,9 +309,18 @@ Decisions made while polishing the streets (world upgrade, after Phase 8):
 
 ### 6.8c The checks, the form and the small motions
 
-- **The three checks run on the building itself, not through gates.** The owner found a box flying through three gates useless: it showed nothing of what each check does. Now the sandbox's walls lift away, and on the patched building the reproduction test fires the exploit at it again (the crack flashes, the patch holds), the existing suite runs a lime wave through the block's windows, and the static scan sweeps the backlog's scanner line over it. A refused fix comes off: the patch lifts, the crack burns orange again, and the refusing check's flag hangs over the building. Each finding's careless fix is refused by its own check.
-- **The form goes one step at a time,** after React Bits' Stepper (MIT + Commons Clause): You, Your team, Scanners, Check and send, with a progress bar that glides. Team size is three large choices, scanners are chips, the last step shows what will be sent. Without script it is one plain form.
+- **The checks fly through three barriers in the sky,** timed to the checks in the box: each barrier turns lime as its check passes or strikes orange when it refuses, and a refused fix flies back to the sandbox. (An earlier version ran the checks on the building itself; on 7 November the owner chose this one.)
+- **The form is one page** with a work email, team-size tiles and scanner chips, sent through Web3Forms (`modules/apply.ts`), falling back to the visitor's mail app. (An earlier step-by-step version was replaced on 7 November.)
 - **Counters and fingerprints,** after React Bits' Counter and Decrypted Text: the results' 14 and 2 roll up like an odometer as the box arrives, and a rewritten record entry decrypts each later fingerprint into its new value. The real text stays in the page; neither moves with reduced motion.
+
+### 6.8d Upgrade, Phase 1 (7 November, PLAN.md)
+
+- **The first screen:** "Verified fixes for the findings your scanner keeps reporting." on two lines, and a sub-line that expands the name ("AUTOSP, the Autonomous Security Platform, …"); no eyebrow. Two ways in: "Apply for the free pilot" and "See how it works ↓". A scroll cue leaves as soon as the visitor scrolls.
+- **The scanner sweep** is a thinner, softer beam with a faint trail behind it, so it reads as a scan, not a glitch.
+- **Words over the city** stand on a tight scrim sized to each block of text and moving with it (no blur, nothing across the city). Light text is #c9d3ee; the smallest hints are 14 px. Every chapter's words measure at least 5:1 down the whole page.
+- **One chapter at a time:** a chapter's words and box fade out over the last few per cent of its scroll; the results' box waits for its section and leaves before the form. `tests/panels.py` fails if two boxes are ever on screen together.
+- **The rail** stands on a solid square backing, with a fill showing how far the visitor has come; the 3D finding labels keep clear of it.
+- **The fall** below the clouds is about 40 % shorter.
 
 ### 6.9 Two experiences, one URL
 

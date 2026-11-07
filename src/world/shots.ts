@@ -112,14 +112,19 @@ export const SHOTS = {
   },
 
   /** The checks: on the patched building while all three run on it, turning slowly round it. */
+  /** The gates in the sky: riding behind the fix as it pushes through them, then out to the side to
+   * see the barriers it has been through (or, for a refused fix, to watch it fly back). The chase and
+   * the move out follow the gates' own timeline (lib/gates.ts). */
   gates: {
-    /** The camera comes to the building as the section arrives (a range of its progress). */
-    enter: { from: -0.35, to: 0.1, ease: 'sineInOut' } satisfies Span,
-    /** How far it turns round the building over the section, in radians, from one side to the other. */
-    turn: 0.55,
-    /** How much closer than the sandbox's view it stands. */
-    closer: 0.12,
-    focus: { depth: 14, blur: 0.75, tilt: 0 } satisfies Focus,
+    ease: 'sineInOut' as Ease,
+    chase: { back: 15, up: 4.5, ahead: 16, down: 1.5 },
+    side: {
+      wide: { out: 30, back: 44, up: 11, lift: 4 },
+      tall: { out: 34, back: 62, up: 16, lift: -2 },
+      /** The side view looks at this point between the rise and the end of the path. */
+      at: 0.52,
+    },
+    focus: { depth: 12, blur: 0.8, tilt: 0 } satisfies Focus,
   },
 
   /** The merge: back to the sealed building, and once merged, a pull back until it stands alone. */

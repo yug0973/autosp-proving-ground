@@ -251,7 +251,7 @@ def main() -> int:
         worst = min(contrast(c, form['ground']) for c in form['colours'])
         check('its text has at least 4.5:1 contrast', worst >= 4.5, f'{worst:.1f}:1')
         check('an Illustrative label stands with the field', form['note'].startswith('Illustrative') and form['noteShown'], form['note'])
-        check('the field is described by it for screen readers', form['described'] == 'company-note')
+        check('the field is described by it for screen readers', 'company-note' in (form['described'] or '').split(), form['described'])
         check('the mailto is unchanged', form['action'] == 'mailto:nexarise.office@gmail.com?subject=AUTOSP%20free%20pilot', form['action'])
         check('the page does not scroll sideways', not form['sideways'])
         check('no script errors', not errors, '; '.join(errors)[:200])

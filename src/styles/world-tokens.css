@@ -48,7 +48,7 @@
 
     /* Mist: text and light surfaces. Contrast on ink-950: 50 = 18.5:1, 300 = 12.1:1, 500 = 7.7:1 */
     --mist-50: #f3f6ff;
-    --mist-300: #bdc9ea;
+    --mist-300: #c9d3ee;
     --mist-500: #8fa0cf;
 
     /* Signals. They carry state; see the note at the top of this file. */
@@ -126,7 +126,7 @@
     --font-code: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
     /* Type scale (fluid) */
-    --step--1: clamp(0.82rem, 0.79rem + 0.15vw, 0.9rem);
+    --step--1: clamp(0.875rem, 0.84rem + 0.15vw, 0.95rem);
     --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
     --step-1: clamp(1.25rem, 1.15rem + 0.5vw, 1.55rem);
     --step-2: clamp(1.6rem, 1.35rem + 1.2vw, 2.4rem);

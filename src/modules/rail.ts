@@ -39,9 +39,24 @@ export function initRail(rail: HTMLElement): () => void {
     return found;
   };
 
+  /** How far down the rail the visitor has come: whole beats passed, and the share of the one they are in. */
+  const fill = (): number => {
+    const middle = window.innerHeight / 2;
+    const tops = sections.map((section) => section?.getBoundingClientRect().top ?? 0);
+    let at = 0;
+    for (let i = 0; i < tops.length - 1; i += 1) {
+      const top = tops[i] ?? 0;
+      const next = tops[i + 1] ?? 0;
+      if (middle >= next) at = i + 1;
+      else if (middle > top) at = i + (middle - top) / Math.max(next - top, 1);
+    }
+    return Math.min(Math.max(at / Math.max(tops.length - 1, 1), 0), 1);
+  };
+
   const update = (): void => {
     frame = 0;
     rail.toggleAttribute('data-shown', start.getBoundingClientRect().top < window.innerHeight / 2);
+    rail.style.setProperty('--rail-fill', fill().toFixed(3));
     const index = locate();
     if (index === at) return;
     at = index;

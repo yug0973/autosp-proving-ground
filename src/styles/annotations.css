@@ -238,6 +238,36 @@
     opacity: 1;
   }
 
+  /* a wide screen: the words on the left and the form on the right, so the whole application fits in one
+     screen, rather than one narrow column taller than the window */
+  @media (min-width: 70rem) {
+    [data-experience="cinematic"]:is([data-world="live"], [data-world="still"]) .closing__inner {
+      grid-template-columns: minmax(0, 19rem) minmax(0, 34rem);
+      align-items: start;
+      column-gap: var(--space-7);
+      justify-self: start;
+      width: auto;
+      padding: var(--space-6) var(--space-7);
+    }
+    [data-experience="cinematic"]:is([data-world="live"], [data-world="still"]) .closing__text {
+      padding-top: var(--space-1);
+    }
+  }
+
+  /* a laptop-height window: a little less air, so the whole panel still fits under the nav */
+  @media (min-width: 70rem) and (max-height: 800px) {
+    [data-experience="cinematic"]:is([data-world="live"], [data-world="still"]) .closing__inner {
+      padding-block: var(--space-5);
+    }
+    [data-experience="cinematic"] .apply {
+      gap: var(--space-2);
+    }
+    [data-experience="cinematic"] :is(.apply__input, .apply__tile),
+    [data-experience="cinematic"] textarea.apply__input {
+      min-height: 2.75rem;
+    }
+  }
+
   /* a short window: the form keeps all of itself on screen */
   @media (min-width: 60.01rem) and (max-height: 760px) {
     [data-experience="cinematic"] .closing__inner {
@@ -251,68 +281,159 @@
     }
   }
 
-  /* --- The form, one step at a time (modules/stepper.ts, after React Bits' Stepper) -------------------------- */
-  .apply__progress,
-  .apply__step-label {
+  /* --- The gates' panel: a ticker of the three checks, since the checks themselves happen in the world -- */
+  [data-experience="cinematic"] .gates {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    font-size: 0.875rem;
+  }
+  [data-experience="cinematic"] .gates li {
+    align-content: start;
+    padding: var(--space-2) var(--space-3);
+    border-radius: 8px;
+    background: rgb(243 246 255 / 0.04);
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.08);
+    transition:
+      background-color 200ms ease-out,
+      box-shadow 200ms ease-out;
+  }
+  [data-experience="cinematic"] .gates li[data-state="passed"] {
+    background: rgb(243 246 255 / 0.08);
+  }
+  [data-experience="cinematic"] .gates li[data-state="refused"] {
+    box-shadow: inset 0 0 0 1.5px var(--signal-open);
+  }
+  /* the short result runs under the whole cell, marker and all, so "342 passed" never gets cut */
+  [data-experience="cinematic"] .gates__detail {
+    grid-column: 1 / -1;
+    margin-top: var(--space-1);
+    font-size: 0.8125rem;
+  }
+  [data-experience="cinematic"] .gates li::before {
+    grid-row: auto;
+  }
+  /* why a check refused the fix, in full, under the ticker */
+  .gates__reason {
+    margin-top: var(--space-2);
+    color: var(--signal-open);
+    font-family: var(--font-code);
+    font-size: 0.875rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-experience="cinematic"] .gates li {
+      transition: none;
+    }
+  }
+
+  /* --- The record: wide enough that each entry stays on one line, and close enough that the whole chain,
+     its buttons and its note fit one screen at laptop heights ------------------------------------------ */
+  [data-experience="cinematic"] #record.chapter {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr) minmax(0, 38rem);
+  }
+  [data-experience="cinematic"] #record .chapter__panel {
+    max-width: 38rem;
+  }
+  [data-experience="cinematic"] .record__link {
+    height: 1.25rem;
+  }
+  [data-experience="cinematic"] .record__box {
+    padding-block: 0.125rem;
+  }
+  [data-experience="cinematic"] .record__input {
+    min-height: 2.5rem;
+    padding-block: 0.45rem;
+  }
+  [data-experience="cinematic"] .record__fp {
+    min-height: 2.5rem;
+  }
+  [data-experience="cinematic"] .record__foot {
+    margin-top: var(--space-3);
+  }
+  @media (max-height: 760px) {
+    [data-experience="cinematic"] .record__link {
+      height: 0.875rem;
+    }
+    [data-experience="cinematic"] :is(.record__input, .record__fp) {
+      min-height: 2.25rem;
+      padding-block: 0.3rem;
+    }
+    [data-experience="cinematic"] #record .chapter__panel {
+      padding-block: var(--space-3);
+    }
+  }
+
+  /* --- The pilot form: one calm form on its own solid surface (modules/apply.ts) --------------------------- */
+  /* Fields in pairs, a team size that is one tap, scanners as chips. Each field says what is wrong
+     under itself in amber (a person needs to look), and the button shows the send as it happens. */
+  /* the bot trap is no part of the page for people (Web3Forms' own advice: not displayed at all) */
+  .apply__trap {
     display: none;
   }
-  .apply__step {
+  .apply__choice {
     min-width: 0;
     margin: 0;
     padding: 0;
     border: 0;
   }
-  [data-experience="cinematic"] .apply[data-stepping] {
-    --step: 0.25;
+  .apply__choice > legend {
+    margin-bottom: var(--space-2);
+    padding: 0;
   }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__progress {
-    display: block;
-    height: 3px;
-    overflow: hidden;
-    border-radius: 3px;
-    background: rgb(189 201 234 / 0.14);
+  .apply__hint {
+    margin-left: var(--space-2);
+    color: var(--mist-500);
+    font-weight: 400;
   }
-  /* the bar glides to the step it is on */
-  [data-experience="cinematic"] .apply__progress i {
-    display: block;
-    height: 100%;
-    background: var(--mist-50);
-    transform: scaleX(var(--step));
-    transform-origin: left;
-    transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__step-label {
-    display: block;
-    margin-top: calc(var(--space-2) * -1);
-    color: var(--mist-300);
+  [data-experience="cinematic"] .apply__input {
+    min-height: 3rem;
+    padding: 0.7rem 0.9rem;
+    border: 0;
+    border-radius: 8px;
+    background: rgb(243 246 255 / 0.06);
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.14);
+    font: inherit;
     font-size: 1rem;
+    transition:
+      background-color 160ms ease-out,
+      box-shadow 160ms ease-out;
   }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__step {
-    display: grid;
-    gap: var(--space-4);
-    min-height: 13.5rem;
-    align-content: start;
+  /* the note starts as one line and grows with what is typed */
+  [data-experience="cinematic"] textarea.apply__input {
+    min-height: 3rem;
+    max-height: 9rem;
+    field-sizing: content;
+    resize: none;
   }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__step:not([data-current]) {
+  [data-experience="cinematic"] .apply__input:hover {
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.26);
+  }
+  [data-experience="cinematic"] .apply__input:focus-visible {
+    background: rgb(243 246 255 / 0.1);
+    box-shadow: inset 0 0 0 1px var(--mist-50);
+    outline-offset: 3px;
+  }
+  [data-experience="cinematic"] [data-invalid] .apply__input {
+    box-shadow: inset 0 0 0 1.5px var(--signal-hold);
+  }
+  /* what is wrong with a field, under it: a small amber pixel, then the words */
+  .apply__error:empty {
     display: none;
   }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__step[data-current] {
-    animation: step-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  [data-experience="cinematic"] .apply__error:not(:empty) {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    color: var(--signal-hold);
+    font-size: 0.9375rem;
   }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__step[data-current][data-from="before"] {
-    animation-name: step-back;
-  }
-  @keyframes step-in {
-    from {
-      opacity: 0;
-      transform: translateX(1.25rem);
-    }
-  }
-  @keyframes step-back {
-    from {
-      opacity: 0;
-      transform: translateX(-1.25rem);
-    }
+  [data-experience="cinematic"] .apply__error:not(:empty)::before {
+    content: "";
+    flex: none;
+    width: 0.45rem;
+    height: 0.45rem;
+    background: var(--signal-hold);
+    translate: 0 -0.05rem;
   }
   /* a team size is one tap: three large choices in a row */
   [data-experience="cinematic"] .apply__tiles {
@@ -323,11 +444,11 @@
   [data-experience="cinematic"] .apply__tile {
     position: relative;
     display: grid;
-    min-height: 3.5rem;
+    min-height: 3rem;
     place-items: center;
     border-radius: 8px;
     background: rgb(243 246 255 / 0.06);
-    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.08);
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.14);
     color: var(--mist-300);
     font-weight: 500;
     cursor: pointer;
@@ -343,6 +464,7 @@
   [data-experience="cinematic"] .apply__tile input {
     position: absolute;
     inset: 0;
+    margin: 0;
     opacity: 0;
     cursor: pointer;
   }
@@ -355,91 +477,136 @@
     outline: 2px solid var(--mist-50);
     outline-offset: 2px;
   }
-  /* scanners are chips: lit when chosen */
-  [data-experience="cinematic"] .apply__scanners {
+  [data-experience="cinematic"] [data-invalid] .apply__tile:not(:has(:checked)) {
+    box-shadow: inset 0 0 0 1.5px var(--signal-hold);
+  }
+  /* scanners are chips: lit when chosen, with a pixel that fills */
+  [data-experience="cinematic"] .apply__chips {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
+    gap: 0.4rem;
   }
-  [data-experience="cinematic"] .apply__scanners .apply__label {
-    flex: 0 0 100%;
-  }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__check {
+  [data-experience="cinematic"] .apply__check {
     position: relative;
+    gap: 0.45rem;
     min-height: 2.75rem;
-    padding: 0 var(--space-4);
+    padding: 0 0.85rem 0 0.75rem;
+    font-size: 0.9375rem;
     border-radius: 999px;
     background: rgb(243 246 255 / 0.06);
-    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.1);
+    box-shadow: inset 0 0 0 1px rgb(243 246 255 / 0.14);
     color: var(--mist-300);
-    cursor: pointer;
+    transition:
+      background-color 160ms ease-out,
+      color 160ms ease-out;
   }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__check input {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    opacity: 0;
-    cursor: pointer;
+  [data-experience="cinematic"] .apply__check:hover {
+    color: var(--mist-50);
   }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__check:has(:checked) {
+  [data-experience="cinematic"] .apply__check input {
+    width: 0.7rem;
+    height: 0.7rem;
+  }
+  [data-experience="cinematic"] .apply__check:has(:checked) {
     background: rgb(243 246 255 / 0.16);
     box-shadow: inset 0 0 0 1px var(--mist-50);
     color: var(--mist-50);
   }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__check:has(:focus-visible) {
+  [data-experience="cinematic"] .apply__check:has(:focus-visible) {
     outline: 2px solid var(--mist-50);
     outline-offset: 2px;
   }
-  /* the last step: what will be sent, to read before it is */
-  [data-experience="cinematic"] .apply__summary {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: var(--space-2) var(--space-4);
-    margin: 0;
+  [data-experience="cinematic"] .apply__check input:focus-visible {
+    outline: none;
   }
-  [data-experience="cinematic"] .apply__summary dt {
+  /* the send: the full width, and while it goes out three pixels step along inside it */
+  [data-experience="cinematic"] .apply__actions {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+  [data-experience="cinematic"] .apply__send {
+    position: relative;
+    min-height: 3.25rem;
+    border-radius: 8px;
+    font-size: 1.0625rem;
+  }
+  .apply__send:disabled {
+    cursor: progress;
+  }
+  .apply[data-state="sending"] .apply__send::after {
+    content: "";
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-left: 0.6rem;
+    background: currentColor;
+    box-shadow:
+      0.65rem 0 0 currentColor,
+      1.3rem 0 0 currentColor;
+    animation: send-steps 0.9s steps(3, jump-none) infinite;
+  }
+  @keyframes send-steps {
+    0% {
+      box-shadow:
+        0.65rem 0 0 transparent,
+        1.3rem 0 0 transparent;
+    }
+    50% {
+      box-shadow:
+        0.65rem 0 0 currentColor,
+        1.3rem 0 0 transparent;
+    }
+  }
+  [data-experience="cinematic"] .apply__status:empty {
+    display: none;
+  }
+  [data-experience="cinematic"] .apply__status[data-tone="problem"] {
+    color: var(--signal-hold);
+  }
+  /* sent: the form gives way to a short note of where it went */
+  .apply__done {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+  .apply__done:focus {
+    outline: none;
+  }
+  [data-experience="cinematic"] .apply__done {
+    padding: var(--space-5) 0 var(--space-2);
+    border-top: 1px solid rgb(243 246 255 / 0.12);
+  }
+  [data-experience="cinematic"] .apply__done-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--mist-50);
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 800;
+  }
+  [data-experience="cinematic"] .apply__done-title::before {
+    content: "";
+    width: 0.75rem;
+    height: 0.75rem;
+    background: var(--mist-50);
+  }
+  [data-experience="cinematic"] .apply__done-body {
     color: var(--mist-300);
   }
-  [data-experience="cinematic"] .apply__summary dd {
-    margin: 0;
+  [data-experience="cinematic"] .apply__done-body strong {
     color: var(--mist-50);
     font-weight: 500;
     overflow-wrap: anywhere;
   }
-  [data-experience="cinematic"] .apply__summary dd[data-empty] {
-    color: var(--mist-500);
-    font-weight: 400;
-  }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__actions {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__actions .btn--quiet {
-    min-height: 3rem;
-    border-radius: 8px;
-  }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__actions :is([data-step-next], [type="submit"]) {
-    grid-column: 2;
-  }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__actions .apply__how {
-    grid-column: 1 / -1;
-  }
   @media (prefers-reduced-motion: reduce) {
-    [data-experience="cinematic"] .apply[data-stepping] .apply__step[data-current] {
+    .apply[data-state="sending"] .apply__send::after {
       animation: none;
     }
-    [data-experience="cinematic"] .apply__progress i {
+    [data-experience="cinematic"] :is(.apply__input, .apply__tile, .apply__check) {
       transition: none;
     }
-  }
-
-  /* step one has no way back: its way on takes the whole width */
-  [data-experience="cinematic"] .apply[data-stepping] .apply__actions:has([data-step-back][hidden]) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  [data-experience="cinematic"] .apply[data-stepping] .apply__actions:has([data-step-back][hidden]) > .btn {
-    grid-column: 1;
   }
 
   /* --- The odometer in the results' box (modules/rolling.ts, after React Bits' Counter) ------------------- */
@@ -470,5 +637,133 @@
     text-align: center;
     white-space: pre;
     line-height: 1;
+  }
+
+  /* --- Phase 1: the first screen, readable words, clean hand-offs between chapters, the rail ------------ */
+
+  /* the hero's second way in, and a cue to scroll that leaves as soon as the visitor does */
+  [data-experience="cinematic"] .beat--sky .beat__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  [data-experience="cinematic"] .beat--sky .btn--quiet {
+    border-color: rgb(5 8 22 / 0.55);
+    color: var(--ink-950);
+  }
+  [data-experience="cinematic"] .beat--sky .btn--quiet:hover {
+    border-color: var(--ink-950);
+    background: rgb(255 255 255 / 0.35);
+  }
+  .hero__cue {
+    display: none;
+  }
+  [data-experience="cinematic"] .hero__cue {
+    position: absolute;
+    bottom: var(--space-5);
+    left: 50%;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    color: var(--ink-950);
+    font-size: 0.95rem;
+    font-weight: 500;
+    translate: -50% 0;
+    transition: opacity 400ms ease-out;
+    pointer-events: none;
+  }
+  [data-experience="cinematic"] .hero__cue i {
+    position: relative;
+    width: 2px;
+    height: 2.75rem;
+    overflow: hidden;
+    background: rgb(5 8 22 / 0.2);
+  }
+  [data-experience="cinematic"] .hero__cue i::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ink-950);
+    animation: hero-cue 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+  @keyframes hero-cue {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+  [data-experience="cinematic"][data-scrolled] .hero__cue {
+    opacity: 0;
+  }
+  [data-experience="cinematic"] .beat--sky {
+    position: relative;
+  }
+
+  /* tight scrims: a soft patch of the night sized to each block of words and moving with it, so the words
+     read over lit windows; no edge and nothing laid across the rest of the city */
+  [data-experience="cinematic"]
+    :is(.track__text, .chapter__text, .beat--drop .beat__text, .beat--city .beat__text) {
+    position: relative;
+    isolation: isolate;
+  }
+  [data-experience="cinematic"]
+    :is(.track__text, .chapter__text, .beat--drop .beat__text, .beat--city .beat__text)::before {
+    content: "";
+    position: absolute;
+    inset: -3.5rem -4.5rem;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgb(5 8 22 / 0.72), rgb(5 8 22 / 0.5) 55%, rgb(5 8 22 / 0));
+    pointer-events: none;
+  }
+
+  /* one chapter at a time: the leaving chapter's words and box are gone before the next one's arrive */
+  [data-experience="cinematic"] .track {
+    --leave: clamp(0, calc((1 - var(--progress, 0)) * 22), 1);
+  }
+  [data-experience="cinematic"] .track:not(.track--results) .track__text {
+    opacity: var(--leave);
+  }
+  [data-experience="cinematic"] .track:not(.track--results) .track__panel {
+    opacity: min(var(--shown), var(--leave));
+  }
+  /* the record scrolls away rather than pinning, so the results' box waits until its own section has
+     arrived, fading in over its last few pixels of travel, and leaves before the form arrives: no two
+     boxes are ever on screen together */
+  [data-experience="cinematic"] .track--results .track__panel {
+    /* and is gone again before the form comes up from below */
+    opacity: clamp(0, min(calc(1 + var(--signed, 0) * 60), calc((1 - var(--signed, 0)) * 30)), 1);
+  }
+
+  /* the rail: on a solid square backing, with the way through it filled */
+  @media (min-width: 60.01rem) {
+    [data-experience="cinematic"] .rail__list {
+      padding: var(--space-2) 0;
+      border: 1px solid rgb(189 201 234 / 0.14);
+      border-radius: 10px;
+      background: rgb(5 8 22 / 0.82);
+    }
+    [data-experience="cinematic"] .rail__list::after {
+      content: "";
+      position: absolute;
+      top: calc(1.375rem + var(--space-2));
+      right: calc(1.375rem - 1px);
+      width: 2px;
+      height: calc(100% - 2.75rem - 2 * var(--space-2));
+      background: var(--mist-50);
+      transform: scaleY(var(--rail-fill, 0));
+      transform-origin: top;
+      pointer-events: none;
+    }
+    [data-experience="cinematic"] .rail__link {
+      text-shadow: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-experience="cinematic"] .hero__cue i::after {
+      animation: none;
+      transform: none;
+    }
   }
 }

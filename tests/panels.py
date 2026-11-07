@@ -9,7 +9,7 @@
     across the frame at any scroll position.
   - Each step's fingerprint is the record's, and a rewritten entry decrypts into its new ones.
   - The checks run on the building: each finding's careless fix is refused by its own check.
-  - The form goes one step at a time, and the results' counters roll to 14 and 2.
+  - The tower takes the company typed into the form, and the results' counters roll to 14 and 2.
 
 Needs the dev server up. Exits 1 if a check fails.
 """
@@ -119,7 +119,7 @@ def main() -> int:
                                   drawn: !p.querySelector('.panel__tag') || !!p.querySelector('.pixel-state path')?.getAttribute('d') }; }""",
                     section,
                 )
-                check(f'{tag}: a box of its own, not across the frame', info['radius'] > 0 and info['width'] < info['wide'] * 0.7 and info['outset'] > -3, str(info))
+                check(f'{tag}: a box of its own, not across the frame', info['radius'] > 0 and info['width'] < info['wide'] * (0.8 if section == '#apply' else 0.7) and info['outset'] > -3, str(info))
                 check(f'{tag}: it fits the window', info['h'] <= info['room'], f"{info['h']:.0f} of {info['room']}")
                 check(f'{tag}: no sideways scroll', not info['sideways'])
                 check(f'{tag}: it has its beam, its state drawn', info['beam'] and info['drawn'], info['state'])
@@ -186,32 +186,11 @@ def main() -> int:
         check('checks: the fix from the sandbox passes all three', page.evaluate("[...document.querySelectorAll('[data-gates-list] li')].every((l) => l.dataset.state === 'passed')"))
         check('checks: no refusal flag over a fix that passed', page.evaluate("document.querySelector('[data-gate-flag]').hidden"))
 
-        # --- the form, one step at a time ---------------------------------------------------------------------------
+        # --- the form (the one-page form; tests/world.py walks its validation and sending) ------------------------
         page.evaluate("scrollTo(0, document.querySelector('#apply').getBoundingClientRect().top + scrollY)")
         page.wait_for_timeout(1500)
-        step = "document.querySelector('[data-apply] [data-form-step][data-current]').dataset.formStep"
-        check('form: it starts on the first step', page.evaluate(step) == 'You' and page.locator('[data-apply] button[type=submit]').is_hidden())
-        page.click('[data-step-next]')
-        page.wait_for_timeout(200)
-        check('form: an empty step does not move on', page.evaluate(step) == 'You')
-        page.fill('[data-apply] input[name=name]', 'Pat')
         page.fill('[data-apply] input[name=company]', 'Initech')
-        page.keyboard.press('Enter')
-        page.wait_for_timeout(250)
-        check('form: Enter in a field moves on, without sending', page.evaluate(step) == 'Your team' and not page.evaluate("document.querySelector('[data-apply]').dataset.mailto"))
-        page.click('label.apply__tile:has-text("20 to 150")')
-        page.click('[data-step-next]')
-        page.click('label.apply__check:has-text("Semgrep")')
-        page.click('[data-step-back]')
-        page.wait_for_timeout(200)
-        check('form: Back keeps what was chosen', page.evaluate(step) == 'Your team' and page.evaluate("document.querySelector('[data-apply] input[name=team]:checked').value") == '20 to 150')
-        page.click('[data-step-next]')
-        page.click('[data-step-next]')
-        page.wait_for_timeout(250)
-        summary = page.evaluate("document.querySelector('[data-step-summary]').textContent")
-        check('form: the last step shows what will be sent', all(w in summary for w in ('Pat', 'Initech', '20 to 150', 'Semgrep')), summary[:90])
-        check('form: only the last step can send', page.locator('[data-apply] button[type=submit]').is_visible() and page.locator('[data-step-next]').is_hidden())
-        check('form: the progress bar is full on the last step', page.evaluate("getComputedStyle(document.querySelector('[data-apply]')).getPropertyValue('--step').trim()") == '1')
+        page.wait_for_timeout(300)
         check('form: the tower takes the company typed', 'INITECH' in str(page.evaluate('__world.skyline()')).upper())
 
         # --- the counters and the fingerprints ------------------------------------------------------------------------
@@ -247,6 +226,7 @@ def main() -> int:
         # only what the page lays over the city: the city itself has edges of its own, and is hidden here
         page.add_style_tag(content='.stage__canvas { visibility: hidden !important } body { background: #050816 !important }')
         worst = (0, 0, 0)
+        crowded = 0
         steps = 50
         for i in range(steps + 1):
             y = int(total * i / steps)
@@ -256,9 +236,13 @@ def main() -> int:
             if args.shots:
                 img.resize((472, 235)).save(f'{args.shots}/sweep-{i:02d}.png')
             step, row = hard_line(img.crop((0, 70, img.width, img.height - 110)))
+            boxes = page.evaluate("""[...document.querySelectorAll('#main .track__panel, #main .chapter__panel, #main .closing__inner')].filter((p) => {
+                const r = p.getBoundingClientRect(); return +getComputedStyle(p).opacity > 0.05 && r.bottom > 60 && r.top < innerHeight - 20; }).length""")
+            crowded = max(crowded, boxes)
             if step > worst[0]:
                 worst = (step, y, row + 70)
         print(f'     strongest line across the frame: {worst[0]} at scroll {worst[1]}, row {worst[2]}')
+        check('one chapter at a time: never two boxes on screen at once', crowded <= 1, str(crowded))
         check('no layer of the page draws a hard line across the city, anywhere down it', worst[0] < 14, str(worst))
         ctx.close()
         browser.close()

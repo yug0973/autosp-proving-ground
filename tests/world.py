@@ -176,24 +176,35 @@ def rail(pg, label):
 
 
 def apply_form(pg):
-    # one step at a time: moving on is refused until the step's own fields are filled in
-    pg.click('[data-step-next]'); pg.wait_for_timeout(200)
-    check('apply: an empty step does not move on', pg.evaluate("document.querySelector('[data-apply] [data-form-step][data-current]').dataset.formStep") == 'You')
-    pg.fill('input[name=name]', 'Ada Test'); pg.fill('input[name=company]', 'Example Ltd')
-    pg.click('[data-step-next]'); pg.wait_for_timeout(200)
-    pg.click('label.apply__tile:has-text("20 to 150")'); pg.click('[data-step-next]'); pg.wait_for_timeout(200)
-    pg.click('label.apply__check:has-text("Semgrep")'); pg.click('[data-step-next]'); pg.wait_for_timeout(200)
-    summary = pg.evaluate("document.querySelector('[data-step-summary]').textContent")
-    check('apply: the last step shows what will be sent', 'Example Ltd' in summary and '20 to 150' in summary and 'Semgrep' in summary, summary[:80])
+    """One form: every field says what is missing, then it sends (straight through Web3Forms when a
+    key is configured, through the mail app when not)."""
+    form = '[data-apply]'
+    sent = []
+    pg.route('https://api.web3forms.com/submit', lambda route, request: (sent.append(request.post_data or ''), route.fulfill(
+        status=200, content_type='application/json', body='{"success":true}')))
+    pg.click(f'{form} button[type=submit]'); pg.wait_for_timeout(200)
+    errors = pg.evaluate(f'[...document.querySelectorAll("{form} .apply__error")].map(e => e.textContent).filter(Boolean)')
+    check('apply: an empty form says what each field needs', len(errors) == 4, '; '.join(errors))
+    check('apply: and focuses the first', pg.evaluate('document.activeElement.name') == 'name')
+    pg.fill(f'{form} input[name=name]', 'Ada Test'); pg.fill(f'{form} input[name=email]', 'ada@example.com')
+    pg.fill(f'{form} input[name=company]', 'Example Ltd')
+    pg.click(f'{form} label.apply__tile:has-text("20 to 150")'); pg.click(f'{form} label.apply__check:has-text("Semgrep")')
+    mode = pg.evaluate(f'document.querySelector("{form}").dataset.send')
     try:
-        pg.click('button[type=submit]', no_wait_after=True)
+        pg.click(f'{form} button[type=submit]', no_wait_after=True)
     except Exception:  # the mailto navigation itself is not something a headless browser can follow
         pass
-    pg.wait_for_timeout(300)
-    mailto = unquote(pg.evaluate('document.querySelector("[data-apply]").dataset.mailto || ""'))
-    check('apply: composes the application email',
-          mailto.startswith('mailto:nexarise.office@gmail.com?subject=AUTOSP free pilot')
-          and 'Company: Example Ltd' in mailto and 'Scanners: Semgrep' in mailto, mailto[:90])
+    pg.wait_for_timeout(600)
+    if mode == 'direct':
+        body = sent[0] if sent else ''
+        check('apply: sends the application straight to the inbox',
+              'Company: Example Ltd' in body and 'Scanners: Semgrep' in body and 'ada@example.com' in body, body[:90])
+        check('apply: and says it was sent', pg.is_visible('.apply__done') and 'ada@example.com' in pg.text_content('.apply__done'))
+    else:
+        mailto = unquote(pg.evaluate(f'document.querySelector("{form}").dataset.mailto || ""'))
+        check('apply: without a Web3Forms key, composes the application email',
+              mailto.startswith('mailto:nexarise.office@gmail.com?subject=AUTOSP free pilot')
+              and 'Company: Example Ltd' in mailto and 'Work email: ada@example.com' in mailto, mailto[:90])
 
 
 def main():

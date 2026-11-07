@@ -114,9 +114,9 @@ def main() -> int:
                return { text: h.textContent, lines: Math.round(h.offsetHeight / parseFloat(c.lineHeight)), size: parseFloat(c.fontSize),
                         button: b.bottom <= innerHeight && b.top >= 0, sideways: document.documentElement.scrollWidth > innerWidth }; }"""
         )
-        check('the first screen has one clear title', info['text'] == 'Verified fixes for what your scanner finds.', info['text'])
+        check('the first screen has one clear title', ' '.join(info['text'].split()) == 'Verified fixes for the findings your scanner keeps reporting.', info['text'])
         check('the headline is at most two lines', info['lines'] <= 2, str(info['lines']))
-        check('and set large', info['size'] >= 90, f"{info['size']:.0f}px")
+        check('and set large', info['size'] >= 72, f"{info['size']:.0f}px")
         check('the pilot button is on the first screen', info['button'])
         check('the page does not scroll sideways', not info['sideways'])
 

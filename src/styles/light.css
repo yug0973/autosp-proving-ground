@@ -522,6 +522,55 @@
   .calm-form__how:empty {
     display: none;
   }
+  /* what is wrong with a field, under it: an amber pixel and the words in ink, which reads on the
+     bright dawn sky where amber text would not */
+  .calm-form .apply__error:not(:empty) {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    color: var(--calm-ink);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  .calm-form .apply__error:not(:empty)::before {
+    content: "";
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--signal-hold);
+    box-shadow: 0 0 0 1px var(--calm-ink);
+  }
+  .calm-form [data-invalid] :is(input, select) {
+    box-shadow:
+      inset 0 0 0 2px var(--signal-hold),
+      inset 0 0 0 3px var(--calm-ink);
+  }
+  .calm-form[data-state="sending"] .calm-button {
+    opacity: 0.8;
+  }
+  .calm-pilot .apply__done {
+    max-width: 34rem;
+    margin-top: 2.5rem;
+    padding: 1.5rem;
+    border-radius: 2px;
+    background: rgb(255 255 255 / 0.82);
+    color: var(--calm-ink);
+  }
+  .calm-pilot .apply__done-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  .calm-pilot .apply__again {
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1.5px solid var(--calm-ink);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--calm-ink);
+    font: inherit;
+    font-weight: 500;
+  }
 
   /* --- The close: the name, at the full width of the screen ------------------------------------------------------------ */
   .calm-foot {

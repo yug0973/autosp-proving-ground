@@ -9,3 +9,7 @@ scratch/
 .impeccable/
 .claude/
 tests/**/output/
+
+# local settings, such as the Web3Forms key
+.env.local
+.env.*.local

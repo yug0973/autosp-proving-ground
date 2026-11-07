@@ -14,9 +14,12 @@ float scanIgnite(float x) {
 // The line and a faint glow either side of it, to add to a surface. `nx` is the x of the surface's
 // normal: a wall that faces along x lies inside the plane from edge to edge, so it would light all at
 // once as a slab, not a line. It is held back, so the line shows on roofs, roads and the other walls.
+// A thin, soft beam with a faint glow trailing behind it, the way a scanner reads a page: what it has
+// passed stays faintly lit for a moment; ahead of it only a little light spills.
 vec3 scanLight(float x, float nx) {
-  float d = abs(x - uScanX);
-  float line = 1.0 - smoothstep(uScanShape.x * 0.5, uScanShape.x, d);
-  float glow = exp(-d / uScanShape.y) * 0.3;
-  return uScanColor * (line * 1.5 + glow) * uScanOn * (1.0 - 0.9 * abs(nx));
+  float ahead = x - uScanX;
+  float d = abs(ahead);
+  float line = 1.0 - smoothstep(uScanShape.x * 0.15, uScanShape.x * 0.55, d);
+  float trail = ahead < 0.0 ? exp(ahead / (uScanShape.y * 2.4)) * 0.14 : exp(-ahead / (uScanShape.y * 0.35)) * 0.06;
+  return uScanColor * (line * 0.8 + trail) * uScanOn * (1.0 - 0.9 * abs(nx));
 }

@@ -21,15 +21,15 @@
  * the scene is a storyboard of still frames: the sky under the headline, then the city at night, and
  * one frame per step after that.
  */
+import type { WordKey } from '../world/words';
 import { createWorld } from '../world/world';
-import type { GateFlag, LabelPlacement, ScreenPoint, World } from '../world/world';
+import type { GateFlag, GateTop, LabelPlacement, ScreenPoint, World } from '../world/world';
 import type { Finding } from '../world/city';
 import type { Quality } from '../world/sky';
 import { STATIC_PROGRESS } from '../world/journey';
 import { SCAN } from '../world/scan';
 import { resultsStat, stillResults } from '../world/skyline';
 import { SHOTS } from '../world/shots';
-import type { WordKey } from '../world/words';
 import { onReducedMotionChange, prefersReducedMotion } from '../lib/reduced-motion';
 import {
   getFinding,
@@ -41,7 +41,7 @@ import {
   onHold,
   onMerge,
 } from '../lib/story';
-import { GATE_SHORT, gateMoment } from '../lib/gates';
+import { GATE_SHORT, GATES_FROM, gateMoment } from '../lib/gates';
 import type { GateMoment } from '../lib/gates';
 import { claimArrival } from './arrival';
 import { refusingGate } from './gates-step';
@@ -80,6 +80,8 @@ const DAWN_OVER = 1.1;
 /** The gate flag's clear space from the screen edges and the gates panel, and below the strip. */
 const FLAG_MARGIN = 16;
 const FLAG_TOP = 88;
+/** Two barrier names closer than this, in CSS pixels, would overlap: only one is shown. */
+const TAG_GAP = { x: 170, y: 34 } as const;
 
 /** Labels fade in only when night is dark enough, and never display at an unreadable opacity (< 0.8). */
 function labelOpacity(night: number): number {
@@ -193,11 +195,11 @@ export function initWorldStage(stage: HTMLElement): () => void {
   }
 
   /** The gates at this scroll position; null until their section is coming up the screen, which is
-   * when the camera starts moving to the building (shots.ts). */
+   * when the camera comes round behind the fix (lib/gates.ts). */
   function gatesNow(): GateMoment | null {
     if (!gatesSection) return null;
     const p = signedProgress(gatesSection);
-    if (p < SHOTS.gates.enter.from) return null;
+    if (p < GATES_FROM) return null;
     return gateMoment(p, refusingGate(), prefersReducedMotion());
   }
 
@@ -282,8 +284,20 @@ export function initWorldStage(stage: HTMLElement): () => void {
   const order: number[] = [];
   const placed: Array<{ x: number; y: number }> = [];
 
-  /** True when a label anchored at (x, y) would sit over any text block on screen. */
+  const railBox = document.querySelector<HTMLElement>('[data-rail]');
+
+  /** True when a label anchored at (x, y) would sit over any text block on screen, or under the rail. */
   function overText(x: number, y: number): boolean {
+    if (railBox?.hasAttribute('data-shown')) {
+      const rail = railBox.getBoundingClientRect();
+      if (
+        x + LABEL_GAP.x / 2 > rail.left - TEXT_MARGIN &&
+        y > rail.top - TEXT_MARGIN &&
+        y - LABEL_GAP.y < rail.bottom
+      ) {
+        return true;
+      }
+    }
     for (const text of texts) {
       const box = text.getBoundingClientRect();
       if (box.bottom < 0 || box.top > window.innerHeight) continue;
@@ -338,6 +352,55 @@ export function initWorldStage(stage: HTMLElement): () => void {
       gateFlag.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
     }
     if (gateFlag.hidden === shown) gateFlag.hidden = !shown;
+  }
+
+  // the barriers' names, on their top edges while the gates are out; the refusing one carries the flag
+  const tagsPlaced: Array<{ x: number; y: number }> = [];
+  const gateTags = GATE_SHORT.map((name) => {
+    const tag = document.createElement('p');
+    tag.className = 'gate-tag';
+    tag.setAttribute('aria-hidden', 'true');
+    tag.hidden = true;
+    tag.textContent = name;
+    stage.append(tag);
+    return tag;
+  });
+
+  /** Each barrier's name over it, marked once the fix is through; left out where it would sit on the
+   * panel or the copy, or under the strip. (The panel's ticker says the same for screen readers.) */
+  function placeTags(tops: readonly Readonly<GateTop>[]): void {
+    const panel = gatePanel?.getBoundingClientRect();
+    // seen from behind the fix the three line up: the one ahead of it is named first, and another
+    // only where it does not sit on a name already placed
+    const ahead = tops.findIndex((top) => top.state === 0);
+    const order = [0, 1, 2].sort((a, b) => Number(b === ahead) - Number(a === ahead));
+    tagsPlaced.length = 0;
+    order.forEach((i) => {
+      const top = tops[i];
+      const tag = gateTags[i];
+      if (!top || !tag) return;
+      let shown = top.shown && top.state !== 2 && top.y > FLAG_TOP + 24;
+      if (
+        shown &&
+        tagsPlaced.some((p) => Math.abs(p.x - top.x) < TAG_GAP.x && Math.abs(p.y - top.y) < TAG_GAP.y)
+      ) {
+        shown = false;
+      }
+      if (shown && panel && panel.width > 0) {
+        const overPanel =
+          top.x > panel.left - 70 &&
+          top.x < panel.right + 70 &&
+          top.y > panel.top &&
+          top.y - 32 < panel.bottom;
+        if (overPanel || overText(top.x, top.y)) shown = false;
+      }
+      if (tag.hidden === shown) tag.hidden = !shown;
+      if (!shown) return;
+      tagsPlaced.push({ x: top.x, y: top.y });
+      const state = top.state === 1 ? 'passed' : 'waiting';
+      if (tag.dataset.state !== state) tag.dataset.state = state;
+      tag.style.transform = `translate3d(${top.x.toFixed(1)}px, ${top.y.toFixed(1)}px, 0)`;
+    });
   }
 
   /**
@@ -552,10 +615,12 @@ export function initWorldStage(stage: HTMLElement): () => void {
     labels: readonly LabelPlacement[],
     flag: Readonly<GateFlag>,
     fix: Readonly<ScreenPoint>,
+    gates: readonly Readonly<GateTop>[],
   ): void {
     if (!world) return;
     driveArrival();
     placeFlag(flag);
+    placeTags(gates);
     const index = currentBeat();
     driveScan(index);
     world.setAvoid(avoidRects);
@@ -737,6 +802,7 @@ export function initWorldStage(stage: HTMLElement): () => void {
     world = null;
     delete root.dataset.world;
     delete root.dataset.quality;
+    for (const tag of gateTags) tag.remove();
     if (resultsSection) delete resultsSection.dataset.stat;
   };
 }

@@ -555,8 +555,10 @@ export interface City {
   readonly focus: Record<string, IUniform>;
   /** The tallest point within `radius` of (x, z): used to keep flight paths above the city. */
   heightAround(x: number, z: number, radius: number): number;
-  /** Pushes in on one building: `amount` 0 to 1, `target` the point the camera looks at. */
-  setFocus(building: number, amount: number, target: Vector3): void;
+  /** Pushes in on one building: `amount` 0 to 1, `target` the point the camera looks at. `edge` is
+   * whether any piece stands on the soft edge of the line of sight just now, part way out: its
+   * transparent copy must be drawn, or it would not be drawn at all. */
+  setFocus(building: number, amount: number, target: Vector3, edge: boolean): void;
   /** One small mesh of each pushed-in variant, to compile them before the camera first needs them. */
   pushedInVariants(): Scene;
   /** Registers a mesh elsewhere (street furniture) to switch material variants with the city. */
@@ -602,7 +604,10 @@ export function materialPair(
       ...withClear,
       defines: { ...closeDefines, FADE: '' },
       transparent: true,
-      depthWrite: false,
+      // writes depth all the same: the pieces on their way out still hide each other properly, and
+      // the depth of field reads them where they stand, not as the far city behind them (which blurred
+      // them away as soon as the push began)
+      depthWrite: true,
     }),
   };
 }
@@ -961,7 +966,7 @@ export function createCity(
       }
       return scene;
     },
-    setFocus(building, amount, at) {
+    setFocus(building, amount, at, edge) {
       shared3.uFocusIndex.value = building;
       shared3.uFocus.value = amount;
       target.copy(at);
@@ -970,8 +975,9 @@ export function createCity(
         clearing = wanted;
         for (const { mesh, pair } of tracked) mesh.material = wanted ? pair.clearing : pair.plain;
       }
-      // the transparent copies are drawn only while the pieces are actually on their way out
-      const fading = wanted && amount < FOCUS_FADE;
+      // the transparent copies are drawn only while pieces are actually part way out: during the
+      // push itself, or while one stands on the soft edge of the line of sight as the camera moves
+      const fading = wanted && (amount < FOCUS_FADE || edge);
       if (fading !== fades) {
         fades = fading;
         for (const { fade } of tracked) fade.visible = fading;
