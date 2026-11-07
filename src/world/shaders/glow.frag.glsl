@@ -28,6 +28,6 @@ void main() {
   vec3 colour = mix(uOpen * flicker, uSealed * mix(0.38, 1.0, uMerge), sealed);
   float flare = 1.0 + 2.2 * exp(-uPulse * 3.0) * isFocus * (1.0 - sealed);
   float strength = 0.3 * soft * flare * (1.0 - patched) * smoothstep(0.15, 0.7, uNight) * focusDim(vIndex) * scanIgnite(vX); // dark until the sweep reaches it
-  gl_FragColor = vec4(colour, strength);
+  gl_FragColor = vec4(colour, strength * crackLift(vIndex));
   #include <colorspace_fragment>
 }

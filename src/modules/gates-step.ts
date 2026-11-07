@@ -12,6 +12,7 @@ import type { GateIndex, GateReport } from '../lib/gates';
 import { getChoice, getFinding, onChoice, onFinding, setChoice } from '../lib/story';
 import { prefersReducedMotion } from '../lib/reduced-motion';
 import { trackProgress } from '../lib/track';
+import { highlightPython, unifiedDiff } from '../lib/highlight';
 
 type GateState = 'waiting' | 'passed' | 'refused' | 'skipped';
 
@@ -20,6 +21,7 @@ export function refusingGate(): GateIndex | null {
   return getChoice() === 'careless' ? GATES[getFinding()].careless.refusedAt : null;
 }
 
+/** The changed lines, highlighted, each with its place in the order they reveal in (CSS `--i`). */
 function renderDiff(code: HTMLElement, diff: readonly DiffLine[]): void {
   const block = document.createElement('code');
   diff
@@ -28,7 +30,11 @@ function renderDiff(code: HTMLElement, diff: readonly DiffLine[]): void {
       if (i > 0) block.append('\n');
       const span = document.createElement('span');
       span.className = line.kind === '-' ? 'code-line code-line--del' : 'code-line code-line--add';
-      span.textContent = `${line.kind}${line.text}`;
+      span.style.setProperty('--i', String(i));
+      const sign = document.createElement('span');
+      sign.className = 'diff-sign';
+      sign.textContent = line.kind;
+      span.append(sign, highlightPython(line.text));
       block.append(span);
     });
   code.replaceChildren(block);
@@ -61,11 +67,54 @@ export function initGatesStep(section: HTMLElement): () => void {
   });
   list.replaceChildren(...items.map(({ item }) => item));
 
+  const copy = section.querySelector<HTMLButtonElement>('[data-gates-copy]');
+  let shownDiff: readonly DiffLine[] = [];
+  let seen = false;
   const showFix = (): void => {
     const fix = FIXES[getFinding()];
     file.textContent = fix.file;
-    renderDiff(diff, getChoice() === 'careless' ? GATES[fix.id].careless.diff : fix.diff);
+    shownDiff = getChoice() === 'careless' ? GATES[fix.id].careless.diff : fix.diff;
+    renderDiff(diff, shownDiff);
+    // the lines come in one by one, the removed then the added, whenever the diff changes in view
+    diff.removeAttribute('data-reveal');
+    if (seen) {
+      // a frame apart, so the animation starts again
+      requestAnimationFrame(() => {
+        diff.setAttribute('data-reveal', '');
+      });
+    }
   };
+  const watch = new IntersectionObserver(([entry]) => {
+    if (!entry?.isIntersecting || seen) return;
+    seen = true;
+    diff.setAttribute('data-reveal', '');
+  });
+  watch.observe(diff);
+
+  // Copy patch: the diff in unified form, to the clipboard; the button says how it went
+  let copyTimer = 0;
+  const say = (words: string): void => {
+    if (!copy) return;
+    copy.textContent = words;
+    window.clearTimeout(copyTimer);
+    copyTimer = window.setTimeout(() => {
+      copy.textContent = 'Copy patch';
+    }, 1600);
+  };
+  const onCopy = (): void => {
+    navigator.clipboard.writeText(unifiedDiff(file.textContent || 'patch.py', shownDiff)).then(
+      () => {
+        say('Copied');
+      },
+      () => {
+        say('Copy failed');
+      },
+    );
+  };
+  if (copy && 'clipboard' in navigator) {
+    copy.hidden = false;
+    copy.addEventListener('click', onCopy);
+  }
 
   const update = (): void => {
     const refusedAt = refusingGate();
@@ -130,5 +179,8 @@ export function initGatesStep(section: HTMLElement): () => void {
     choice.removeEventListener('change', onChange);
     window.removeEventListener('scroll', update);
     reason.remove();
+    watch.disconnect();
+    copy?.removeEventListener('click', onCopy);
+    window.clearTimeout(copyTimer);
   };
 }

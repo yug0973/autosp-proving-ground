@@ -182,6 +182,9 @@ export function initMergeStep(section: HTMLElement): () => void {
   button.addEventListener('keyup', onKeyUp);
   button.addEventListener('blur', release);
   button.addEventListener('click', onClick);
+  // M held on the keyboard (keys.ts) holds the button the same way
+  button.addEventListener('hold:press', press);
+  button.addEventListener('hold:release', release);
   button.addEventListener('contextmenu', block);
   unmerge.addEventListener('click', onUnmerge);
   const stops = [
@@ -208,6 +211,8 @@ export function initMergeStep(section: HTMLElement): () => void {
     button.removeEventListener('pointercancel', release);
     button.removeEventListener('lostpointercapture', release);
     button.removeEventListener('keydown', onKeyDown);
+    button.removeEventListener('hold:press', press);
+    button.removeEventListener('hold:release', release);
     button.removeEventListener('keyup', onKeyUp);
     button.removeEventListener('blur', release);
     button.removeEventListener('click', onClick);

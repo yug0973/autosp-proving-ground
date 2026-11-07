@@ -157,24 +157,6 @@ def tags_and_leaders(pg):
     check('leader: the results panel has none', not leader())
 
 
-def rail(pg, label):
-    """The progress rail: seven links, the beat on screen marked as the current step."""
-    check(f'{label}: the rail links the seven beats', pg.locator('.rail__link').count() == 7)
-    scroll_to(pg, '[data-gates]', 0.45); pg.wait_for_timeout(1500)
-    current = pg.evaluate('document.querySelector(".rail__link[aria-current=step]")?.textContent.trim()')
-    check(f'{label}: the rail marks Gates as the current step', current == 'Gates', str(current))
-    if label == 'phone':
-        check('phone: the rail collapses to one button', pg.is_visible('[data-rail-toggle]') and not pg.is_visible('.rail__list'))
-        pg.click('[data-rail-toggle]'); pg.wait_for_timeout(200)
-        check('phone: the button opens the list', pg.is_visible('.rail__list'))
-        pg.keyboard.press('Escape'); pg.wait_for_timeout(200)
-        check('phone: Escape closes it', not pg.is_visible('.rail__list'))
-        width = pg.evaluate('document.documentElement.scrollWidth - innerWidth')
-        check('phone: nothing scrolls sideways', width <= 0, str(width))
-    else:
-        check(f'{label}: every beat is named beside the panels', pg.is_visible('.rail__list') and not pg.is_visible('[data-rail-toggle]'))
-
-
 def apply_form(pg):
     """One form: every field says what is missing, then it sends (straight through Web3Forms when a
     key is configured, through the mail app when not)."""
@@ -182,13 +164,28 @@ def apply_form(pg):
     sent = []
     pg.route('https://api.web3forms.com/submit', lambda route, request: (sent.append(request.post_data or ''), route.fulfill(
         status=200, content_type='application/json', body='{"success":true}')))
+    shown = lambda sel: pg.evaluate(f'(() => {{ const e = document.querySelector("{sel}"); return !!e && e.getClientRects().length > 0 }})()')
+    errs = lambda: pg.evaluate(f'[...document.querySelectorAll("{form} .apply__error")].filter(e => e.getClientRects().length).map(e => e.textContent).filter(Boolean)')
+    check('apply: step 1 of 2 first, your team', shown(f'{form} input[name=team]') and not shown(f'{form} input[name=name]')
+          and 'Step 1 of 2' in pg.text_content(f'{form} [data-step-label]'))
+    pg.click(f'{form} [data-step-next]'); pg.wait_for_timeout(200)
+    check('apply: Next on an empty step says what it needs', len(errs()) == 1, '; '.join(errs()))
+    check('apply: and focuses it', pg.evaluate('document.activeElement.name') == 'team')
+    pg.click(f'{form} label.apply__tile:has-text("20 to 150")'); pg.click(f'{form} label.apply__check:has-text("Semgrep")')
+    pg.wait_for_timeout(100)
+    pg.click(f'{form} [data-step-next]'); pg.wait_for_timeout(300)
+    check('apply: step 2 of 2, you', shown(f'{form} input[name=name]') and not shown(f'{form} input[name=team]')
+          and 'Step 2 of 2' in pg.text_content(f'{form} [data-step-label]'))
+    check('apply: focus moves into the step', pg.evaluate('document.activeElement.name') == 'name')
+    pg.click(f'{form} [data-step-back]'); pg.wait_for_timeout(200)
+    check('apply: Back keeps the answers', pg.evaluate(f'!!document.querySelector("{form} input[name=team]:checked")'))
+    pg.click(f'{form} [data-step-next]'); pg.wait_for_timeout(300)
     pg.click(f'{form} button[type=submit]'); pg.wait_for_timeout(200)
-    errors = pg.evaluate(f'[...document.querySelectorAll("{form} .apply__error")].map(e => e.textContent).filter(Boolean)')
-    check('apply: an empty form says what each field needs', len(errors) == 4, '; '.join(errors))
+    check('apply: an empty second step says what each field needs', len(errs()) == 3, '; '.join(errs()))
     check('apply: and focuses the first', pg.evaluate('document.activeElement.name') == 'name')
     pg.fill(f'{form} input[name=name]', 'Ada Test'); pg.fill(f'{form} input[name=email]', 'ada@example.com')
     pg.fill(f'{form} input[name=company]', 'Example Ltd')
-    pg.click(f'{form} label.apply__tile:has-text("20 to 150")'); pg.click(f'{form} label.apply__check:has-text("Semgrep")')
+    check('apply: no Gmail address on the page', 'gmail' not in pg.evaluate('document.body.innerText').lower())
     mode = pg.evaluate(f'document.querySelector("{form}").dataset.send')
     try:
         pg.click(f'{form} button[type=submit]', no_wait_after=True)
@@ -199,7 +196,10 @@ def apply_form(pg):
         body = sent[0] if sent else ''
         check('apply: sends the application straight to the inbox',
               'Company: Example Ltd' in body and 'Scanners: Semgrep' in body and 'ada@example.com' in body, body[:90])
-        check('apply: and says it was sent', pg.is_visible('.apply__done') and 'ada@example.com' in pg.text_content('.apply__done'))
+        done = pg.text_content('.apply__done') or ''
+        check('apply: and says it was sent', pg.is_visible('.apply__done') and 'ada@example.com' in done and 'within 1 business day' in done, done[:90])
+        check('apply: no booking button until there is a booking link', not shown('.apply__book'))
+        check('apply: still no Gmail address on the page', 'gmail' not in pg.evaluate('document.body.innerText').lower())
     else:
         mailto = unquote(pg.evaluate(f'document.querySelector("{form}").dataset.mailto || ""'))
         check('apply: without a Web3Forms key, composes the application email',
@@ -233,7 +233,6 @@ def main():
             story(pg, label, wait)
             if label != 'reduced motion':
                 numbers(pg, label)
-                rail(pg, label)
             if label == 'desktop':
                 tags_and_leaders(pg)
                 record(pg)

@@ -12,7 +12,7 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preload" href="/fonts/cabinet-grotesk-800.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/clash-display-600.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/general-sans-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/general-sans-500.woff2" as="font" type="font/woff2" crossorigin />
     <script>
@@ -21,6 +21,11 @@
       // hero then waits for its reveal (src/modules/reveal.ts); a CSS failsafe shows it if that never runs.
       (function () {
         var root = document.documentElement;
+        // "Simple view": the calm page at any width, chosen from the strip (and undone from its header)
+        if (/[?&]view=simple(&|$)/.test(location.search)) {
+          root.dataset.view = 'simple';
+          return;
+        }
         if (window.matchMedia('(max-width: 59.99rem)').matches) return;
         try {
           var gl = document.createElement('canvas').getContext('webgl2');
@@ -47,32 +52,15 @@
           <span class="strip__slash" aria-hidden="true">/</span>
           <a class="strip__product" href="#top">AUTOSP</a>
         </p>
-        <a class="btn btn--primary btn--small" href="#apply">Apply for the pilot</a>
+        <p class="strip__end">
+          <a class="strip__simple" href="?view=simple">Simple view</a>
+          <button type="button" class="strip__sound" data-sound aria-pressed="false" hidden>Sound off</button>
+          <a class="btn btn--primary btn--small" href="#apply">Apply for the pilot</a>
+        </p>
       </nav>
     </header>
 
-    <nav class="rail" aria-label="Steps of the proof" data-rail>
-      <button
-        type="button"
-        class="rail__toggle"
-        aria-expanded="false"
-        aria-controls="rail-list"
-        data-rail-toggle
-      >
-        <span class="rail__current" data-rail-current>The proof</span>
-        <span class="rail__count" data-rail-count></span>
-      </button>
-      <ol class="rail__list" id="rail-list">
-        <li><a class="rail__link" href="#reproduce">Reproduce</a></li>
-        <li><a class="rail__link" href="#sandbox">Sandbox</a></li>
-        <li><a class="rail__link" href="#gates">Gates</a></li>
-        <li><a class="rail__link" href="#merge">Merge</a></li>
-        <li><a class="rail__link" href="#record">Record</a></li>
-        <li><a class="rail__link" href="#results">Results</a></li>
-        <li><a class="rail__link" href="#apply">Pilot</a></li>
-      </ol>
-    </nav>
-
+    <p class="demo-badge" data-demo-badge>Demo data — every scene is illustrative</p>
     <div class="stage" data-world-stage>
       <canvas class="stage__canvas" data-world-canvas aria-hidden="true"></canvas>
       <svg class="stage__leader leader" data-leader aria-hidden="true">
@@ -103,7 +91,6 @@
                   >See how it works <span aria-hidden="true">↓</span></a
                 >
               </p>
-              <p class="beat__note">Illustrative scene. The city and its findings are made up.</p>
             </div>
           </div>
           <div class="hero__cue" aria-hidden="true"><span>Scroll</span><i></i></div>
@@ -136,7 +123,6 @@
               </span>
               <span class="visually-hidden" data-count-total></span>
             </p>
-            <p class="beat__note">Illustrative scene. The city and its findings are made up.</p>
           </div>
         </section>
       </div>
@@ -181,14 +167,18 @@
 <span class="code-line code-line--del">-    cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</span>
 <span class="code-line code-line--add">+    cur.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))</span>
 <span class="code-line">     return cur.fetchone()</span></code></pre>
-            <p class="panel__note">Illustrative example.</p>
-            <p class="tape__fp">Fingerprint <code data-tape-fp="0">----</code></p>
+            <p class="tape__fp">
+              <a class="hash-chip" href="#record"
+                ><span class="visually-hidden">Fingerprint, </span
+                ><span class="hash-chip__entry">Entry 1</span> <code data-tape-fp="0">----</code></a
+              >
+            </p>
           </figure>
         </div>
       </section>
 
       <section
-        class="track track--short"
+        class="track track--short track--stack"
         id="reproduce"
         data-track
         data-reproduce
@@ -213,6 +203,7 @@
               <span class="panel__tag" data-run-status data-state="failed" aria-live="polite"
                 >Fails on your code</span
               >
+              <button type="button" class="run__skip" data-run-skip hidden>Skip</button>
             </figcaption>
             <pre
               class="panel__code"
@@ -229,8 +220,13 @@
 <span class="code-line">&gt;       assert row is None</span>
 <span class="code-line code-line--fail">E       AssertionError: assert (1, 'ACME Ltd', 1200.0) is None</span>
 <span class="code-line code-line--fail">1 failed in 0.21s</span></code></pre>
-            <p class="panel__note">Illustrative example. The same test later proves the fix.</p>
-            <p class="tape__fp">Fingerprint <code data-tape-fp="1">----</code></p>
+            <p class="panel__note">The same test later proves the fix.</p>
+            <p class="tape__fp">
+              <a class="hash-chip" href="#record"
+                ><span class="visually-hidden">Fingerprint, </span
+                ><span class="hash-chip__entry">Entry 2</span> <code data-tape-fp="1">----</code></a
+              >
+            </p>
           </figure>
         </div>
       </section>
@@ -301,8 +297,12 @@
               </li>
               <li data-step="next" data-state="done">Not verified yet. The gates come next.</li>
             </ol>
-            <p class="panel__note">Illustrative example.</p>
-            <p class="tape__fp">Fingerprint <code data-tape-fp="2">----</code></p>
+            <p class="tape__fp">
+              <a class="hash-chip" href="#record"
+                ><span class="visually-hidden">Fingerprint, </span
+                ><span class="hash-chip__entry">Entry 3</span> <code data-tape-fp="2">----</code></a
+              >
+            </p>
           </figure>
         </div>
       </section>
@@ -342,6 +342,7 @@
               <span class="panel__tag" data-gates-status data-state="cleared" aria-live="polite"
                 >Passed every check</span
               >
+              <button type="button" class="panel__btn" data-gates-copy hidden>Copy patch</button>
             </figcaption>
             <pre
               class="panel__code"
@@ -362,8 +363,12 @@
                 ><span class="gates__detail">0 findings</span>
               </li>
             </ol>
-            <p class="panel__note">Illustrative example.</p>
-            <p class="tape__fp">Fingerprint <code data-tape-fp="3">----</code></p>
+            <p class="tape__fp">
+              <a class="hash-chip" href="#record"
+                ><span class="visually-hidden">Fingerprint, </span
+                ><span class="hash-chip__entry">Entry 4</span> <code data-tape-fp="3">----</code></a
+              >
+            </p>
           </figure>
         </div>
       </section>
@@ -441,14 +446,18 @@
                 <dd data-pr-review>1 approving review required</dd>
               </div>
             </dl>
-            <p class="panel__note">Illustrative example.</p>
-            <p class="tape__fp">Fingerprint <code data-tape-fp="4">----</code></p>
+            <p class="tape__fp">
+              <a class="hash-chip" href="#record"
+                ><span class="visually-hidden">Fingerprint, </span
+                ><span class="hash-chip__entry">Entry 5</span> <code data-tape-fp="4">----</code></a
+              >
+            </p>
           </figure>
         </div>
       </section>
 
       <div class="outro" data-outro>
-        <section class="chapter" id="record" data-record aria-labelledby="record-title">
+        <section class="chapter chapter--centred" id="record" data-record aria-labelledby="record-title">
           <div class="chapter__text beat__text">
             <h2 class="beat__heading" id="record-title">A record you can’t quietly change.</h2>
             <p class="beat__lede">
@@ -456,6 +465,9 @@
               of the one before it. Edit any entry and every fingerprint after it stops matching.
             </p>
             <p class="beat__note">Your auditor gets an evidence pack for each assessment.</p>
+            <p class="beat__note">
+              <a href="/sample-evidence-pack.pdf" download>Download a sample evidence pack (PDF)</a>
+            </p>
           </div>
           <div class="chapter__panel track__panel" data-avoid>
             <ol class="record" aria-label="The record of this fix, a chain of five entries">
@@ -476,7 +488,7 @@ Reported: CWE-89 in app/repositories/invoices.py</textarea>
                     type="button"
                     class="record__fp"
                     data-record-fp
-                    aria-label="Fingerprint of entry 1: d84ab5e4ca8fe5840de48f4f74ed3ceccb311abeb18949aebdb8e41eb1f4ac11"
+                    aria-label="d84a, fingerprint of entry 1: d84ab5e4ca8fe5840de48f4f74ed3ceccb311abeb18949aebdb8e41eb1f4ac11"
                   >
                     <span data-record-short>d84a</span>
                     <span class="record__tip" aria-hidden="true"
@@ -507,7 +519,7 @@ Reproduced: test_invoice_id_cannot_change_the_query failed</textarea>
                     type="button"
                     class="record__fp"
                     data-record-fp
-                    aria-label="Fingerprint of entry 2: fead3b3a5eced2cd326382e3800b5b8fc1ece4d5ac7d9b64e93eeab444d823f0"
+                    aria-label="fead, fingerprint of entry 2: fead3b3a5eced2cd326382e3800b5b8fc1ece4d5ac7d9b64e93eeab444d823f0"
                   >
                     <span data-record-short>fead</span>
                     <span class="record__tip" aria-hidden="true"
@@ -538,7 +550,7 @@ Patched in sandbox sbx-7f3a: 1 line removed, 1 added</textarea>
                     type="button"
                     class="record__fp"
                     data-record-fp
-                    aria-label="Fingerprint of entry 3: 9e267cd2a625451e62887a4ecadd1dfd755d72774268f02d5df8ad05244a1765"
+                    aria-label="9e26, fingerprint of entry 3: 9e267cd2a625451e62887a4ecadd1dfd755d72774268f02d5df8ad05244a1765"
                   >
                     <span data-record-short>9e26</span>
                     <span class="record__tip" aria-hidden="true"
@@ -569,7 +581,7 @@ Verified: all three gates passed</textarea>
                     type="button"
                     class="record__fp"
                     data-record-fp
-                    aria-label="Fingerprint of entry 4: c16297b38bb8adb8402e32409b9fd46bc03caeafcea9cf734a4a6f17a1b4e59f"
+                    aria-label="c162, fingerprint of entry 4: c16297b38bb8adb8402e32409b9fd46bc03caeafcea9cf734a4a6f17a1b4e59f"
                   >
                     <span data-record-short>c162</span>
                     <span class="record__tip" aria-hidden="true"
@@ -622,16 +634,16 @@ Waiting for a person to merge</textarea>
               </button>
               <span class="record__live" data-record-live aria-live="polite"></span>
             </p>
-            <p class="panel__note">
-              Illustrative example. The fingerprints are real SHA-256, computed in your browser.
-            </p>
+            <p class="panel__note">The fingerprints are real SHA-256, computed in your browser.</p>
           </div>
         </section>
 
         <section class="track track--results" id="results" data-signed aria-labelledby="results-title">
           <div class="track__sticky">
-            <div class="track__panel" data-avoid>
+            <div class="track__text results__title">
               <h2 class="beat__heading" id="results-title">Early results, on test applications.</h2>
+            </div>
+            <div class="track__panel" data-avoid>
               <div
                 class="matrix"
                 role="img"
@@ -687,6 +699,161 @@ Waiting for a person to merge</textarea>
         </section>
       </div>
 
+      <section class="trust" id="before" aria-labelledby="before-title">
+        <div class="trust__panel" data-leaves>
+          <h2 class="beat__heading" id="before-title">Before you apply</h2>
+
+          <h3 class="trust__title" id="pilot-plan">The pilot, week by week</h3>
+          <ol class="timeline">
+            <li><span class="timeline__when">Week 1</span><span class="timeline__what">Connect</span></li>
+            <li>
+              <span class="timeline__when">Week 2</span
+              ><span class="timeline__what">First verified pull requests</span>
+            </li>
+            <li>
+              <span class="timeline__when">Week 4</span
+              ><span class="timeline__what">Findings report and evidence pack</span>
+            </li>
+          </ol>
+          <p class="trust__note">
+            <span class="tbd" data-tbd="timeline">To confirm: adjust these weeks to the real plan</span>
+          </p>
+
+          <h3 class="trust__title" id="access">What AUTOSP can access</h3>
+          <dl class="access">
+            <div>
+              <dt>Your repositories</dt>
+              <dd>
+                Through a GitHub App, on the repositories you choose.
+                <span class="tbd" data-tbd="scopes">To confirm: the exact GitHub App permissions</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Where code runs</dt>
+              <dd>
+                In a throwaway container with no internet, a read-only file system and hard time limits. The
+                container is gone when the job ends.
+                <span class="tbd" data-tbd="hosting">To confirm: where those containers are hosted</span>
+              </dd>
+            </div>
+            <div>
+              <dt>What it can change</dt>
+              <dd>
+                Nothing on its own: it opens pull requests with the evidence and stops there. Your reviewers
+                approve and merge under your own branch protection, and the GitHub App can’t change or bypass
+                it.
+              </dd>
+            </div>
+            <div>
+              <dt>Data retention</dt>
+              <dd>
+                <span class="tbd" data-tbd="retention">To confirm: how long code and findings are kept</span>
+              </dd>
+            </div>
+          </dl>
+          <p class="trust__note">Nothing touches your code until you’ve signed a scope agreement.</p>
+
+          <h3 class="trust__title" id="compare">How it compares</h3>
+          <div class="compare" role="region" aria-labelledby="compare" tabindex="0">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col"><span class="visually-hidden">What</span></th>
+                  <th scope="col">Scanner alone</th>
+                  <th scope="col">Hiring AppSec</th>
+                  <th scope="col">AUTOSP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Fixes written</th>
+                  <td><span class="tbd" data-tbd="compare-scanner">To confirm</span></td>
+                  <td><span class="tbd" data-tbd="compare-appsec">To confirm</span></td>
+                  <td>Yes: the smallest fix it can, in a sealed sandbox</td>
+                </tr>
+                <tr>
+                  <th scope="row">Verified before merge</th>
+                  <td><span class="tbd" data-tbd="compare-scanner">To confirm</span></td>
+                  <td><span class="tbd" data-tbd="compare-appsec">To confirm</span></td>
+                  <td>Yes: the reproduction test, your existing suite and a fresh static scan</td>
+                </tr>
+                <tr>
+                  <th scope="row">Human approval</th>
+                  <td><span class="tbd" data-tbd="compare-scanner">To confirm</span></td>
+                  <td><span class="tbd" data-tbd="compare-appsec">To confirm</span></td>
+                  <td>Always: AUTOSP makes no merges; every merge is made by a person</td>
+                </tr>
+                <tr>
+                  <th scope="row">Audit trail</th>
+                  <td><span class="tbd" data-tbd="compare-scanner">To confirm</span></td>
+                  <td><span class="tbd" data-tbd="compare-appsec">To confirm</span></td>
+                  <td>Yes: an append-only record, and an evidence pack for each assessment</td>
+                </tr>
+                <tr>
+                  <th scope="row">Time to start</th>
+                  <td><span class="tbd" data-tbd="compare-scanner">To confirm</span></td>
+                  <td><span class="tbd" data-tbd="compare-appsec">To confirm</span></td>
+                  <td><span class="tbd" data-tbd="time-to-start">To confirm: how long setup takes</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 class="trust__title" id="faq">Questions</h3>
+          <div class="faq">
+            <details class="faq__item" name="faq" data-faq="faq">
+              <summary>Which languages does it support?</summary>
+              <p>The pilot is for GitHub-hosted Python services.</p>
+            </details>
+            <details class="faq__item" name="faq" data-faq="faq">
+              <summary>Which scanners does it work with?</summary>
+              <p>
+                <span class="tbd" data-tbd="scanners"
+                  >To confirm: the scanners AUTOSP takes findings from</span
+                >
+              </p>
+            </details>
+            <details class="faq__item" name="faq" data-faq="faq">
+              <summary>What can the GitHub App do?</summary>
+              <p>
+                It opens pull requests with the evidence and stops there. Your reviewers approve and merge
+                under your own branch protection, and the GitHub App can’t change or bypass it.
+                <span class="tbd" data-tbd="faq-scopes">To confirm: the exact permissions it asks for</span>
+              </p>
+            </details>
+            <details class="faq__item" name="faq" data-faq="faq">
+              <summary>Where does my code run?</summary>
+              <p>
+                Fixes are written inside a throwaway container with no internet, a read-only file system and
+                hard time limits. The container is gone when the job ends.
+                <span class="tbd" data-tbd="faq-where">To confirm: where those containers are hosted</span>
+              </p>
+            </details>
+            <details class="faq__item" name="faq" data-faq="faq">
+              <summary>What does it cost after the pilot?</summary>
+              <p>
+                The pilot is free.
+                <span class="tbd" data-tbd="cost">To confirm: the price after the pilot</span>
+              </p>
+            </details>
+            <details class="faq__item" name="faq" data-faq="faq">
+              <summary>How soon is the first verified pull request?</summary>
+              <p>
+                <span class="tbd" data-tbd="first-pr"
+                  >To confirm: the usual time to the first verified pull request</span
+                >
+              </p>
+            </details>
+            <details class="faq__item" name="faq" data-faq="faq">
+              <summary>Can we host it ourselves?</summary>
+              <p>
+                <span class="tbd" data-tbd="self-hosting">To confirm: whether self-hosting is offered</span>
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
       <section class="closing" id="apply" aria-labelledby="apply-title">
         <div class="closing__inner">
           <div class="closing__text">
@@ -698,6 +865,20 @@ Waiting for a person to merge</textarea>
               free.
             </p>
             <p class="beat__note">Nothing touches your code until you’ve signed a scope agreement.</p>
+            <figure class="founder">
+              <blockquote class="founder__note">
+                <p>
+                  <span class="tbd" data-tbd="founder-note"
+                    >To confirm: a two-line note from the founder</span
+                  >
+                </p>
+              </blockquote>
+              <figcaption class="founder__name">
+                <span class="tbd" data-tbd="founder-name"
+                  >To confirm: founder name and role (a photo can go here too)</span
+                >
+              </figcaption>
+            </figure>
           </div>
 
           <form
@@ -707,93 +888,102 @@ Waiting for a person to merge</textarea>
             method="post"
             enctype="text/plain"
           >
-            <div class="apply__row">
-              <label class="apply__field">
-                <span class="apply__label">Your name</span>
-                <input class="apply__input" name="name" type="text" autocomplete="name" required />
-              </label>
-              <label class="apply__field">
-                <span class="apply__label">Work email</span>
-                <input
-                  class="apply__input"
-                  name="email"
-                  type="email"
-                  autocomplete="email"
-                  inputmode="email"
-                  spellcheck="false"
-                  required
-                />
-              </label>
-            </div>
-            <div class="apply__row">
-              <label class="apply__field">
-                <span class="apply__label">Company</span>
-                <input
-                  class="apply__input"
-                  name="company"
-                  type="text"
-                  autocomplete="organization"
-                  aria-describedby="company-note"
-                  required
-                />
-              </label>
-              <label class="apply__field">
-                <span class="apply__label">Python services on GitHub</span>
-                <input
-                  class="apply__input"
-                  name="services"
-                  type="text"
-                  inputmode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="For example, 12"
-                />
-              </label>
-            </div>
-            <p class="apply__illustrative" id="company-note">
-              Illustrative: the tower shows what you type here. Nothing has been scanned.
-            </p>
+            <div class="apply__progress" aria-hidden="true"><i></i></div>
+            <p class="apply__step-label" data-step-label aria-live="polite"></p>
 
-            <fieldset class="apply__field apply__choice">
-              <legend class="apply__label">Engineering team size</legend>
-              <div class="apply__tiles">
-                <label class="apply__tile"
-                  ><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label
-                >
-                <label class="apply__tile"
-                  ><input type="radio" name="team" value="20 to 150" /><span>20 to 150</span></label
-                >
-                <label class="apply__tile"
-                  ><input type="radio" name="team" value="Over 150" /><span>Over 150</span></label
-                >
+            <fieldset class="apply__step" data-form-step="Your team" data-current>
+              <legend class="visually-hidden">Your team</legend>
+              <fieldset class="apply__field apply__choice">
+                <legend class="apply__label">Engineering team size</legend>
+                <div class="apply__tiles">
+                  <label class="apply__tile"
+                    ><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label
+                  >
+                  <label class="apply__tile"
+                    ><input type="radio" name="team" value="20 to 150" /><span>20 to 150</span></label
+                  >
+                  <label class="apply__tile"
+                    ><input type="radio" name="team" value="Over 150" /><span>Over 150</span></label
+                  >
+                </div>
+              </fieldset>
+              <fieldset class="apply__field apply__choice">
+                <legend class="apply__label">
+                  Scanners you run <span class="apply__hint">Choose any</span>
+                </legend>
+                <div class="apply__chips">
+                  <label class="apply__check"
+                    ><input type="checkbox" name="scanner" value="Semgrep" /> Semgrep</label
+                  >
+                  <label class="apply__check"
+                    ><input type="checkbox" name="scanner" value="CodeQL" /> CodeQL</label
+                  >
+                  <label class="apply__check"
+                    ><input type="checkbox" name="scanner" value="Snyk Code" /> Snyk Code</label
+                  >
+                  <label class="apply__check"
+                    ><input type="checkbox" name="scanner" value="osv-scanner" /> osv-scanner</label
+                  >
+                </div>
+              </fieldset>
+              <div class="apply__row">
+                <label class="apply__field">
+                  <span class="apply__label">Python services on GitHub</span>
+                  <input
+                    class="apply__input"
+                    name="services"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="For example, 12"
+                  />
+                </label>
               </div>
             </fieldset>
 
-            <fieldset class="apply__field apply__choice">
-              <legend class="apply__label">
-                Scanners you run <span class="apply__hint">Choose any</span>
-              </legend>
-              <div class="apply__chips">
-                <label class="apply__check"
-                  ><input type="checkbox" name="scanner" value="Semgrep" /> Semgrep</label
-                >
-                <label class="apply__check"
-                  ><input type="checkbox" name="scanner" value="CodeQL" /> CodeQL</label
-                >
-                <label class="apply__check"
-                  ><input type="checkbox" name="scanner" value="Snyk Code" /> Snyk Code</label
-                >
-                <label class="apply__check"
-                  ><input type="checkbox" name="scanner" value="osv-scanner" /> osv-scanner</label
-                >
+            <fieldset class="apply__step" data-form-step="You">
+              <legend class="visually-hidden">You</legend>
+              <div class="apply__row">
+                <label class="apply__field">
+                  <span class="apply__label">Your name</span>
+                  <input class="apply__input" name="name" type="text" autocomplete="name" required />
+                </label>
+                <label class="apply__field">
+                  <span class="apply__label">Work email</span>
+                  <input
+                    class="apply__input"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    inputmode="email"
+                    spellcheck="false"
+                    required
+                  />
+                </label>
               </div>
+              <div class="apply__row">
+                <label class="apply__field">
+                  <span class="apply__label">Company</span>
+                  <input
+                    class="apply__input"
+                    name="company"
+                    type="text"
+                    autocomplete="organization"
+                    aria-describedby="company-note"
+                    required
+                  />
+                </label>
+              </div>
+              <p class="apply__illustrative" id="company-note">
+                Illustrative: the tower shows what you type here. Nothing has been scanned.
+              </p>
+              <label class="apply__field">
+                <span class="apply__label"
+                  >Anything we should know <span class="apply__hint">Optional</span></span
+                >
+                <textarea class="apply__input" name="note" rows="1"></textarea>
+              </label>
             </fieldset>
-
-            <label class="apply__field">
-              <span class="apply__label"
-                >Anything we should know <span class="apply__hint">Optional</span></span
-              >
-              <textarea class="apply__input" name="note" rows="1"></textarea>
-            </label>
             <!-- left empty by people, filled in by bots: a submission with it ticked is dropped -->
             <input
               class="apply__trap"
@@ -805,12 +995,12 @@ Waiting for a person to merge</textarea>
             />
 
             <p class="apply__actions">
+              <button type="button" class="btn btn--quiet" data-step-back hidden>Back</button>
+              <button type="button" class="btn btn--primary" data-step-next hidden>Next</button>
               <button type="submit" class="btn btn--primary apply__send" data-apply-send>
                 Apply for the free pilot
               </button>
-              <span class="apply__how" data-apply-how
-                >Opens an email to nexarise.office@gmail.com with your answers filled in.</span
-              >
+              <span class="apply__how" data-apply-how>Opens your email app with your answers filled in.</span>
             </p>
             <p class="apply__status" data-apply-status role="status"></p>
           </form>
@@ -820,8 +1010,49 @@ Waiting for a person to merge</textarea>
 
     <footer class="foot">
       <p><a href="https://nexarise-website.vercel.app/">Nexarise</a> / AUTOSP</p>
-      <p>Every scene on this page is illustrative.</p>
+      <nav class="foot__nav" aria-label="Footer">
+        <ul>
+          <li><a href="#top">Product</a></li>
+          <li><a href="#backlog">How it works</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="/security">Security</a></li>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/terms">Terms</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="https://nexarise-website.vercel.app/">Nexarise</a></li>
+        </ul>
+      </nav>
+      <p>
+        Every scene on this page is illustrative.
+        <button type="button" class="foot__keys" data-keys-open>Keyboard shortcuts <kbd>?</kbd></button>
+      </p>
     </footer>
+
+    <dialog class="keys" data-keys aria-labelledby="keys-title">
+      <h2 class="keys__title" id="keys-title">Keyboard shortcuts</h2>
+      <dl class="keys__list">
+        <div>
+          <dt><kbd>J</kbd></dt>
+          <dd>Next chapter</dd>
+        </div>
+        <div>
+          <dt><kbd>K</kbd></dt>
+          <dd>Previous chapter</dd>
+        </div>
+        <div>
+          <dt><kbd>M</kbd> held</dt>
+          <dd>Approve and merge, at the merge step (anywhere else it takes you there)</dd>
+        </div>
+        <div>
+          <dt><kbd>?</kbd></dt>
+          <dd>This list</dd>
+        </div>
+      </dl>
+      <p class="keys__note">
+        The arrow keys scroll the page as usual. Shortcuts pause while you type in a field.
+      </p>
+      <form method="dialog"><button class="btn btn--quiet" type="submit">Close</button></form>
+    </dialog>
 
     <div class="calm" data-calm>
       <a class="calm__skip" href="#calm-main">Skip to content</a>
@@ -846,6 +1077,7 @@ Waiting for a person to merge</textarea>
 
       <header class="calm__head">
         <p><a href="https://nexarise-website.vercel.app/">Nexarise</a> / <strong>AUTOSP</strong></p>
+        <a class="calm__tour" href="./">Back to the tour</a>
         <a href="#pilot">Apply for the pilot</a>
       </header>
 
@@ -861,7 +1093,7 @@ Waiting for a person to merge</textarea>
           </div>
         </section>
 
-        <section class="calm-step calm-step--fail">
+        <section class="calm-step calm-step--fail" id="calm-how">
           <h2 data-rise data-words>It has to fail first.</h2>
           <div class="calm-step__text">
             <p data-rise>
@@ -968,6 +1200,77 @@ Waiting for a person to merge</textarea>
             free.
           </p>
           <p data-rise>Nothing touches your code until you’ve signed a scope agreement.</p>
+          <div class="calm-before">
+            <h3>The pilot, week by week</h3>
+            <ol class="calm-timeline">
+              <li><strong>Week 1</strong> Connect</li>
+              <li><strong>Week 2</strong> First verified pull requests</li>
+              <li><strong>Week 4</strong> Findings report and evidence pack</li>
+            </ol>
+            <p>
+              <span class="tbd" data-tbd="timeline">To confirm: adjust these weeks to the real plan</span>
+            </p>
+            <h3>What AUTOSP can access</h3>
+            <p>
+              Your chosen repositories, through a GitHub App that opens pull requests and stops there. Code
+              runs in a throwaway container with no internet, a read-only file system and hard time limits.
+              <span class="tbd" data-tbd="scopes"
+                >To confirm: the exact GitHub App permissions, hosting and data retention</span
+              >
+            </p>
+            <h3 id="calm-faq">Questions</h3>
+            <div class="calm-faq">
+              <details class="faq__item" name="calm-faq" data-faq="calm-faq">
+                <summary>Which languages does it support?</summary>
+                <p>The pilot is for GitHub-hosted Python services.</p>
+              </details>
+              <details class="faq__item" name="calm-faq" data-faq="calm-faq">
+                <summary>Which scanners does it work with?</summary>
+                <p>
+                  <span class="tbd" data-tbd="scanners"
+                    >To confirm: the scanners AUTOSP takes findings from</span
+                  >
+                </p>
+              </details>
+              <details class="faq__item" name="calm-faq" data-faq="calm-faq">
+                <summary>What can the GitHub App do?</summary>
+                <p>
+                  It opens pull requests with the evidence and stops there. Your reviewers approve and merge
+                  under your own branch protection, and the GitHub App can’t change or bypass it.
+                  <span class="tbd" data-tbd="faq-scopes">To confirm: the exact permissions it asks for</span>
+                </p>
+              </details>
+              <details class="faq__item" name="calm-faq" data-faq="calm-faq">
+                <summary>Where does my code run?</summary>
+                <p>
+                  Fixes are written inside a throwaway container with no internet, a read-only file system and
+                  hard time limits. The container is gone when the job ends.
+                  <span class="tbd" data-tbd="faq-where">To confirm: where those containers are hosted</span>
+                </p>
+              </details>
+              <details class="faq__item" name="calm-faq" data-faq="calm-faq">
+                <summary>What does it cost after the pilot?</summary>
+                <p>
+                  The pilot is free.
+                  <span class="tbd" data-tbd="cost">To confirm: the price after the pilot</span>
+                </p>
+              </details>
+              <details class="faq__item" name="calm-faq" data-faq="calm-faq">
+                <summary>How soon is the first verified pull request?</summary>
+                <p>
+                  <span class="tbd" data-tbd="first-pr"
+                    >To confirm: the usual time to the first verified pull request</span
+                  >
+                </p>
+              </details>
+              <details class="faq__item" name="calm-faq" data-faq="calm-faq">
+                <summary>Can we host it ourselves?</summary>
+                <p>
+                  <span class="tbd" data-tbd="self-hosting">To confirm: whether self-hosting is offered</span>
+                </p>
+              </details>
+            </div>
+          </div>
           <form
             class="calm-form"
             data-calm-apply
@@ -1034,9 +1337,7 @@ Waiting for a person to merge</textarea>
               aria-hidden="true"
             />
             <button class="calm-button" type="submit" data-apply-send>Apply for the free pilot</button>
-            <p class="calm-form__how" data-apply-how>
-              Opens an email to nexarise.office@gmail.com with your answers filled in.
-            </p>
+            <p class="calm-form__how" data-apply-how>Opens your email app with your answers filled in.</p>
             <p class="calm-form__how" data-apply-status aria-live="polite"></p>
           </form>
         </section>
@@ -1044,6 +1345,18 @@ Waiting for a person to merge</textarea>
 
       <footer class="calm-foot">
         <p class="calm-foot__name">AUTOSP</p>
+        <nav class="foot__nav" aria-label="Footer">
+          <ul>
+            <li><a href="#calm-main">Product</a></li>
+            <li><a href="#calm-how">How it works</a></li>
+            <li><a href="#calm-faq">FAQ</a></li>
+            <li><a href="/security">Security</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+            <li><a href="/terms">Terms</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="https://nexarise-website.vercel.app/">Nexarise</a></li>
+          </ul>
+        </nav>
         <p><a href="https://nexarise-website.vercel.app/">Nexarise</a> / AUTOSP</p>
       </footer>
     </div>

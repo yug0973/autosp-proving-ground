@@ -160,6 +160,9 @@ def main() -> int:
                  Storage.prototype.setItem = function (k, v) { window.__stored.push([k, v]); f.call(this, k, v); };
                  window.__before = JSON.stringify([{ ...localStorage }, { ...sessionStorage }, document.cookie]); })()"""
         )
+        # the company is asked in the form's second step
+        page.click('[data-apply] label.apply__tile:has-text("20 to 150")')
+        page.click('[data-apply] [data-step-next]')
         field = page.locator('[data-apply] input[name="company"]')
         cases = [
             ('acme', 'ACME'),
@@ -167,9 +170,9 @@ def main() -> int:
             ('Café Münster', 'CAFE MUNSTER'),
             ('a very long company name indeed', 'A VERY LONG CO'),
             ('<script>"x"', 'SCRIPTX'),
-            ('日本語', 'YOUR TEAM'),
-            ('   ', 'YOUR TEAM'),
-            ('', 'YOUR TEAM'),
+            ('日本語', '20 TO 150'),
+            ('   ', '20 TO 150'),
+            ('', '20 TO 150'),
         ]
         for typed, want in cases:
             field.fill(typed)
@@ -268,6 +271,8 @@ def main() -> int:
         page.evaluate('window.scrollBy(0, 60)')
         frames(page, 3)
         check('reduced motion: the camera does not travel', a == page.evaluate('__world.inspect().camera'))
+        page.click('[data-apply] label.apply__tile:has-text("20 to 150")')
+        page.click('[data-apply] [data-step-next]')
         page.locator('[data-apply] input[name="company"]').fill('Initech')
         frames(page, 4)
         s = page.evaluate('__world.skyline().sign')

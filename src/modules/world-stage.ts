@@ -28,7 +28,7 @@ import type { Finding } from '../world/city';
 import type { Quality } from '../world/sky';
 import { STATIC_PROGRESS } from '../world/journey';
 import { SCAN } from '../world/scan';
-import { resultsStat, stillResults } from '../world/skyline';
+import { SIGN, resultsStat, signText as signFor, stillResults } from '../world/skyline';
 import { SHOTS } from '../world/shots';
 import { onReducedMotionChange, prefersReducedMotion } from '../lib/reduced-motion';
 import {
@@ -40,7 +40,10 @@ import {
   onFinding,
   onHold,
   onMerge,
+  setFinding,
 } from '../lib/story';
+import { FIXES } from '../lib/fixes';
+import { scrollToTarget } from './scroll';
 import { GATE_SHORT, GATES_FROM, gateMoment } from '../lib/gates';
 import type { GateMoment } from '../lib/gates';
 import { claimArrival } from './arrival';
@@ -50,7 +53,18 @@ import { SANDBOX } from './sandbox-step';
 
 const root = document.documentElement;
 
+/** Set once the frame rate has shown this machine cannot hold the high tier (watchFrames, below). */
+const LOW_POWER_KEY = 'autosp-low-power';
+function lowPowerSeen(): boolean {
+  try {
+    return sessionStorage.getItem(LOW_POWER_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 function pickQuality(): Quality {
+  if (lowPowerSeen()) return 'low';
   const coarse = window.matchMedia('(pointer: coarse)').matches;
   const small = window.innerWidth < 768;
   const fewCores = (navigator.hardwareConcurrency || 4) <= 4;
@@ -155,6 +169,7 @@ export function initWorldStage(stage: HTMLElement): () => void {
   }
 
   let world: World | null = null;
+  let lowPowered = false;
   let items: HTMLLIElement[] = [];
 
   function progress(): number {
@@ -284,19 +299,19 @@ export function initWorldStage(stage: HTMLElement): () => void {
   const order: number[] = [];
   const placed: Array<{ x: number; y: number }> = [];
 
-  const railBox = document.querySelector<HTMLElement>('[data-rail]');
+  const badgeBox = document.querySelector<HTMLElement>('[data-demo-badge]');
 
-  /** True when a label anchored at (x, y) would sit over any text block on screen, or under the rail. */
+  /** True when a label anchored at (x, y) would sit over any text block on screen. */
   function overText(x: number, y: number): boolean {
-    if (railBox?.hasAttribute('data-shown')) {
-      const rail = railBox.getBoundingClientRect();
-      if (
-        x + LABEL_GAP.x / 2 > rail.left - TEXT_MARGIN &&
-        y > rail.top - TEXT_MARGIN &&
-        y - LABEL_GAP.y < rail.bottom
-      ) {
-        return true;
-      }
+    // nor under the demo badge in the corner
+    const badge = badgeBox?.getBoundingClientRect();
+    if (
+      badge &&
+      badge.width > 0 &&
+      x + LABEL_GAP.x / 2 > badge.left - TEXT_MARGIN &&
+      y > badge.top - TEXT_MARGIN
+    ) {
+      return true;
     }
     for (const text of texts) {
       const box = text.getBoundingClientRect();
@@ -567,16 +582,20 @@ export function initWorldStage(stage: HTMLElement): () => void {
       window.innerWidth >= LEADER_MIN_WIDTH &&
       box.top >= 0 &&
       box.bottom <= window.innerHeight &&
-      end.x < box.left - LEADER_CLEAR &&
+      // the box beside its object, on either side (the reproduction's terminal sits left of it)
+      (end.x < box.left - LEADER_CLEAR || end.x > box.right + LEADER_CLEAR) &&
       end.y > LEADER_CLEAR &&
       end.y < window.innerHeight - LEADER_CLEAR &&
       (text === undefined || end.x > text.right + LEADER_CLEAR);
     leaderSvg.toggleAttribute('data-shown', shown);
     if (!shown || !end) return;
-    const px = box.left;
+    const left = end.x > box.right;
+    const px = left ? box.right : box.left;
     const py = box.top + Math.min(LEADER_TOP, box.height / 4);
     // out from the panel level, then down (or up) to the object at a slant
-    const elbow = Math.max(end.x + LEADER_CLEAR, px - LEADER_ELBOW);
+    const elbow = left
+      ? Math.min(end.x - LEADER_CLEAR, px + LEADER_ELBOW)
+      : Math.max(end.x + LEADER_CLEAR, px - LEADER_ELBOW);
     leaderLine.setAttribute(
       'd',
       `M ${px.toFixed(1)} ${py.toFixed(1)} H ${elbow.toFixed(1)} L ${end.x.toFixed(1)} ${end.y.toFixed(1)}`,
@@ -611,6 +630,129 @@ export function initWorldStage(stage: HTMLElement): () => void {
     });
   }
 
+  // --- The cracks answer the pointer (a mouse only): the one under it burns brighter and says what it is,
+  // and a click on one of the three that can be followed takes the visitor to the pick with it chosen.
+  // On the first screen, cracks near the pointer brighten a little; no light is drawn.
+  const tip = document.createElement('div');
+  tip.className = 'crack-tip';
+  tip.setAttribute('aria-hidden', 'true');
+  tip.hidden = true;
+  document.body.append(tip);
+  let lastLabels: readonly LabelPlacement[] = [];
+  let pointerAt: { x: number; y: number } | null = null;
+  let overPage = false;
+  let hovered: Finding | null = null;
+  /** The page itself (words, boxes, controls) is under the pointer: the city behind it does not answer. */
+  const PAGE_PARTS =
+    'a, button, input, label, select, textarea, summary, .beat__text, .track__text, .chapter__text, .track__panel, .chapter__panel, .closing__inner, .trust__panel, .rail, .strip, .demo-badge, .crack-tip';
+  const HOVER_REACH = 56;
+  function showTip(finding: Finding | null, x: number, y: number): void {
+    if (!finding) {
+      tip.hidden = true;
+      return;
+    }
+    const fix = isFindingId(finding.cwe) ? FIXES[finding.cwe] : null;
+    const cwe = document.createElement('strong');
+    cwe.textContent = finding.cwe;
+    const name = document.createElement('span');
+    name.textContent = finding.name;
+    const lines: HTMLElement[] = [cwe, name];
+    if (fix) {
+      const file = document.createElement('code');
+      file.textContent = fix.file;
+      lines.push(file);
+    }
+    const action = document.createElement('em');
+    action.textContent = fix ? 'Click to follow this fix' : 'Outside the three this demo follows';
+    lines.push(action);
+    tip.replaceChildren(...lines);
+    tip.hidden = false;
+    const box = tip.getBoundingClientRect();
+    const left = Math.min(x + 16, window.innerWidth - box.width - 12);
+    const top = y + 18 + box.height > window.innerHeight ? y - box.height - 12 : y + 18;
+    tip.style.translate = `${left.toFixed(0)}px ${top.toFixed(0)}px`;
+  }
+  function updateHover(index: number): void {
+    if (!world) return;
+    const beat = beats[index]?.beat;
+    let found: Finding | null = null;
+    if (pointerAt && !overPage && (beat === 'overview' || beat === 'pick') && world.night > 0.3) {
+      let best = HOVER_REACH;
+      for (const label of lastLabels) {
+        if (!label.targetOnScreen || !world.ignited(label.finding)) continue;
+        const d = Math.hypot(label.targetX - pointerAt.x, label.targetY - pointerAt.y);
+        if (d < best) {
+          best = d;
+          found = label.finding;
+        }
+      }
+    }
+    // the first screen only: cracks near the pointer brighten while the words stand on the deck
+    const near = world.deckWords * (1 - world.deckGone * 0.5);
+    world.setCrackPointer(found, pointerAt?.x ?? null, pointerAt?.y ?? 0, near);
+    if (found !== hovered) {
+      hovered = found;
+      root.toggleAttribute('data-crack-hover', found !== null && isFindingId(found.cwe));
+      // the optional sound ticks as the pointer finds a crack (sound.ts)
+      if (found) window.dispatchEvent(new CustomEvent('crack:hover'));
+    }
+    if (pointerAt) showTip(found, pointerAt.x, pointerAt.y);
+  }
+  const onCrackClick = (event: MouseEvent): void => {
+    if (!hovered || !isFindingId(hovered.cwe)) return;
+    if (event.target instanceof Element && event.target.closest(PAGE_PARTS)) return;
+    setFinding(hovered.cwe);
+    const pick = document.querySelector<HTMLElement>('#pick');
+    if (pick) scrollToTarget(pick);
+  };
+  const onPointerLeave = (): void => {
+    pointerAt = null;
+  };
+
+  // --- Low power: if the high tier cannot hold 40 frames a second for a few seconds running, the world is
+  // built again at the low tier (lower pixel ratio, fewer buildings and trees, a simpler sky), once, for
+  // the rest of the visit. Not in an automated browser, so a slow test machine never switches mid-test,
+  // unless a test asks for it (?test&lowpower, which sets a floor no machine can reach).
+  const query = new URLSearchParams(location.search);
+  const forceLow = query.has('test') && query.has('lowpower');
+  const watchLow = forceLow || !navigator.webdriver;
+  const FLOOR_MS = forceLow ? 1 : 1000 / 40;
+  const WATCH = { settle: 2500, window: 3000 } as const;
+  let watchFrom = 0;
+  let lastFrame = 0;
+  let slow = 0;
+  let total = 0;
+  function watchFrames(): void {
+    if (!watchLow || root.dataset.quality !== 'high' || document.hidden) {
+      lastFrame = 0;
+      return;
+    }
+    const now = performance.now();
+    if (watchFrom === 0) watchFrom = now + WATCH.settle; // the first moments compile and load; not counted
+    if (lastFrame > 0 && now > watchFrom) {
+      const gap = now - lastFrame;
+      if (gap < 250) {
+        total += gap;
+        if (gap > FLOOR_MS) slow += gap;
+      }
+      if (total >= WATCH.window) {
+        // most of the time spent in frames slower than the floor: this machine needs the low tier
+        if (slow / total > 0.6) {
+          try {
+            sessionStorage.setItem(LOW_POWER_KEY, '1');
+          } catch {
+            // storage blocked: the switch still holds for this page
+          }
+          lowPowered = true;
+          window.setTimeout(mount);
+        }
+        slow = 0;
+        total = 0;
+      }
+    }
+    lastFrame = now;
+  }
+
   function placeLabels(
     labels: readonly LabelPlacement[],
     flag: Readonly<GateFlag>,
@@ -618,10 +760,13 @@ export function initWorldStage(stage: HTMLElement): () => void {
     gates: readonly Readonly<GateTop>[],
   ): void {
     if (!world) return;
+    watchFrames();
+    lastLabels = labels;
     driveArrival();
     placeFlag(flag);
     placeTags(gates);
     const index = currentBeat();
+    updateHover(index);
     driveScan(index);
     world.setAvoid(avoidRects);
     // the row's word waits for the row: the camera is still turning round when the section arrives
@@ -682,8 +827,25 @@ export function initWorldStage(stage: HTMLElement): () => void {
     }
   }
 
+  // With reduced motion the camera never travels: each chapter has its still frame, and a new chapter's
+  // frame fades in over the last rather than cutting to it.
+  let stillBeat = -2;
+  const crossfade = (): void => {
+    const beat = currentBeat();
+    if (beat === stillBeat || beat < 0) return;
+    const first = stillBeat === -2;
+    stillBeat = beat;
+    if (first) return;
+    canvas.style.transition = 'none';
+    canvas.style.opacity = '0.25';
+    requestAnimationFrame(() => {
+      canvas.style.transition = 'opacity 450ms ease-out';
+      canvas.style.opacity = '';
+    });
+  };
   const onScroll = (): void => {
     if (!world) return;
+    if (prefersReducedMotion()) crossfade();
     world.setProgress(prefersReducedMotion() ? stillProgress() : progress());
     world.setPush(pushAmount());
     world.setReproduce(reproduceAmount());
@@ -695,12 +857,25 @@ export function initWorldStage(stage: HTMLElement): () => void {
     world.setDawn(dawnNow());
     markResultsStat();
   };
-  /** The name goes from the field to the sign and no further: nothing is stored or sent. */
+  /** What the tower's sign says: the company once typed, and before that the team size chosen in the
+   * form's first step, so the tower answers each step. It goes no further: nothing is stored or sent. */
+  const applyForm = document.querySelector<HTMLFormElement>('[data-apply]');
+  const signText = (): string => {
+    // a name the sign can show; one it cannot (only spaces, or letters it has no pixels for) falls back too
+    const company = companyField?.value ?? '';
+    if (signFor(company) !== SIGN.empty) return company;
+    const team = applyForm?.querySelector<HTMLInputElement>('input[name="team"]:checked')?.value ?? '';
+    return team;
+  };
   const onCompany = (): void => {
-    world?.setCompany(companyField?.value ?? '');
+    world?.setCompany(signText());
   };
   const onPointer = (event: PointerEvent): void => {
     if (event.pointerType !== 'mouse' || !world) return;
+    pointerAt = { x: event.clientX, y: event.clientY };
+    overPage = event.target instanceof Element && event.target.closest(PAGE_PARTS) !== null;
+    // a still world draws only on demand, so the pointer moves it on itself
+    if (prefersReducedMotion()) updateHover(currentBeat());
     world.setDeckPointer(event.clientX, event.clientY);
     world.setPointer(
       (event.clientX / window.innerWidth) * 2 - 1,
@@ -711,7 +886,9 @@ export function initWorldStage(stage: HTMLElement): () => void {
   function mount(): void {
     world?.dispose();
     const still = prefersReducedMotion();
-    const quality = pickQuality();
+    const quality = lowPowered ? 'low' : pickQuality();
+    watchFrom = 0;
+    lastFrame = 0;
     try {
       world = createWorld({ canvas: canvas as HTMLCanvasElement, quality, still });
     } catch (error) {
@@ -736,7 +913,7 @@ export function initWorldStage(stage: HTMLElement): () => void {
     world.setOutro(outroAmount());
     world.setResults(resultsNow());
     world.setDawn(dawnNow());
-    world.setCompany(companyField?.value ?? '');
+    world.setCompany(signText());
     markResultsStat();
     world.setOrbit(yaw);
   }
@@ -757,7 +934,10 @@ export function initWorldStage(stage: HTMLElement): () => void {
   mount();
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('pointermove', onPointer, { passive: true });
+  window.addEventListener('click', onCrackClick);
+  document.documentElement.addEventListener('pointerleave', onPointerLeave);
   companyField?.addEventListener('input', onCompany);
+  applyForm?.addEventListener('change', onCompany);
   orbit?.addEventListener('pointerdown', onOrbitDown);
   orbit?.addEventListener('pointermove', onOrbitMove);
   orbit?.addEventListener('pointerup', onOrbitUp);
@@ -792,7 +972,12 @@ export function initWorldStage(stage: HTMLElement): () => void {
     stopPulsing();
     window.removeEventListener('scroll', onScroll);
     window.removeEventListener('pointermove', onPointer);
+    window.removeEventListener('click', onCrackClick);
+    document.documentElement.removeEventListener('pointerleave', onPointerLeave);
+    tip.remove();
+    root.removeAttribute('data-crack-hover');
     companyField?.removeEventListener('input', onCompany);
+    applyForm?.removeEventListener('change', onCompany);
     orbit?.removeEventListener('pointerdown', onOrbitDown);
     orbit?.removeEventListener('pointermove', onOrbitMove);
     orbit?.removeEventListener('pointerup', onOrbitUp);

@@ -34,25 +34,38 @@ These come from your `CLAUDE.md`, `DESIGN.md` and earlier decisions in this proj
 - **2:** the scanner sweep stays, redrawn as a softer, thinner beam with a trailing glow, so it reads as a scan.
 - **3:** tight scrims, sized to each text block and moving with it. No blur, nothing across the city.
 - **5:** the rail's backdrop is square-cornered and solid.
+- **17:** badge only. The per-box "Illustrative" lines go; the CLAUDE.md label rule now names the badge.
+- **19:** vary three chapters, same box: Reproduce (wide terminal), Record (centred statement), Results (heading out of the box, top right).
+- **20:** Clash Display for headlines (semibold: the bold ran its letters together), and Nexarise sky blue `#8ab4ff` as the one accent, never a state.
+- **23:** no visible spotlight; cracks near the pointer glow a little, hero only, never on touch.
+- **24:** the mini-map sits above the rail, on the same solid backing; hidden under 60rem and at the form.
+- **27:** the waiting / running / passed states go on the existing rail; no second sticky bar.
+- **31:** skipped; the hero keeps showing at once.
+- **21:** already done in Phase 1 (the sub-line expands AUTOSP).
 
 ### Status
 
 - **Phase 1: done (7 November).** Built on top of last night's uncommitted work (gates flight, Web3Forms form), which the owner chose to keep.
+- **Phase 5: done (7 November). All five phases are done; CHANGELOG.md summarises every change.** Lighthouse desktop before 77/72 · 97 · 100 · 91, after 99 · 100 · 100 · 100.
+- **After Phase 4 (7 November), the owner's call:** the right-hand rail and the mini-map on it are removed (so items 24 and 27 are gone with them), and the Record chapter is centred: its statement and its chain on one centre line.
+- **Phase 4: done (7 November).** Crack tooltips with click to follow (22); cracks near the pointer brighten on the first screen, nothing drawn (23); the run types its command, flashes its failures and can be skipped (25); a highlighted diff with Copy patch, its added line lime once every check passes (26); magnetic primary buttons with a press (28); J, K, M held and ? (29; the arrow keys keep scrolling); optional sound (30). No preloader (31). Severity is not shown in the tooltip: the page has no severity data and none was invented.
+- **Phase 3: done (7 November).** One corner badge replaces the per-box Illustrative lines; the steps' fingerprints are small chips that light in sky blue once the record is reached; Reproduce, Record and Results have their own layouts; Clash Display semibold for headlines and `--accent` (#8ab4ff), tabled in DESIGN.md §3. The face is wider than Cabinet Grotesk: the phone footer name went from 26vw to 21vw, and tight negative tracking was removed everywhere.
+- **Phase 2: done (7 November), done.** Two-step form, no Gmail address on screen, success words and a booking button (hidden until there is a link), one "Before you apply" box (week-by-week plan, access, comparison, questions) that fades as it rises so it never shares the screen with the form's box, a sample evidence pack drawn from the page's own demo fix (`tests/make-evidence-pack.py`), a founder note and footer links. The phone page has the plan, the access and the questions before its form, and the same footer. Its form stays on one page.
 - **Regressions from last night's work, fixed:** the tower words were switched off (restored); the gates camera climbed and swung too fast (the climb off the roof now has its own stretch of scroll, and the swing to the side ends with the chapter); the form test now accepts the field's extra error link.
 
 ## Facts only you can give (placeholders until then)
 
 No numbers, scopes or names will be invented. These stay as clearly marked placeholders until you provide them:
 
-- Form backend (7): Formspree, Resend or your endpoint, and the reply-from address.
-- Booking link (9): Cal.com or Calendly URL.
+- Form backend (7): Web3Forms is wired. Still needed: the reply-from address (`src/lib/site.ts`, `replyFrom`).
+- Booking link (9): Cal.com or Calendly URL (`src/lib/site.ts`, `bookingUrl`; the button shows once it is set).
 - GitHub App scopes, where code runs, data retention (10).
 - FAQ answers: cost after the pilot, time to first verified PR, self-hosting (11).
 - The real pilot timeline (12).
 - Comparison facts, especially "time to start" (13).
-- Sample evidence pack PDF (14).
+- Sample evidence pack (14): a two-page sample marked "illustrative" is in `public/`; the final pack format is to confirm.
 - Founder name, photo and note (15).
-- Footer routes: Security, Privacy, Terms, Contact (16).
+- Footer routes: Security, Privacy, Terms, Contact (16). They link to `/security`, `/privacy`, `/terms` and `/contact`, which do not exist yet.
 
 ## Item → files
 

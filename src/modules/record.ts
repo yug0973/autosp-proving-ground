@@ -93,7 +93,10 @@ export function initRecord(root: HTMLElement): () => void {
       block.fingerprint.disabled = !full;
       block.fingerprint.setAttribute(
         'aria-label',
-        full ? `Fingerprint of entry ${entry}: ${full}` : `Entry ${entry} has no fingerprint yet`,
+        // the visible four characters first, so a voice command by what is on screen finds it
+        full
+          ? `${full.slice(0, SHORT)}, fingerprint of entry ${entry}: ${full}`
+          : `----, entry ${entry} has no fingerprint yet`,
       );
       if (!full) delete block.fingerprint.dataset.pinned;
       block.status.textContent = state === 'broken' ? 'No longer matches' : '';

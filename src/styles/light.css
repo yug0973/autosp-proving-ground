@@ -23,7 +23,7 @@
   .calm {
     --calm-gutter: clamp(1.25rem, 5.5vw, 3rem);
     --calm-ink: #060a1e;
-    --calm-display: "Cabinet Grotesk", "General Sans", system-ui, sans-serif;
+    --calm-display: "Clash Display", "General Sans", system-ui, sans-serif;
     position: relative;
     overflow-x: clip;
     color: var(--mist-50);
@@ -37,7 +37,7 @@
     color: inherit;
     font-family: var(--calm-display);
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: 0.005em;
     text-wrap: balance;
   }
   .calm h2 {
@@ -227,7 +227,7 @@
     max-width: 11ch;
     font-size: clamp(3.1rem, 14.2vw, 7.5rem);
     line-height: 0.95;
-    letter-spacing: -0.04em;
+    letter-spacing: 0;
   }
   .calm-hero__foot {
     display: grid;
@@ -294,7 +294,7 @@
   .calm .calm-step--fail h2 {
     font-size: clamp(3.75rem, 19.5vw, 10rem);
     line-height: 0.92;
-    letter-spacing: -0.045em;
+    letter-spacing: 0;
     max-width: 7ch;
   }
 
@@ -315,7 +315,7 @@
     font-family: var(--calm-display);
     font-size: clamp(1.5rem, 6.6vw, 2.5rem);
     font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.005em;
     line-height: 1.08;
     list-style: none;
   }
@@ -333,7 +333,7 @@
     font-family: var(--calm-display);
     font-size: clamp(1.375rem, 5.6vw, 2rem);
     font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.005em;
   }
   .calm-state--large i {
     width: 1.125rem;
@@ -392,7 +392,7 @@
     font-size: 2.5rem;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.03em;
+    letter-spacing: 0.005em;
     line-height: 1;
   }
   .calm-results dt small {
@@ -408,12 +408,12 @@
   }
   .calm-results .calm-results__lead dt {
     font-size: clamp(7.5rem, 37vw, 18rem);
-    letter-spacing: -0.05em;
+    letter-spacing: -0.015em;
     line-height: 0.85;
   }
   .calm-results .calm-results__lead dt small {
     font-size: 0.34em;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
   .calm-results .calm-results__lead dd {
     margin-top: 1.25rem;
@@ -584,10 +584,10 @@
     max-width: none;
     margin-left: -0.04em;
     font-family: var(--calm-display);
-    font-size: 26vw;
+    font-size: 21vw;
     white-space: nowrap;
     font-weight: 800;
-    letter-spacing: -0.05em;
+    letter-spacing: 0.005em;
     line-height: 0.85;
   }
   .calm-foot a {
@@ -664,5 +664,49 @@
     .calm .calm-foot__name {
       font-size: clamp(8rem, 25vw, 22rem);
     }
+  }
+
+  /* --- Before the form: the plan, the access, the questions ----------------------------------------------------------- */
+  .calm-before {
+    display: grid;
+    gap: 1rem;
+    max-width: 34rem;
+    margin-top: 2rem;
+  }
+  .calm-before h3 {
+    margin-top: 1.25rem;
+    font-size: 1.35rem;
+    scroll-margin-top: 3rem;
+  }
+  .calm-timeline {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .calm-timeline li {
+    padding-left: 1rem;
+    border-left: 2px solid rgb(6 10 30 / 0.35);
+  }
+  .calm-timeline strong {
+    display: block;
+  }
+  .calm-foot .foot__nav ul {
+    gap: 0.25rem 1.25rem;
+  }
+  .calm-foot .foot__nav a {
+    justify-content: center;
+    min-width: 2.75rem;
+  }
+
+  /* "Back to the tour": only for a visitor who chose the simple view on a screen that has the tour */
+  .calm__head .calm__tour {
+    display: none;
+  }
+  :root[data-view="simple"] .calm__head .calm__tour {
+    display: inline-flex;
+    margin-left: auto;
+    margin-right: 1.25rem;
   }
 }

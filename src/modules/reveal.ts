@@ -26,6 +26,8 @@ function riseLines(el: HTMLElement, delay: number, trigger?: Element): SplitText
   return SplitText.create(el, {
     type: 'lines',
     mask: 'lines',
+    // a heading may carry an aria-label; a paragraph may not, so it keeps a hidden copy of its words
+    aria: /^H[1-6]$/.test(el.tagName) ? 'auto' : 'hidden',
     // re-split when the font loads or the width changes; the old tween goes with the old lines
     autoSplit: true,
     onSplit: (self) => {

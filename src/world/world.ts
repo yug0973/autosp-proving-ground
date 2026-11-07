@@ -190,6 +190,9 @@ export interface World {
   readonly focus: Finding | undefined;
   /** Pointer position from -1 to 1 on each axis; the camera leans a little towards it. */
   setPointer(x: number, y: number): void;
+  /** The crack under the pointer burns brighter (`hover`, or null), and cracks within reach of the
+   * pointer (CSS pixels) brighten by `near`, 0 to 1 (the first screen only). x null: the pointer left. */
+  setCrackPointer(hover: Finding | null, x: number | null, y: number, near: number): void;
   /** Called after every frame with the label positions, the refusal flag and the fix in flight. */
   onFrame(listener: FrameListener): void;
   dispose(): void;
@@ -495,6 +498,8 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   let arrival = 0;
   let resultsProgress = -1;
   let dawn = 0;
+  // the pointer over the cracks as last sent to the city (setCrackPointer), to send only changes
+  let crackPointer = '';
   const dawnPosition = new Vector3();
   const dawnTarget = new Vector3();
   const rowPosition = new Vector3();
@@ -571,6 +576,7 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   let height = 0;
   let frame = 0;
   let running = false;
+  let ready = false;
   const start = performance.now();
 
   function resize(): void {
@@ -586,6 +592,9 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   }
 
   function draw(now: number): void {
+    // nothing is drawn until the shaders have compiled off the main thread (below): a first draw
+    // compiling them itself would hold the page still for over half a second
+    if (!ready) return;
     journey.sample(progress, pose);
     atmosphere.update(pose.phase, along(SHOTS.dawn.sky, dawn));
     syncShared(shared, atmosphere, still || clockStopped ? 0 : (now - start) / 1000);
@@ -846,7 +855,7 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   }
 
   function play(): void {
-    if (still || running || document.hidden) return;
+    if (!ready || still || running || document.hidden) return;
     running = true;
     frame = requestAnimationFrame(loop);
   }
@@ -868,8 +877,15 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
   document.addEventListener('visibilitychange', onVisibility);
 
   resize();
-  if (still) draw(performance.now());
-  else play();
+  // compile every shader in the scene in parallel where the driver can (KHR_parallel_shader_compile),
+  // then start; the page's words and buttons are already there, over the CSS sky
+  const begin = (): void => {
+    if (disposed || ready) return;
+    ready = true;
+    if (still) draw(performance.now());
+    else play();
+  };
+  renderer.compileAsync(scene, camera).then(begin, begin);
 
   // The pushed-in shaders are large, and compiled at first use they would freeze the page just as the
   // visitor scrolls into the first close-up. Compile them now, in the background, once the page has
@@ -1095,6 +1111,23 @@ export function createWorld({ canvas, quality, still }: WorldOptions): World {
     },
     setPointer(x, y) {
       pointer.set(x, y);
+    },
+    setCrackPointer(hover, x, y, near) {
+      // called from every frame's listener: only a change redraws (a still world draws on demand, and a
+      // redraw here would call back into it)
+      const key = `${String(hover?.building ?? -1)} ${String(x)} ${String(y)} ${near.toFixed(3)}`;
+      if (key === crackPointer) return;
+      crackPointer = key;
+      const ratio = renderer.getPixelRatio();
+      const height = renderer.domElement.clientHeight || window.innerHeight;
+      city.setPointerGlow(
+        hover?.building ?? -1,
+        (x ?? 0) * ratio,
+        (height - y) * ratio,
+        x === null ? 0 : near,
+        Math.min(window.innerWidth, height) * 0.16 * ratio,
+      );
+      if (still) draw(performance.now());
     },
     onFrame(listener) {
       listeners.push(listener);

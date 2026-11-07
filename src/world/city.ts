@@ -42,6 +42,7 @@ import commonGlsl from './shaders/common.glsl?raw';
 import fogGlsl from './shaders/fog.glsl?raw';
 import mergeGlsl from './shaders/merge.glsl?raw';
 import focusGlsl from './shaders/focus.glsl?raw';
+import pointerGlsl from './shaders/pointer.glsl?raw';
 import focusClearGlsl from './shaders/focus-clear.glsl?raw';
 import displayGlsl from './shaders/display.glsl?raw';
 import scanGlsl from './shaders/scan.glsl?raw';
@@ -559,6 +560,9 @@ export interface City {
    * whether any piece stands on the soft edge of the line of sight just now, part way out: its
    * transparent copy must be drawn, or it would not be drawn at all. */
   setFocus(building: number, amount: number, target: Vector3, edge: boolean): void;
+  /** The building whose crack the pointer is over (-1 for none), and the pointer in drawing-buffer
+   * pixels with how strongly cracks near it brighten (0 off). pointer.glsl. */
+  setPointerGlow(hover: number, x: number, y: number, near: number, radius: number): void;
   /** One small mesh of each pushed-in variant, to compile them before the camera first needs them. */
   pushedInVariants(): Scene;
   /** Registers a mesh elsewhere (street furniture) to switch material variants with the city. */
@@ -668,6 +672,12 @@ export function createCity(
     uFocus: { value: 0 },
     uFocusTarget: { value: target },
   };
+  // the pointer over the cracks (pointer.glsl): shared by the facades and their halos
+  const pointer = {
+    uHoverIndex: { value: -1 },
+    uNear: { value: new Vector3(0, 0, 0) },
+    uNearRadius: { value: 180 },
+  };
   const defines: Record<string, string> = {
     ...gridDefines(quality),
     ROW_RUNS: `${String(RESULTS.runs)}.0`,
@@ -742,13 +752,15 @@ export function createCity(
         ...mergeUniforms(shared),
         ...scanUniforms(shared),
         ...displays,
+        ...pointer,
         uPulse: { value: 99 },
         uPatch: { value: 0 },
         uSeal: { value: 0 },
         uMerge: { value: 0 },
       },
       vertexShader: facadeVert,
-      fragmentShader: commonGlsl + fogGlsl + mergeGlsl + focusGlsl + displayGlsl + scanGlsl + facadeFrag,
+      fragmentShader:
+        commonGlsl + fogGlsl + mergeGlsl + focusGlsl + pointerGlsl + displayGlsl + scanGlsl + facadeFrag,
     },
     quality === 'high' ? { DETAIL: '' } : {},
   );
@@ -876,10 +888,11 @@ export function createCity(
       uNight: shared.uNight,
       uTime: shared.uTime,
       uScale: glowScale,
+      ...pointer,
       ...mergeUniforms(shared),
     },
     vertexShader: glowVert,
-    fragmentShader: commonGlsl + mergeGlsl + focusGlsl + scanGlsl + glowFrag,
+    fragmentShader: commonGlsl + mergeGlsl + focusGlsl + pointerGlsl + scanGlsl + glowFrag,
     transparent: true,
     depthWrite: false,
     blending: AdditiveBlending,
@@ -965,6 +978,11 @@ export function createCity(
         }
       }
       return scene;
+    },
+    setPointerGlow(hover, x, y, near, radius) {
+      pointer.uHoverIndex.value = hover;
+      pointer.uNear.value.set(x, y, near);
+      pointer.uNearRadius.value = radius;
     },
     setFocus(building, amount, at, edge) {
       shared3.uFocusIndex.value = building;

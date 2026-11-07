@@ -17,7 +17,21 @@ One vulnerable line of code is the protagonist. The page is its journey from rep
 
 ## 3. Design tokens
 
-All tokens live in `src/styles/tokens.css` as CSS custom properties. No hard-coded colors, sizes or durations anywhere else.
+**The one place:** `src/styles/world-tokens.css`. It is the only token file the page loads (`src/main.ts`), and the WebGL scene reads the same properties through `src/world/palette.ts`. The colour and type tokens in use (7 November):
+
+| Token | Value | Meaning |
+|---|---|---|
+| `--ink-950` … `--ink-700` | `#050816` … `#1d2b6b` | the night ground, page to raised surface |
+| `--mist-50` / `--mist-300` / `--mist-500` | `#f3f6ff` / `#c9d3ee` / `#8fa0cf` | text: primary, secondary, quiet (18.5, 12.1 and 7.7:1 on ink-950) |
+| `--signal-open` | `#ff6a2b` | orange: an open finding, a failing exploit. State only |
+| `--signal-hold` | `#ffb931` | amber: inconclusive, needs a person. State only |
+| `--signal-sealed` | `#c8f245` | lime: verified, merged, sealed. State only |
+| `--accent` | `#8ab4ff` | Nexarise sky blue (8.9:1 on ink-950). Never a state: focus rings, links on the night page, the form's progress, the demo badge, the fingerprint chips once the record is reached, Python keywords in diffs, "Click to follow this fix" |
+| `--font-display` | Clash Display semibold (600, covering requests up to 800) | headlines only, tracking `--tracking-display` (`0.005em`) |
+| `--font-body` | General Sans 400 and 500 | everything else |
+| `--font-code` | JetBrains Mono 400 | real code, hashes and paths only |
+
+The phone page keeps its own daylight ink (`--calm-ink` in `light.css`) and the same display face (`--calm-display`). The block below is the original plan for `tokens.css`, which is no longer loaded; it is kept for its history.
 
 ```css
 :root {
@@ -105,7 +119,7 @@ Tokens added in module 2:
 
 ## 4. Typography
 
-- **Display: Cabinet Grotesk** (weight 800, Fontshare, free for commercial use). Used for headlines only. Tight tracking (`-0.04em` at `--step-4` and above, `-0.025em` below), line-height `0.9` to `1.05`.
+- **Display: Clash Display** (semibold 600, Fontshare, ITF Free Font License), chosen on 7 November in place of Cabinet Grotesk. Headlines only. It is drawn wide and sets its letters close, so it takes a hair of positive tracking (`0.005em`), never negative; the bold 700 was tried and ran its letters together.
 - **Body: General Sans** (400 and 500). Line-height `1.55`, line length capped at `--measure` (under 80 characters).
 - **Code: JetBrains Mono.** Used only for real code, payloads, hashes and file paths. Never for decorative labels or section tags.
 - Self-host all fonts as WOFF2 with `font-display: swap` and preload the display and body files used above the fold.

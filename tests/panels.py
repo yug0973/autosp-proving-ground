@@ -189,9 +189,31 @@ def main() -> int:
         # --- the form (the one-page form; tests/world.py walks its validation and sending) ------------------------
         page.evaluate("scrollTo(0, document.querySelector('#apply').getBoundingClientRect().top + scrollY)")
         page.wait_for_timeout(1500)
+        page.click('[data-apply] label.apply__tile:has-text("20 to 150")')
+        page.wait_for_timeout(300)
+        check('form: the tower answers the first step with the team size', '20 TO 150' in str(page.evaluate('__world.skyline()')).upper(), str(page.evaluate('__world.skyline()'))[:120])
+        page.click('[data-apply] [data-step-next]')
+        page.wait_for_timeout(300)
         page.fill('[data-apply] input[name=company]', 'Initech')
         page.wait_for_timeout(300)
         check('form: the tower takes the company typed', 'INITECH' in str(page.evaluate('__world.skyline()')).upper())
+
+        # --- before you apply: the plan, the access, the comparison, the questions -------------------------------------
+        page.evaluate("scrollTo(0, document.querySelector('#faq').getBoundingClientRect().top + scrollY - 200)")
+        page.wait_for_timeout(600)
+        items = page.locator('#faq ~ .faq summary')
+        items.nth(0).click(); items.nth(2).click()
+        page.wait_for_timeout(150)
+        check('faq: one answer open at a time', page.evaluate("[...document.querySelectorAll('.faq details')].filter((d) => d.open).length") == 1)
+        page.keyboard.press('Enter')
+        page.wait_for_timeout(150)
+        check('faq: and the keyboard closes it', page.evaluate("[...document.querySelectorAll('.faq details')].filter((d) => d.open).length") == 0)
+        status = page.evaluate("fetch('/sample-evidence-pack.pdf').then((r) => r.status + ' ' + r.headers.get('content-type'))")
+        check('record: the sample evidence pack downloads', status.startswith('200') and 'pdf' in status, status)
+        tbd = page.evaluate("[...new Set([...document.querySelectorAll('[data-tbd]')].map((e) => e.dataset.tbd))]")
+        print(f'  (still to confirm on the page: {", ".join(tbd)})')
+        check('honest: every placeholder says so on the page', page.evaluate("[...document.querySelectorAll('[data-tbd]')].every((e) => e.textContent.startsWith('To confirm'))"))
+        check('footer: product, how it works, FAQ, security, privacy, terms, contact and Nexarise', page.evaluate("[...document.querySelectorAll('.foot .foot__nav a')].map((a) => a.textContent)") == ['Product', 'How it works', 'FAQ', 'Security', 'Privacy', 'Terms', 'Contact', 'Nexarise'])
 
         # --- the counters and the fingerprints ------------------------------------------------------------------------
         a11y = page.evaluate("[...document.querySelectorAll('#results .stats__text')].map((e) => e.textContent.trim())")
@@ -210,10 +232,14 @@ def main() -> int:
         end = page.evaluate("[...document.querySelectorAll('[data-record-short]')].map((e) => e.textContent)")
         check('fingerprints: a rewritten entry decrypts into its new fingerprints', mid != end and all(len(m) == 4 for m in mid), f'{mid} then {end}')
         check('fingerprints: and settles on them, the steps with them', page.evaluate("[...document.querySelectorAll('[data-tape-fp]')].every((f) => f.textContent === document.querySelectorAll('[data-record-short]')[+f.dataset.tapeFp].textContent)"))
+        check("chips: the steps' fingerprint chips light once the record is reached", page.evaluate("document.documentElement.hasAttribute('data-record-reached') && getComputedStyle(document.querySelector('.hash-chip')).color === 'rgb(138, 180, 255)'"))
+        check('one demo badge for the whole page, and no per-box Illustrative lines', page.evaluate("document.querySelectorAll('.demo-badge').length === 1 && ![...document.querySelectorAll('#main .track__panel, #main .chapter__panel')].some((p) => /Illustrative/.test(p.textContent))"))
         check('no script errors', not errors, '; '.join(errors)[:160])
         ctx.close()
 
         ctx, page, errors = open_page(1440, 900, reduced_motion='reduce')
+        check('chips: muted before the record is reached', not page.evaluate("document.documentElement.hasAttribute('data-record-reached')"))
+        check('badge: shown in the corner at the top of the page', page.evaluate("(() => { const b = document.querySelector('.demo-badge').getBoundingClientRect(); return b.width > 0 && b.right <= innerWidth && b.bottom <= innerHeight })()"))
         page.evaluate("(() => { const s = document.querySelector('#results'); scrollTo(0, s.getBoundingClientRect().top + scrollY + (s.offsetHeight - innerHeight) * 0.12); })()")
         page.wait_for_timeout(800)
         shown = page.evaluate("[...document.querySelectorAll('.odometer__number')].map((n) => [...n.querySelectorAll('.odometer__strip')].map((s) => Math.round(-parseFloat(s.style.transform.replace('translateY(', '')))).join(''))")
@@ -236,7 +262,7 @@ def main() -> int:
             if args.shots:
                 img.resize((472, 235)).save(f'{args.shots}/sweep-{i:02d}.png')
             step, row = hard_line(img.crop((0, 70, img.width, img.height - 110)))
-            boxes = page.evaluate("""[...document.querySelectorAll('#main .track__panel, #main .chapter__panel, #main .closing__inner')].filter((p) => {
+            boxes = page.evaluate("""[...document.querySelectorAll('#main .track__panel, #main .chapter__panel, #main .closing__inner, #main .trust__panel')].filter((p) => {
                 const r = p.getBoundingClientRect(); return +getComputedStyle(p).opacity > 0.05 && r.bottom > 60 && r.top < innerHeight - 20; }).length""")
             crowded = max(crowded, boxes)
             if step > worst[0]:

@@ -362,10 +362,8 @@
     }
   }
 
-  /* The progress rail: the seven beats as links down the right edge, each a pixel on a hairline.
-     Hollow ahead, filled once passed, lit and named where the visitor is. Wide screens keep room
-     for it beside the panels (--rail-room) and name every beat; narrower ones show the pixels and
-     name them on hover or focus; stacked layouts collapse it to one button (rail.ts). */
+  /* Room on the right of the chapters. It once held the progress rail (removed by the owner on
+     7 November); the cameras were framed with it, so the panels keep their places. */
   :root {
     --rail-room: 0rem;
   }
@@ -379,156 +377,6 @@
       --rail-room: 7.5rem;
     }
   }
-  .rail {
-    position: fixed;
-    top: 50%;
-    right: var(--space-3);
-    z-index: 15;
-    visibility: hidden;
-    opacity: 0;
-    translate: 0 -50%;
-    transition:
-      opacity var(--dur-base) var(--ease-out),
-      visibility 0s var(--dur-base);
-  }
-  :root[data-js] .rail[data-shown] {
-    visibility: visible;
-    opacity: 1;
-    transition: opacity var(--dur-base) var(--ease-out);
-  }
-  .rail__toggle {
-    display: none;
-  }
-  .rail__list {
-    position: relative;
-    display: grid;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  /* the hairline through the pixels */
-  .rail__list::before {
-    content: "";
-    position: absolute;
-    top: 1.375rem;
-    bottom: 1.375rem;
-    right: calc(1.375rem - 0.5px);
-    width: 1px;
-    background: rgb(189 201 234 / 0.22);
-  }
-  .rail__link {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--space-3);
-    min-height: 2.75rem;
-    padding: 0 1rem 0 var(--space-3);
-    border-radius: 2px;
-    color: var(--mist-300);
-    font-size: 1rem;
-    text-decoration: none;
-    text-shadow: var(--text-lift);
-    white-space: nowrap;
-  }
-  .rail__link::after {
-    content: "";
-    flex: none;
-    width: 0.5rem;
-    height: 0.5rem;
-    border: 1.5px solid var(--mist-500);
-    background: var(--ink-950);
-  }
-  .rail__link[data-state="past"]::after {
-    border-color: var(--mist-300);
-    background: var(--mist-300);
-  }
-  .rail__link[data-state="current"] {
-    color: var(--mist-50);
-    font-weight: 500;
-  }
-  .rail__link[data-state="current"]::after {
-    width: 0.75rem;
-    height: 0.75rem;
-    margin-right: -0.125rem;
-    border-color: var(--mist-50);
-    background: var(--mist-50);
-  }
-  .rail__link:hover {
-    color: var(--mist-50);
-  }
-  .rail__link:focus-visible {
-    outline-offset: -2px;
-  }
-  /* between 60 and 80rem: the pixels alone, named on hover or focus over a dark backing */
-  @media (min-width: 60.01rem) and (max-width: 79.99rem) {
-    .rail__link,
-    .rail__link[data-state="current"] {
-      color: transparent;
-      text-shadow: none;
-    }
-    .rail__link:hover,
-    .rail__link:focus-visible {
-      background: rgb(5 8 22 / 0.88);
-      color: var(--mist-50);
-    }
-  }
-  /* stacked layouts: one button naming the current beat; it opens the list above it */
-  @media (max-width: 60rem) {
-    .rail {
-      top: auto;
-      right: var(--space-3);
-      bottom: var(--space-3);
-      translate: none;
-    }
-    .rail__toggle {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      min-height: 2.75rem;
-      padding: 0 var(--space-3);
-      border: 1px solid rgb(189 201 234 / 0.22);
-      border-radius: 2px;
-      background: rgb(5 8 22 / 0.92);
-      color: var(--mist-50);
-      font: inherit;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .rail__toggle::before {
-      content: "";
-      width: 0.5rem;
-      height: 0.5rem;
-      background: var(--mist-50);
-    }
-    .rail__count {
-      color: var(--mist-300);
-    }
-    .rail__list {
-      position: absolute;
-      right: 0;
-      bottom: calc(100% + var(--space-2));
-      display: none;
-      min-width: 12rem;
-      padding: var(--space-2) 0;
-      border: 1px solid rgb(189 201 234 / 0.22);
-      border-radius: 2px;
-      background: rgb(5 8 22 / 0.96);
-    }
-    .rail[data-open] .rail__list {
-      display: grid;
-    }
-    .rail__link {
-      text-shadow: none;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .rail,
-    :root[data-js] .rail[data-shown] {
-      transition: none;
-    }
-  }
-
   .finding__cwe {
     font-variant-numeric: tabular-nums;
   }
@@ -579,7 +427,7 @@
     font-weight: 800;
     font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2.1rem);
     line-height: 1.15;
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
     max-width: 26ch;
   }
   .beat__actions {
@@ -983,7 +831,7 @@
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
-    touch-action: manipulation;
+    touch-action: none; /* a hold keeps the finger: a scroll starting under it would cancel the hold */
   }
   .hold__button > .hold__label,
   .hold__fill {
@@ -1735,7 +1583,7 @@
     }
     :root[data-js]:not([data-world="off"]) .track--results .track__sticky {
       grid-template-columns: minmax(0, 1fr);
-      /* room under the panel for the rail's button, which stays above the page */
+      /* room under the panel, clear of the corner badge */
       padding: var(--strip-height) var(--space-3) calc(var(--target-min) + var(--space-5));
     }
     .track--results .track__panel {
@@ -1758,13 +1606,6 @@
       padding-top: var(--space-3);
       font-size: var(--step--1);
     }
-  }
-
-  /* the rail's names keep clear of whatever the world lights behind them */
-  .rail__link {
-    text-shadow:
-      0 0 0.2rem var(--ink-950),
-      0 0 0.6rem var(--ink-950);
   }
 
   /* The first screen: a headline across the whole width, the rest low on the left, and the tear in the

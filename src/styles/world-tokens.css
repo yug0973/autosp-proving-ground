@@ -4,14 +4,18 @@
 
    Meaning is fixed. Ink and mist are the night ground and its text. The three signals carry state
    and are never used as decoration: open is a finding nobody has fixed, hold is a result that
-   needs a person, sealed is a fix that passed every check. */
+   needs a person, sealed is a fix that passed every check. The accent (Nexarise sky blue) is the one
+   colour beside them, and it never means a state: focus rings, links, the form's progress, the badge.
+   DESIGN.md §3 lists every colour and type token in one table. */
 @layer reset, tokens, base, components, utilities, notes, light;
 
 @layer tokens {
+  /* Clash Display semibold carries every headline. They ask for 800; this face covers it, so the
+     browser never fakes a heavier one (the bold was tried and ran its letters together). */
   @font-face {
-    font-family: "Cabinet Grotesk";
-    src: url("/fonts/cabinet-grotesk-800.woff2") format("woff2");
-    font-weight: 800;
+    font-family: "Clash Display";
+    src: url("/fonts/clash-display-600.woff2") format("woff2");
+    font-weight: 600 800;
     font-style: normal;
     font-display: swap;
   }
@@ -55,6 +59,10 @@
     --signal-open: #ff6a2b; /* a finding nobody has fixed */
     --signal-hold: #ffb931; /* inconclusive, needs a person */
     --signal-sealed: #c8f245; /* a fix that passed every check */
+
+    /* Accent: the Nexarise day sky the page falls from. It never means a state: links, focus rings,
+       the form's progress and the demo badge only. 8.9:1 on ink-950. */
+    --accent: #8ab4ff;
 
     /* World materials: what the city is built from */
     --world-body: #0b1232; /* building walls */
@@ -119,9 +127,9 @@
     --atmo-dawn-cloud-lit: #cfe0ff;
     --atmo-dawn-cloud-shade: #3f5cab;
 
-    /* Type families: Cabinet Grotesk carries headlines, General Sans everything else, and
+    /* Type families: Clash Display carries headlines, General Sans everything else, and
        JetBrains Mono appears only where the content is real code. */
-    --font-display: "Cabinet Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --font-display: "Clash Display", "Helvetica Neue", Arial, sans-serif;
     --font-body: "General Sans", "Helvetica Neue", Arial, sans-serif;
     --font-code: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
@@ -135,7 +143,7 @@
 
     --leading-body: 1.55;
     --leading-display: 0.96;
-    --tracking-display: -0.035em;
+    --tracking-display: 0.005em; /* Clash Display sets its letters close; a hair of air keeps them apart */
     --measure: 34rem; /* longest line of body copy */
 
     /* Spacing (8px base) */

@@ -18,8 +18,9 @@ import { trackProgress } from '../lib/track';
 const START = 0.1;
 const RESET = 0.02;
 
-/** When each line of the run appears, in ms after it starts. */
-const TIMING = { dot: 520, failed: 1050, detail: 1350, summary: 1750 } as const;
+/** The run as a terminal shows it: the command typed a character at a time, then pytest's lines, each
+ * a beat after the last (ms). Skip (or a click on the output) shows the rest at once. */
+const TIMING = { char: 26, dot: 320, failed: 420, line: 150, summary: 260 } as const;
 
 type Line = readonly [text: string, kind: 'cmd' | 'dim' | 'fail' | 'plain'];
 
@@ -49,15 +50,34 @@ export function initReproduce(section: HTMLElement): () => void {
   const testCode = section.querySelector<HTMLElement>('[data-run-test]');
   const output = section.querySelector<HTMLElement>('[data-run-output]');
   const rerun = section.querySelector<HTMLButtonElement>('[data-rerun]');
+  const skip = section.querySelector<HTMLButtonElement>('[data-run-skip]');
   if (!file || !status || !testCode || !output || !rerun) return () => {};
 
   let timers: number[] = [];
+  /** What is still to come in this run, in order, and how much of it has been shown. */
+  let steps: Array<() => void> = [];
+  let shown = 0;
   let ranFor: FindingId | null = null;
   let block: HTMLElement = document.createElement('code');
 
   const clearTimers = (): void => {
     for (const timer of timers) window.clearTimeout(timer);
     timers = [];
+    if (skip) skip.hidden = true;
+  };
+  /** The run is over: its failing lines flash once (CSS; not with reduced motion). */
+  const end = (): void => {
+    if (skip) skip.hidden = true;
+    for (const line of block.querySelectorAll('.code-line--fail')) line.classList.add('code-line--flash');
+  };
+  /** Shows everything still to come at once. */
+  const finish = (): void => {
+    if (shown >= steps.length) return;
+    for (const timer of timers) window.clearTimeout(timer);
+    timers = [];
+    for (const step of steps.slice(shown)) step();
+    shown = steps.length;
+    end();
   };
 
   const append = (line: Line): void => {
@@ -105,19 +125,60 @@ export function initReproduce(section: HTMLElement): () => void {
     }
     setStatus('running');
     const [command, dot] = before;
-    if (command) append(command);
-    timers.push(
-      window.setTimeout(() => {
-        if (dot) append(dot);
-      }, TIMING.dot),
-      window.setTimeout(fail, TIMING.failed),
-      window.setTimeout(() => {
-        detail.forEach(append);
-      }, TIMING.detail),
-      window.setTimeout(() => {
+    const plan: Array<[at: number, step: () => void]> = [];
+    let at = 0;
+    if (command) {
+      // the command, typed into an empty line
+      const typed = lineElement(['', command[1]]);
+      plan.push([
+        0,
+        () => {
+          block.append(typed);
+        },
+      ]);
+      for (let k = 1; k <= command[0].length; k += 1) {
+        at += TIMING.char;
+        plan.push([at, () => (typed.textContent = command[0].slice(0, k))]);
+      }
+    }
+    at += TIMING.dot;
+    if (dot)
+      plan.push([
+        at,
+        () => {
+          append(dot);
+        },
+      ]);
+    at += TIMING.failed;
+    plan.push([at, fail]);
+    for (const line of detail) {
+      at += TIMING.line;
+      plan.push([
+        at,
+        () => {
+          append(line);
+        },
+      ]);
+    }
+    at += TIMING.summary;
+    plan.push([
+      at,
+      () => {
         append(summary);
-      }, TIMING.summary),
-    );
+      },
+    ]);
+    steps = plan.map(([, step]) => step);
+    shown = 0;
+    if (skip) skip.hidden = false;
+    plan.forEach(([when, step], i) => {
+      timers.push(
+        window.setTimeout(() => {
+          step();
+          shown = i + 1;
+          if (shown === plan.length) end();
+        }, when),
+      );
+    });
   };
 
   const onScroll = (): void => {
@@ -134,7 +195,12 @@ export function initReproduce(section: HTMLElement): () => void {
     run();
   };
 
+  const onSkip = (): void => {
+    finish();
+  };
   rerun.addEventListener('click', onRerun);
+  skip?.addEventListener('click', onSkip);
+  output.addEventListener('click', onSkip);
   window.addEventListener('scroll', onScroll, { passive: true });
   const stop = onFinding((id) => {
     // a new choice while the section is on screen runs its test straight away
@@ -149,6 +215,8 @@ export function initReproduce(section: HTMLElement): () => void {
     clearTimers();
     stop();
     rerun.removeEventListener('click', onRerun);
+    skip?.removeEventListener('click', onSkip);
+    output.removeEventListener('click', onSkip);
     window.removeEventListener('scroll', onScroll);
   };
 }

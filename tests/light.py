@@ -26,6 +26,7 @@ GPU = ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu', '--headles
 HEAVY = ('world-stage', '/three', 'three.', 'gsap', 'modules/cinematic', 'scroll.ts')
 PHONE = {'viewport': {'width': 390, 'height': 844}, 'is_mobile': True, 'has_touch': True}
 TABLET = {'viewport': {'width': 768, 'height': 1024}, 'is_mobile': True, 'has_touch': True}
+SMALL = {'viewport': {'width': 375, 'height': 667}, 'is_mobile': True, 'has_touch': True}
 COUNT_CONTEXTS = """
   window.__contexts = 0;
   const original = HTMLCanvasElement.prototype.getContext;
@@ -98,7 +99,7 @@ def main() -> int:
     with sync_playwright() as p:
         browser = p.chromium.launch(args=args.flags.split(',') if args.flags else GPU)
 
-        def open_page(init=COUNT_CONTEXTS, **options):
+        def open_page(init=COUNT_CONTEXTS, path='', **options):
             ctx = browser.new_context(**options)
             ctx.add_init_script(init)
             page = ctx.new_page()
@@ -106,7 +107,7 @@ def main() -> int:
             page.on('pageerror', lambda e: errors.append(str(e)[:300]))
             page.on('console', lambda m: m.type == 'error' and errors.append(m.text[:300]))
             page.on('request', lambda r: asked.append(r.url))
-            page.goto(args.base, wait_until='networkidle')
+            page.goto(args.base.rstrip('/') + '/' + path, wait_until='networkidle')
             page.wait_for_timeout(500)
             return ctx, page, errors, asked
 
@@ -117,7 +118,7 @@ def main() -> int:
             return page.evaluate('document.documentElement.dataset.experience')
 
         # --- who gets what -----------------------------------------------------------------------
-        for label, options in (('phone', PHONE), ('portrait tablet', TABLET)):
+        for label, options in (('phone', PHONE), ('small phone, 375', SMALL), ('portrait tablet', TABLET)):
             ctx, page, errors, asked = open_page(**options)
             check(f'{label}: the calm page', experience(page) == 'light', experience(page))
             check(f'{label}: no GSAP and no three.js', not heavy(asked), str(heavy(asked)))
@@ -163,6 +164,21 @@ def main() -> int:
         check('wide without WebGL: no script errors', not errors, '; '.join(errors)[:200])
         if args.shots:
             page.screenshot(path=f'{args.shots}/calm-wide.png', timeout=180000)
+        ctx.close()
+
+        # --- the simple view: the calm page on a wide screen that could have the tour, by choice ------------
+        ctx, page, errors, asked = open_page(viewport={'width': 1440, 'height': 900})
+        check('cinematic: the strip offers a simple view', page.is_visible('.strip__simple') and page.get_attribute('.strip__simple', 'href') == '?view=simple')
+        ctx.close()
+        ctx, page, errors, asked = open_page(path='?view=simple', viewport={'width': 1440, 'height': 900})
+        check('simple view: the calm page at 1440 wide', experience(page) == 'light')
+        check('simple view: no GSAP, no three.js and no WebGL', not heavy(asked) and page.evaluate('window.__contexts') == 0, str(heavy(asked)))
+        check('simple view: a way back to the tour', page.is_visible('.calm__tour'))
+        check('simple view: no sideways scroll', page.evaluate('document.documentElement.scrollWidth <= innerWidth'))
+        check('simple view: no script errors', not errors, '; '.join(errors)[:200])
+        ctx.close()
+        ctx, page, errors, asked = open_page(**PHONE)
+        check('phone: no way "back to the tour" it never left', not page.is_visible('.calm__tour'))
         ctx.close()
 
         # --- the page itself, on a phone -------------------------------------------------------------

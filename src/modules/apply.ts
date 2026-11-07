@@ -13,6 +13,9 @@
  * the simplest bots.
  */
 
+import { SITE } from '../lib/site';
+
+// where the mail-app fallback writes to; never shown on the page
 const ADDRESS = 'nexarise.office@gmail.com';
 const SUBJECT = 'AUTOSP free pilot';
 const ENDPOINT = 'https://api.web3forms.com/submit';
@@ -87,8 +90,8 @@ export function initApply(form: HTMLFormElement): () => void {
   form.dataset.send = direct ? 'direct' : 'mail-app';
   if (how) {
     how.textContent = direct
-      ? `Sent straight to ${ADDRESS} through Web3Forms. Your email app stays closed.`
-      : `Opens an email to ${ADDRESS} with your answers filled in.`;
+      ? 'Sent straight to the AUTOSP team. Your email app stays closed.'
+      : 'Opens your email app with your answers filled in.';
   }
   // the page checks the fields itself, so each can say what is wrong in its own words
   form.noValidate = true;
@@ -135,6 +138,13 @@ export function initApply(form: HTMLFormElement): () => void {
     const item = owner(event.target);
     // leaving one choice for the next in the same row is not leaving the row
     if (!item || item.controls.includes(event.relatedTarget as Control)) return;
+    // heading for one of the form's buttons: they check (or skip) what they need themselves, and a line
+    // appearing now would move the button out from under the pointer before the click lands
+    if (
+      event.relatedTarget instanceof Element &&
+      event.relatedTarget.matches('[data-step-back], [data-step-next], [data-apply-send]')
+    )
+      return;
     item.touched = true;
     show(item);
   };
@@ -157,12 +167,22 @@ export function initApply(form: HTMLFormElement): () => void {
     done.tabIndex = -1;
     const title = document.createElement('p');
     title.className = 'apply__done-title';
-    title.textContent = 'Application sent';
+    title.textContent = SITE.replyFrom
+      ? `Thanks — we'll reply within 1 business day from ${SITE.replyFrom}.`
+      : "Thanks — we'll reply within 1 business day.";
     const body = document.createElement('p');
     body.className = 'apply__done-body';
     const strong = document.createElement('strong');
     strong.textContent = email;
-    body.append(`It is with ${ADDRESS}. Replies will go to `, strong, '.');
+    body.append('Replies will go to ', strong, '.');
+    // a call, if the visitor would rather talk than wait
+    const book = document.createElement('a');
+    book.className = 'btn btn--primary apply__book';
+    book.textContent = 'Book a 20-min call';
+    book.href = SITE.bookingUrl;
+    book.target = '_blank';
+    book.rel = 'noopener';
+    book.hidden = SITE.bookingUrl === '';
     const again = document.createElement('button');
     again.type = 'button';
     again.className = 'btn btn--quiet btn--small apply__again';
@@ -176,7 +196,7 @@ export function initApply(form: HTMLFormElement): () => void {
       setStatus('');
       form.querySelector<HTMLElement>('input:not([tabindex="-1"]), textarea')?.focus();
     });
-    done.append(title, body, again);
+    done.append(title, body, book, again);
     form.hidden = true;
     form.after(done);
     done.focus();
@@ -202,9 +222,7 @@ export function initApply(form: HTMLFormElement): () => void {
       const url = `mailto:${ADDRESS}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(composeBody(form))}`;
       form.dataset.mailto = url;
       window.location.href = url;
-      setStatus(
-        `Your email app should open with the application filled in. If it does not, write to ${ADDRESS}.`,
-      );
+      setStatus('Your email app should open with the application filled in.');
       return;
     }
 
@@ -244,10 +262,7 @@ export function initApply(form: HTMLFormElement): () => void {
       showSent(email);
     } catch {
       form.dataset.state = 'failed';
-      setStatus(
-        `That did not send. Check your connection and press the button again, or write to ${ADDRESS}.`,
-        'problem',
-      );
+      setStatus('That did not send. Check your connection and press the button again.', 'problem');
     } finally {
       window.clearTimeout(timer);
       sending = false;
@@ -263,11 +278,26 @@ export function initApply(form: HTMLFormElement): () => void {
     if (!sending) void submit();
   };
 
+  /** One step's fields (stepper.ts): each says what is wrong, and the first that needs attention takes focus. */
+  const onCheck = (event: Event): void => {
+    const detail = (event as CustomEvent<{ scope?: Element; ok: boolean }>).detail;
+    let firstBad: Control | undefined;
+    for (const item of checked) {
+      if (!detail.scope?.contains(item.host)) continue;
+      item.touched = true;
+      if (!show(item)) firstBad ??= item.controls[0];
+    }
+    detail.ok = !firstBad;
+    firstBad?.focus();
+  };
+
+  form.addEventListener('apply:check', onCheck);
   form.addEventListener('focusout', onLeave);
   form.addEventListener('input', onEdit);
   form.addEventListener('change', onEdit);
   form.addEventListener('submit', onSubmit);
   return () => {
+    form.removeEventListener('apply:check', onCheck);
     form.removeEventListener('focusout', onLeave);
     form.removeEventListener('input', onEdit);
     form.removeEventListener('change', onEdit);

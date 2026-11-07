@@ -65,15 +65,28 @@ function followFingerprints(): () => void {
   const watcher = new MutationObserver(copy);
   watcher.observe(list, { subtree: true, childList: true, characterData: true });
   copy();
+  // once the record is reached, every step's chip lights: they were entries in it all along
+  const root = document.documentElement;
+  const reach = (): void => {
+    root.toggleAttribute('data-record-reached', true);
+  };
+  const seen = new IntersectionObserver(([entry]) => {
+    if (entry?.isIntersecting || (entry && entry.boundingClientRect.top < 0)) reach();
+  });
+  seen.observe(list);
   return () => {
     watcher.disconnect();
+    seen.disconnect();
+    root.removeAttribute('data-record-reached');
   };
 }
 
 /** The light that follows the pointer, and the beam, which runs only while its box is on screen. */
 function dressCards(): () => void {
   const cards = Array.from(
-    document.querySelectorAll<HTMLElement>('#main :is(.track__panel, .chapter__panel, .closing__inner)'),
+    document.querySelectorAll<HTMLElement>(
+      '#main :is(.track__panel, .chapter__panel, .closing__inner, .trust__panel)',
+    ),
   );
   const onMove = (event: PointerEvent): void => {
     const card = event.currentTarget;

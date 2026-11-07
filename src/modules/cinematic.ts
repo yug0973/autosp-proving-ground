@@ -11,12 +11,17 @@ import { initGatesStep } from './gates-step';
 import { initMergeStep } from './merge-step';
 import { initRecord } from './record';
 import { initNumerals } from './numerals';
-import { initRail } from './rail';
 import { initApply } from './apply';
 import { initReveal } from './reveal';
 import { initHandoff } from './handoff';
 import { initTracks } from './tracks';
 import { initAnnotations } from './annotations';
+import { initStepper } from './stepper';
+import { initFaq } from './faq';
+import { initBadge } from './badge';
+import { initMagnet } from './magnet';
+import { initKeys } from './keys';
+import { initSound } from './sound';
 import { initRolling } from './rolling';
 
 export function initCinematic(): () => void {
@@ -33,9 +38,13 @@ export function initCinematic(): () => void {
   start('[data-record]', initRecord);
   cleanups.push(initAnnotations(), initRolling());
   start('#results', initNumerals);
-  start('[data-rail]', initRail);
+  start('[data-demo-badge]', initBadge);
+  cleanups.push(initMagnet(), initKeys());
+  const sound = document.querySelector<HTMLButtonElement>('[data-sound]');
+  if (sound) cleanups.push(initSound(sound));
   const form = document.querySelector<HTMLFormElement>('[data-apply]');
-  if (form) cleanups.push(initApply(form));
+  if (form) cleanups.push(initApply(form), initStepper(form));
+  cleanups.push(initFaq(document.querySelector('#main') ?? document));
   cleanups.push(initReveal(), initHandoff());
   // three.js is most of the page's script, so the world loads as its own chunk and the text
   // paints without waiting for it

@@ -11,7 +11,7 @@
   [data-experience="cinematic"] .track__panel:not(.track--results .track__panel) {
     background: rgb(5 8 22 / 0.9);
   }
-  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner) {
+  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner, .trust__panel) {
     --beam: var(--mist-300);
     --edge-light: var(--mist-50);
     position: relative;
@@ -34,7 +34,7 @@
   }
 
   /* The light on the edge, where the pointer is */
-  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner)::before {
+  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner, .trust__panel)::before {
     content: "";
     position: absolute;
     inset: -1px;
@@ -58,7 +58,7 @@
     pointer-events: none;
   }
   /* And its glow inside the box, behind the words */
-  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner)::after {
+  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner, .trust__panel)::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -73,8 +73,10 @@
     transition: opacity 300ms ease-out;
     pointer-events: none;
   }
-  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner):hover::before,
-  [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner):hover::after {
+  [data-experience="cinematic"]
+    :is(.track__panel, .chapter__panel, .closing__inner, .trust__panel):hover::before,
+  [data-experience="cinematic"]
+    :is(.track__panel, .chapter__panel, .closing__inner, .trust__panel):hover::after {
     opacity: 1;
   }
 
@@ -119,15 +121,15 @@
     }
   }
   /* the form's beam waits until the visitor is filling it in */
-  [data-experience="cinematic"] .closing__inner:not(:focus-within) .card-beam {
+  [data-experience="cinematic"] :is(.closing__inner, .trust__panel):not(:focus-within) .card-beam {
     opacity: 0;
   }
   @media (prefers-reduced-motion: reduce) {
     [data-experience="cinematic"] .card-beam {
       display: none;
     }
-    [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner)::before,
-    [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner)::after {
+    [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner, .trust__panel)::before,
+    [data-experience="cinematic"] :is(.track__panel, .chapter__panel, .closing__inner, .trust__panel)::after {
       transition: none;
     }
   }
@@ -172,14 +174,49 @@
   }
   [data-experience="cinematic"] .tape__fp {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
+    max-width: none;
     margin-top: var(--space-2);
-    color: var(--mist-300);
-    font-size: 1rem;
   }
-  [data-experience="cinematic"] .tape__fp code {
-    color: var(--mist-50);
+  /* a small muted chip: the step's entry in the record, and the first four of its fingerprint. It lights
+     once the visitor reaches the record, where the same fingerprints are chained. */
+  [data-experience="cinematic"] .hash-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2rem;
+    padding: 0 var(--space-2);
+    border: 1px solid rgb(189 201 234 / 0.2);
+    border-radius: 4px;
+    color: var(--mist-500);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition:
+      color 400ms ease-out,
+      border-color 400ms ease-out,
+      box-shadow 400ms ease-out;
+  }
+  [data-experience="cinematic"] .hash-chip code {
     font-family: var(--font-code);
+  }
+  [data-experience="cinematic"] .hash-chip:hover,
+  [data-experience="cinematic"] .hash-chip:focus-visible {
+    color: var(--mist-50);
+    border-color: var(--mist-300);
+  }
+  [data-experience="cinematic"] .hash-chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  [data-experience="cinematic"][data-record-reached] .hash-chip {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 0.75rem rgb(138 180 255 / 0.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-experience="cinematic"] .hash-chip {
+      transition: none;
+    }
   }
 
   /* --- The form --------------------------------------------------------------------------------------------- */
@@ -736,34 +773,663 @@
     opacity: clamp(0, min(calc(1 + var(--signed, 0) * 60), calc((1 - var(--signed, 0)) * 30)), 1);
   }
 
-  /* the rail: on a solid square backing, with the way through it filled */
-  @media (min-width: 60.01rem) {
-    [data-experience="cinematic"] .rail__list {
-      padding: var(--space-2) 0;
-      border: 1px solid rgb(189 201 234 / 0.14);
-      border-radius: 10px;
-      background: rgb(5 8 22 / 0.82);
-    }
-    [data-experience="cinematic"] .rail__list::after {
-      content: "";
-      position: absolute;
-      top: calc(1.375rem + var(--space-2));
-      right: calc(1.375rem - 1px);
-      width: 2px;
-      height: calc(100% - 2.75rem - 2 * var(--space-2));
-      background: var(--mist-50);
-      transform: scaleY(var(--rail-fill, 0));
-      transform-origin: top;
-      pointer-events: none;
-    }
-    [data-experience="cinematic"] .rail__link {
-      text-shadow: none;
-    }
-  }
   @media (prefers-reduced-motion: reduce) {
     [data-experience="cinematic"] .hero__cue i::after {
       animation: none;
       transform: none;
     }
+  }
+
+  /* --- Phase 2: what a visitor needs before applying ----------------------------------------------------------- */
+  /* a fact only the owner can give: plainly marked, never a signal colour */
+  .tbd {
+    padding: 0 0.35em;
+    border: 1px dashed currentColor;
+    border-radius: 4px;
+    font-size: 0.92em;
+    white-space: normal;
+  }
+
+  .trust {
+    position: relative;
+    padding: var(--space-8) var(--gutter);
+    scroll-margin-top: var(--strip-height, 4rem);
+  }
+  :root[data-world="off"] .trust,
+  :root:not([data-js]) .trust {
+    background: var(--ink-950);
+    border-top: 1px solid rgb(189 201 234 / 0.1);
+  }
+  /* in the world, the dawn sky shows between this box and the form's, and this one fades as it rises so
+     the two are never on screen together */
+  :root:is([data-world="live"], [data-world="still"]) .trust {
+    padding-bottom: 65svh;
+  }
+  :root:is([data-world="live"], [data-world="still"]) .trust__panel {
+    opacity: clamp(0, calc((var(--bottom, 1) - 0.3) * 4), 1);
+    /* and it goes under the top strip, not through its words */
+    clip-path: inset(
+      clamp(0px, calc(var(--strip-height) - var(--top, 100vh)), 100%) -2px -2px -2px round 14px
+    );
+  }
+  .trust__panel {
+    display: grid;
+    gap: var(--space-3);
+    width: min(100%, 54rem);
+    padding: var(--space-6) var(--space-7);
+    border-radius: 14px;
+    background: var(--ink-950);
+    color: var(--mist-50);
+    font-size: var(--step-0);
+  }
+  .trust__panel .beat__heading {
+    font-size: var(--step-2);
+  }
+  .trust__title {
+    margin-top: var(--space-5);
+    font-size: var(--step-1);
+    line-height: 1.2;
+  }
+  [id="pilot-plan"],
+  [id="access"],
+  [id="compare"],
+  [id="faq"] {
+    scroll-margin-top: calc(var(--strip-height, 4rem) + var(--space-4));
+  }
+  .trust__note,
+  .access dd {
+    color: var(--mist-300);
+  }
+
+  /* the pilot, week by week: three stops on one line */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .timeline li {
+    display: grid;
+    gap: var(--space-1);
+    padding-top: var(--space-3);
+    border-top: 2px solid rgb(189 201 234 / 0.35);
+  }
+  .timeline__when {
+    font-weight: 600;
+  }
+  .timeline__what {
+    color: var(--mist-300);
+  }
+
+  .access {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-5);
+    margin: 0;
+  }
+  .access dt {
+    font-weight: 600;
+  }
+  .access dd {
+    margin: var(--space-1) 0 0;
+  }
+
+  .compare {
+    overflow-x: auto;
+    border-radius: 8px;
+  }
+  .compare:focus-visible {
+    outline: 2px solid var(--mist-50);
+    outline-offset: 3px;
+  }
+  .compare table {
+    width: 100%;
+    min-width: 40rem;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .compare :is(th, td) {
+    padding: var(--space-2) var(--space-3) var(--space-2) 0;
+    border-bottom: 1px solid rgb(189 201 234 / 0.16);
+    vertical-align: top;
+  }
+  .compare thead th {
+    color: var(--mist-300);
+    font-weight: 500;
+  }
+  .compare tbody th {
+    font-weight: 600;
+  }
+  .compare td {
+    color: var(--mist-300);
+  }
+  .compare td:last-child,
+  .compare thead th:last-child {
+    color: var(--mist-50);
+  }
+
+  /* the questions: one answer open at a time */
+  .faq,
+  .calm-faq {
+    display: grid;
+  }
+  .faq__item {
+    border-bottom: 1px solid rgb(189 201 234 / 0.16);
+  }
+  .calm .faq__item {
+    border-bottom-color: rgb(6 10 30 / 0.18);
+  }
+  .faq__item summary {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-height: 2.75rem;
+    padding: var(--space-3) 0;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__item summary::after {
+    content: "+";
+    flex: none;
+    font-weight: 400;
+    transition: transform 200ms ease-out;
+  }
+  .faq__item[open] summary::after {
+    transform: rotate(45deg);
+  }
+  .faq__item summary:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+  .faq__item p {
+    margin: 0 0 var(--space-4);
+    color: var(--mist-300);
+  }
+  .calm .faq__item p {
+    color: inherit;
+  }
+
+  /* a note from the founder, above the form */
+  .founder {
+    margin: var(--space-4) 0 0;
+    padding-left: var(--space-3);
+    border-left: 2px solid rgb(189 201 234 / 0.35);
+  }
+  .founder blockquote {
+    margin: 0;
+  }
+  .founder__name {
+    margin-top: var(--space-2);
+    color: var(--mist-300);
+  }
+
+  /* the form, a step at a time; without script both steps show as one form */
+  .apply__step {
+    display: grid;
+    gap: inherit;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .apply__progress,
+  .apply__step-label {
+    display: none;
+  }
+  [data-stepping] .apply__step:not([data-current]) {
+    display: none;
+  }
+  [data-stepping] .apply__progress {
+    display: block;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: rgb(189 201 234 / 0.18);
+  }
+  [data-stepping] .apply__progress i {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform: scaleX(var(--step, 0.5));
+    transform-origin: left;
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  [data-stepping] .apply__step-label {
+    display: block;
+    margin: 0;
+    color: var(--mist-300);
+  }
+  [data-stepping] .apply__step[data-current] {
+    animation: step-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  [data-stepping] .apply__step[data-from="before"] {
+    --step-from: -0.75rem;
+  }
+  @keyframes step-in {
+    from {
+      opacity: 0;
+      transform: translateX(var(--step-from, 0.75rem));
+    }
+  }
+  .apply__book {
+    justify-self: start;
+  }
+  /* Back beside the main button, smaller, once there is a step to go back to */
+  [data-experience="cinematic"] .apply__actions:has([data-step-back]:not([hidden])) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  [data-experience="cinematic"] .apply__actions :is(.apply__how, .apply__status) {
+    grid-column: 1 / -1;
+  }
+  [data-experience="cinematic"] .apply__actions [data-step-back] {
+    min-height: 3rem;
+    border-radius: 8px;
+  }
+  .tbd {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* the footer: where the rest of the site lives */
+  .foot__nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .foot__nav a {
+    display: inline-block;
+    padding-block: 0.25rem;
+  }
+
+  @media (max-width: 60rem) {
+    .trust__panel {
+      padding: var(--space-5) var(--space-4);
+    }
+    .timeline,
+    .access {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-stepping] .apply__step[data-current] {
+      animation: none;
+    }
+    [data-stepping] .apply__progress i,
+    .faq__item summary::after {
+      transition: none;
+    }
+  }
+
+  /* --- Phase 3: one badge for every scene --------------------------------------------------------------------- */
+  .demo-badge {
+    display: none;
+  }
+  [data-experience="cinematic"] .demo-badge {
+    position: fixed;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid rgb(189 201 234 / 0.14);
+    border-radius: 6px;
+    background: rgb(5 8 22 / 0.86);
+    color: var(--mist-300);
+    font-size: var(--step--1);
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+  [data-experience="cinematic"] .demo-badge::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    background: var(--accent);
+  }
+  [data-experience="cinematic"] .demo-badge[data-away] {
+    opacity: 0;
+  }
+
+  /* --- Phase 3: three chapters break the "words left, box right" pattern ------------------------------------ */
+  @media (min-width: 60.01rem) and (min-height: 801px) {
+    /* the reproduction: the words, and under them the test run as a wide terminal that does not wrap.
+       The building stands clear in the middle of the screen. */
+    [data-experience="cinematic"] .track--stack .track__sticky {
+      grid-template-columns: minmax(0, 47rem) minmax(0, 1fr);
+      grid-template-areas:
+        "text ."
+        "panel .";
+      align-content: center;
+      row-gap: var(--space-5);
+    }
+    [data-experience="cinematic"] .track--stack .track__text {
+      max-width: 32rem;
+    }
+    /* it ends short of the middle of the screen, where the camera keeps the building */
+    [data-experience="cinematic"] .track--stack .track__panel {
+      max-width: min(47rem, calc(46vw - var(--gutter)));
+    }
+    [data-experience="cinematic"] .track--stack pre,
+    [data-experience="cinematic"] .track--stack pre code {
+      overflow-x: auto;
+      white-space: pre;
+      overflow-wrap: normal;
+    }
+  }
+
+  @media (min-width: 60.01rem) {
+    /* the record: a statement across the top, centred, and the chain below it on the right */
+    /* the statement and its chain on one centre line, the screen's own centre */
+    [data-experience="cinematic"] #record.chapter--centred {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "text"
+        "panel";
+      justify-items: center;
+      align-content: center;
+      row-gap: var(--space-6);
+      padding-inline: var(--gutter);
+    }
+    [data-experience="cinematic"] .chapter--centred .chapter__text {
+      max-width: 46rem;
+      text-align: center;
+    }
+    [data-experience="cinematic"] #record.chapter--centred .chapter__panel {
+      width: min(100%, 40rem);
+    }
+    [data-experience="cinematic"] .chapter--centred .chapter__text .beat__heading {
+      font-size: clamp(2.4rem, 1.4rem + 2.4vw, 3.6rem);
+    }
+
+    /* the results: the numbers in their box on the left, the heading on its own at the top right, over
+       the sky above the towers */
+    [data-experience="cinematic"]:is([data-world="live"], [data-world="still"])
+      .track--results
+      .track__sticky {
+      grid-template-columns: minmax(0, 34rem) minmax(0, 1fr) minmax(0, 30rem);
+      grid-template-areas: "panel . title";
+    }
+    [data-experience="cinematic"] .results__title {
+      grid-area: title;
+      align-self: start;
+      text-align: right;
+    }
+    [data-experience="cinematic"] .results__title .beat__heading {
+      font-size: clamp(2.4rem, 1.4rem + 2.4vw, 3.6rem);
+    }
+    /* the heading's scrim reaches past the right edge; it is cut there, not scrolled to */
+    [data-experience="cinematic"] .track--results .track__sticky {
+      overflow-x: clip;
+    }
+    [data-experience="cinematic"] .track--results .results__title {
+      opacity: clamp(0, min(calc(1 + var(--signed, 0) * 60), calc((1 - var(--signed, 0)) * 30)), 1);
+    }
+  }
+
+  /* --- Phase 3: the accent. Nexarise sky blue, never a state: focus rings and links on the night page ------ */
+  [data-experience="cinematic"] :focus-visible {
+    outline-color: var(--accent);
+  }
+  [data-experience="cinematic"] :is(#main .beat__note a, .foot a, .trust__panel a) {
+    color: var(--accent);
+  }
+
+  /* --- Phase 4: the crack under the pointer says what it is ------------------------------------------------- */
+  .crack-tip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 16;
+    display: grid;
+    gap: 0.15rem;
+    max-width: 18rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid rgb(189 201 234 / 0.16);
+    border-radius: 6px;
+    background: rgb(5 8 22 / 0.94);
+    color: var(--mist-50);
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    pointer-events: none;
+  }
+  .crack-tip strong {
+    color: var(--signal-open);
+    font-family: var(--font-code);
+    font-weight: 400;
+  }
+  .crack-tip code {
+    color: var(--mist-300);
+    font-family: var(--font-code);
+    font-size: 0.8125rem;
+  }
+  .crack-tip em {
+    margin-top: 0.2rem;
+    color: var(--accent);
+    font-style: normal;
+  }
+  :root[data-crack-hover] body {
+    cursor: pointer;
+  }
+
+  /* --- Phase 4: the test run as a terminal: the failing lines flash once when it ends, and it can be skipped -- */
+  [data-experience="cinematic"] .code-line--flash {
+    animation: fail-flash 700ms steps(2, jump-none) 1;
+  }
+  @keyframes fail-flash {
+    0%,
+    50% {
+      background: rgb(255 106 43 / 0.12);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+  :is(.run__skip, .panel__btn) {
+    min-height: 2rem;
+    margin-left: auto;
+    padding: 0 var(--space-2);
+    border: 1px solid rgb(189 201 234 / 0.2);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--mist-300);
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+  :is(.run__skip, .panel__btn):hover {
+    color: var(--mist-50);
+    border-color: var(--mist-300);
+  }
+  [data-run-output] {
+    cursor: default;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-experience="cinematic"] .code-line--flash {
+      animation: none;
+    }
+  }
+
+  /* --- Phase 4: the diff in the checks' box: highlighted, revealed line by line, and copyable ------------ */
+  .tok--kw {
+    color: var(--accent);
+  }
+  .tok--str {
+    color: var(--mist-300);
+  }
+  .tok--com {
+    color: var(--mist-500);
+  }
+  .tok--fn,
+  .tok--num {
+    color: var(--mist-50);
+  }
+  /* the sign keeps the line's meaning: orange for what is removed (the open finding) */
+  .code-line--del .diff-sign {
+    color: var(--signal-open);
+  }
+  .code-line--del {
+    box-shadow: inset 2px 0 var(--signal-open);
+  }
+  /* the added line turns lime only once every check has passed: verified */
+  .track__panel:has([data-gates-list][data-cleared]) .code-line--add {
+    background: rgb(200 242 69 / 0.1);
+    box-shadow: inset 2px 0 var(--signal-sealed);
+  }
+  .track__panel:has([data-gates-list][data-cleared]) .code-line--add .diff-sign {
+    color: var(--signal-sealed);
+  }
+  [data-experience="cinematic"] [data-gates-diff][data-reveal] .code-line {
+    animation: diff-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 220ms);
+  }
+  @keyframes diff-in {
+    from {
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      opacity: 1;
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  .panel__btn {
+    margin-left: var(--space-2);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-experience="cinematic"] [data-gates-diff][data-reveal] .code-line {
+      animation: none;
+    }
+  }
+
+  /* --- Phase 4: the primary buttons lean towards the pointer and give under a press -------------------- */
+  [data-experience="cinematic"] .btn--primary {
+    translate: var(--magnet-x, 0) var(--magnet-y, 0);
+    transition:
+      translate 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      scale 120ms ease-out,
+      background-color 200ms ease-out;
+  }
+  [data-experience="cinematic"] .btn--primary:active {
+    scale: 0.97;
+  }
+
+  /* --- Phase 4: the keyboard shortcuts, behind ? ------------------------------------------------------ */
+  .foot__keys {
+    margin-left: var(--space-3);
+    padding: 0.25rem 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+  [data-experience="light"] .foot__keys {
+    display: none;
+  }
+  kbd {
+    display: inline-block;
+    min-width: 1.6em;
+    padding: 0 0.35em;
+    border: 1px solid rgb(189 201 234 / 0.35);
+    border-radius: 4px;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+    text-align: center;
+  }
+  .keys {
+    width: min(30rem, calc(100vw - 2rem));
+    padding: var(--space-5) var(--space-6);
+    border: 1px solid rgb(189 201 234 / 0.16);
+    border-radius: 14px;
+    background: var(--ink-950);
+    color: var(--mist-50);
+  }
+  .keys::backdrop {
+    background: rgb(5 8 22 / 0.6);
+  }
+  .keys__title {
+    margin: 0 0 var(--space-4);
+    font-size: var(--step-1);
+  }
+  .keys__list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  .keys__list div {
+    display: grid;
+    grid-template-columns: 6rem 1fr;
+    gap: var(--space-3);
+  }
+  .keys__list dd {
+    margin: 0;
+    color: var(--mist-300);
+  }
+  .keys__note {
+    margin: var(--space-4) 0;
+    color: var(--mist-300);
+    font-size: var(--step--1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-experience="cinematic"] .btn--primary {
+      translate: none;
+    }
+  }
+
+  /* --- Phase 4: the optional sound, beside the strip's button ------------------------------------------- */
+  .strip__end {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  .strip__sound {
+    min-height: 2.75rem;
+    padding: 0 var(--space-2);
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--step--1);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.25em;
+    cursor: pointer;
+  }
+  .strip__sound:hover,
+  .strip__sound[aria-pressed="true"] {
+    text-decoration-color: currentColor;
+  }
+  [data-experience="light"] .strip__sound {
+    display: none;
+  }
+
+  /* --- Phase 5: the simple view, a normal scrolling page at any width, and the way back ------------------- */
+  .strip__simple {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 var(--space-2);
+    color: inherit;
+    font-size: var(--step--1);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.25em;
+  }
+  .strip__simple:hover {
+    text-decoration-color: currentColor;
   }
 }

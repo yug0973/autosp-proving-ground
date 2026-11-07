@@ -313,7 +313,7 @@ void main() {
   vec2 slip = (vec2(hash21(ccell + beat), hash21(ccell - beat)) - 0.5) * 0.5 * (1.0 - settled);
   float crackSquare = 1.0 - smoothstep(PIXEL - 0.02, PIXEL + 0.04, max(abs(clocal.x + slip.x), abs(clocal.y + slip.y)));
   float flicker = mix(0.35 + 0.65 * step(0.3, hash21(ccell + beat * 0.37)), 1.0, settled);
-  vec3 signal = mix(uOpen, uSealed, sealed);
+  vec3 signal = mix(uOpen, uSealed, sealed) * crackLift(vIndex);
   // sealed but not merged: the lime is held low until a person merges it
   signal *= mix(1.0, mix(0.38, 1.0, uMerge), isFocus * step(0.5, uSeal));
   vec3 mended = uPixelLit * 0.55;

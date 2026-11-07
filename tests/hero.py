@@ -60,7 +60,7 @@ def canvas_only(page):
 
 def boxes(page):
     return page.evaluate(
-        """() => ['.beat--sky .beat__title', '.beat--sky .beat__lede', '.beat--sky .beat__note', '.beat--sky .btn--primary'].map((s) => {
+        """() => ['.beat--sky .beat__title', '.beat--sky .beat__lede', '.beat--sky .btn--primary'].map((s) => {
              const r = document.querySelector(s).getBoundingClientRect();
              return { s, box: [r.left, r.top, r.right, r.bottom], colour: getComputedStyle(document.querySelector(s)).color }; })"""
     )

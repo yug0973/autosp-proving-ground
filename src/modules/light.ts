@@ -7,6 +7,7 @@ import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { prefersReducedMotion } from '../lib/reduced-motion';
 import { initApply } from './apply';
+import { initFaq } from './faq';
 
 /** How far the plates travel against the scroll, as a share of the screen. */
 const DRIFT = 0.1;
@@ -137,6 +138,7 @@ export function initLight(): () => void {
   const stopRise = riseIn(root);
   const form = root.querySelector<HTMLFormElement>('[data-calm-apply]');
   const stopForm = form ? initApply(form) : () => {};
+  const stopFaq = initFaq(root);
 
   let lenis: Lenis | null = null;
   let frame = 0;
@@ -178,5 +180,6 @@ export function initLight(): () => void {
     sky.stop();
     stopRise();
     stopForm();
+    stopFaq();
   };
 }
