@@ -1,8 +1,16 @@
-# CLAUDE.md — AUTOSP "The Proving Ground"
+# CLAUDE.md — AUTOSP: "One Fix" (the front door) and "The Proving Ground" (the Annex, at /tour)
 
 Project instructions and architectural guidelines for Claude. Follow these rules alongside `DESIGN.md`.
 
-## 1. The Story The Page Tells
+## 0. Two pages since 8 November (the owner's brief, `PLAN.md`)
+- **`/` is "One Fix"**: an exhibition of one SQL-injection finding and how it was closed, room by room (`index.html`, `src/exhibit/`). It is the same exhibition on every screen size, with no WebGL, canvas, GSAP or video background, at most 60 KB of JS gzipped, and a quiet mode. Its rules:
+  - **Colour:** amber is only the finding, viridian only a fix that passed, red only a failure or a refusal. The walls are limestone, projection slate, celadon, paper and deep viridian. Tokens and measured contrast are in `src/exhibit/exhibit.css` and `PLAN.md`.
+  - **Type:** Zodiak (room titles) with Switzer (placards and body). Code uses the system monospace.
+  - **Placards** hold real facts. Never render a placeholder ("To confirm" or similar) to visitors. A part whose facts are missing is left out, and the rooms are renumbered so no gap shows.
+  - **Avoid:** dark SaaS with neon, cream with terracotta serif, identical rounded cards, gradient washes, all-caps eyebrows, decorative monospace, and "→" on links.
+- **`/tour/` is "The Annex"**: the 3D city below, unchanged, reached by a link and never the front door (`tour/index.html`). Its suites take `--base http://127.0.0.1:4174/tour/`. Everything in §1–§5 below describes the Annex.
+
+## 1. The Story The Annex Tells
 It starts in the bright Nexarise day sky, falls into the night city where the backlog lives, and rises into dawn once the fixes are made. **"Software that rises"** is the payoff. Every upgrade must serve that story or show a real step of the product (the failing test, the sandbox, the gates, the merge, the record). Nothing is added for decoration alone.
 
 ## 2. Core Architectural & Design Rules
@@ -30,6 +38,7 @@ It starts in the bright Nexarise day sky, falls into the night city where the ba
   - High quality tier gets heavy effects (depth of field, post-processing); low tier gets cheap fallbacks (fog, vignette) or none.
 
 ## 3. Key Commands
+- **Exhibition (`/`):** `python tests/exhibit.py --base http://127.0.0.1:4174` (contrast frame by frame, route, moments, guestbook, signing, form, accessibility, phone, budget)
 - **Dev server:** `npm run dev` (starts on `http://127.0.0.1:5173`)
 - **Typecheck & Build:** `npm run typecheck && npm run build`
 - **Lint & Format:** `npm run lint` / `npm run format`

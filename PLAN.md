@@ -1,117 +1,138 @@
-# Plan: AUTOSP landing page upgrade
+# PLAN: "One Fix", the AUTOSP landing page as an exhibition
 
-## What the repo is
+An exhibition of one SQL-injection finding (CWE-89 in `app/repositories/invoices.py`) and how it was closed, room by room. The 3D city moves to `/tour` and becomes "The Annex", reached by a link and never the front door. The previous upgrade plan is in `notes/plan-upgrade-2026-11.md`, and `CHANGELOG.md` records what it built.
 
-- **Framework:** none. Vite 8, TypeScript (strict), plain DOM modules. One `index.html` holds both experiences.
-- **3D:** three.js 0.186, hand-written (no R3F). The world is `src/world/` (`world.ts` drives it; `city.ts`, `shots.ts` cameras, `scan.ts`, `display.ts` facade displays, `words.ts`, `skyline.ts`, `tear.ts`), bridged to the page by `src/modules/world-stage.ts`.
-- **Scroll and camera:** Lenis + GSAP (`modules/scroll.ts`). Each chapter is a `<section>` (`.track`, sticky) whose scroll progress (`lib/track.ts`, `modules/tracks.ts`) drives the camera through ranges in `world/shots.ts`.
-- **Chapters:** hero `.beat--sky` → descent → `#backlog` → `#pick` → `#reproduce` → `#sandbox` → `#gates` → `#merge` → `#record` → `#results` → `#apply`, each with its own step module (`pick.ts`, `reproduce.ts`, `sandbox-step.ts`, `gates-step.ts`, `merge-step.ts`, `record.ts`, `numerals.ts`).
-- **Styling:** plain CSS in cascade layers: `world-tokens.css` (tokens), `base.css`, `world.css` (cinematic), `annotations.css` (the box, form, counters), `light.css` (phone page).
-- **Form:** `modules/apply.ts` (composes a mailto), `modules/stepper.ts` (one step at a time).
-- **Two experiences:** under 60rem wide, or without WebGL or script, visitors get the calm phone page (`.calm`, `modules/light.ts`), with no city and no 3D. Several mobile items below land there, not on the cinematic page.
-- **Tests:** Playwright suites in `tests/*.py` (world, camera, display, words, scan, results, dawn, arrival, hero, panels, light, buildings).
+## What the repo gives us
 
-## Where the brief meets rules you set earlier (please decide)
+- **Stack.** Vite 8, TypeScript (strict), vanilla DOM, CSS cascade layers. Dependencies: three, GSAP, Lenis. Tests are Playwright, written in Python.
+- **The city** (`index.html` cinematic page plus `src/modules/cinematic.ts`, `src/world/*`) moves whole to `tour/index.html`. It keeps its own tests, pointed at `/tour/`.
+- **Already working, reused:**
+  - `modules/apply.ts`: the form, sent through Web3Forms with inline validation and states. The key is in `.env.local`.
+  - `lib/fixes.ts` and `lib/gates.ts`: the CWE-89 test, the diff, the careless fix and the gate reports.
+  - `modules/record.ts`: real SHA-256 fingerprints, computed in the browser.
+  - `modules/merge-step.ts`: the hold with pointer, Space and Enter, plus a screen-reader path.
+  - `public/sample-evidence-pack.pdf`.
+- **Not reused on this page:** three.js, GSAP and the WebGL world (all `/tour` only). The budget is ≤ 60 KB gzipped of JS, and they don't fit it. Lenis (about 4 KB gzipped) is used only outside quiet mode and touch.
 
-These come from your `CLAUDE.md`, `DESIGN.md` and earlier decisions in this project. I won't silently override either side.
+## Decisions for you (your brief meets earlier rules)
 
-| Item | Brief asks | Earlier rule or decision |
+| | The brief | What stands today |
 |---|---|---|
-| 1 | Eyebrow "AUTOSP · Autonomous Security Platform" above the H1 | "No eyebrow labels" (CLAUDE.md) |
-| 2 | Remove the white line sweeping the city | That line is the backlog scanner sweep (Phase 4, approved): the line that lights each crack and counts the findings |
-| 3 | "Blurred backdrop" scrims | Glass is banned; wide shade layers were rejected for sliding across the city with hard edges |
-| 5 | "Pill backdrop" for the rail | "No glass pill navs" |
-| 8 | Step 1 team, step 2 you | Built yesterday the other way round (you, team, scanners, check and send) |
-| 17 | One corner badge instead of "Illustrative" on every card | "Every interactive demo must carry an Illustrative label" |
-| 20 | A second accent colour | "Colour carries meaning; never decorative". An accent outside the three signals is fine if it never means a state |
-| 22–23 | Cursor spotlight, crack hover glow | Phase 7 (pixel cursor, pointer ripple) was rejected |
-| 31 | Preloader before the hero | The hero already shows its text and button within 1 s; a preloader would delay that, against the brief's own definition of done |
-| 33, 35 | Simple view; mobile at 375 / 768 | Phones and portrait tablets already get the calm phone page; the cinematic page never runs below 960 px |
+| Front door | The exhibition at `/`, the city at `/tour` | CLAUDE.md §1: the page *is* the sky → night city → dawn story |
+| Phones | The same exhibition, not a lesser one | CLAUDE.md §5: phones get the calm page, with no city |
+| Colour meaning | Amber = the finding, viridian = fixed, red = failing or rejected; walls in limestone, slate, celadon, paper and viridian | Orange = open, amber = needs a person, lime = verified; the ground "stays Nexarise navy, never grey" |
+| Where the careless fix stops | Its beam "stops at the first gate" | `lib/gates.ts` (the city's story, and the evidence pack): stripping quotes passes the reproduction test (1 passed) and the suite (214 passed), and the **third** gate, a fresh static scan, refuses it ("SQL still built from strings"). That is also the more believable story. I'd make the beam pass two arches and stop at the third, unless you say otherwise |
+| Placeholders | Never render "To confirm" | Phase 2 put dashed "To confirm" tags on the page |
 
-### Decided (7 November)
+### Decided (8 November)
 
-- **1:** no eyebrow. The expansion goes in the sub-line: "AUTOSP, the Autonomous Security Platform, …".
-- **2:** the scanner sweep stays, redrawn as a softer, thinner beam with a trailing glow, so it reads as a scan.
-- **3:** tight scrims, sized to each text block and moving with it. No blur, nothing across the city.
-- **5:** the rail's backdrop is square-cornered and solid.
-- **17:** badge only. The per-box "Illustrative" lines go; the CLAUDE.md label rule now names the badge.
-- **19:** vary three chapters, same box: Reproduce (wide terminal), Record (centred statement), Results (heading out of the box, top right).
-- **20:** Clash Display for headlines (semibold: the bold ran its letters together), and Nexarise sky blue `#8ab4ff` as the one accent, never a state.
-- **23:** no visible spotlight; cracks near the pointer glow a little, hero only, never on touch.
-- **24:** the mini-map sits above the rail, on the same solid backing; hidden under 60rem and at the form.
-- **27:** the waiting / running / passed states go on the existing rail; no second sticky bar.
-- **31:** skipped; the hero keeps showing at once.
-- **21:** already done in Phase 1 (the sub-line expands AUTOSP).
+- **Type:** A, Zodiak (room titles) with Switzer (placards and body).
+- **Gates:** the careless fix passes two arches and is refused at the third, the fresh static scan, as the repo's data has it.
+- **Form:** Web3Forms stays, since it is already live.
+- **Missing facts:** the demo video and screening room, the curator, the FAQ's cost and self-hosting answers, and Room 1's severity line are left out until you send them. Each switches on from `src/exhibit/site.ts`.
+- **The rest of the table:** the brief's direction (exhibition at `/`, city at `/tour`, the same exhibition on phones, the new colour meanings). CLAUDE.md will be updated to match.
 
-### Status
+## Facts only you can give (nothing is invented; until each arrives, its part is left out, not stubbed)
 
-- **Phase 1: done (7 November).** Built on top of last night's uncommitted work (gates flight, Web3Forms form), which the owner chose to keep.
-- **Phase 5: done (7 November). All five phases are done; CHANGELOG.md summarises every change.** Lighthouse desktop before 77/72 · 97 · 100 · 91, after 99 · 100 · 100 · 100.
-- **After Phase 4 (7 November), the owner's call:** the right-hand rail and the mini-map on it are removed (so items 24 and 27 are gone with them), and the Record chapter is centred: its statement and its chain on one centre line.
-- **Phase 4: done (7 November).** Crack tooltips with click to follow (22); cracks near the pointer brighten on the first screen, nothing drawn (23); the run types its command, flashes its failures and can be skipped (25); a highlighted diff with Copy patch, its added line lime once every check passes (26); magnetic primary buttons with a press (28); J, K, M held and ? (29; the arrow keys keep scrolling); optional sound (30). No preloader (31). Severity is not shown in the tooltip: the page has no severity data and none was invented.
-- **Phase 3: done (7 November).** One corner badge replaces the per-box Illustrative lines; the steps' fingerprints are small chips that light in sky blue once the record is reached; Reproduce, Record and Results have their own layouts; Clash Display semibold for headlines and `--accent` (#8ab4ff), tabled in DESIGN.md §3. The face is wider than Cabinet Grotesk: the phone footer name went from 26vw to 21vw, and tight negative tracking was removed everywhere.
-- **Phase 2: done (7 November), done.** Two-step form, no Gmail address on screen, success words and a booking button (hidden until there is a link), one "Before you apply" box (week-by-week plan, access, comparison, questions) that fades as it rises so it never shares the screen with the form's box, a sample evidence pack drawn from the page's own demo fix (`tests/make-evidence-pack.py`), a founder note and footer links. The phone page has the plan, the access and the questions before its form, and the same footer. Its form stays on one page.
-- **Regressions from last night's work, fixed:** the tower words were switched off (restored); the gates camera climbed and swung too fast (the climb off the roof now has its own stretch of scroll, and the swing to the side ends with the chapter); the form test now accepts the field's extra error link.
+- **Form endpoint.** Web3Forms is already live (key in `.env.local`). Keep it, or name Formspree, Resend or your API.
+- **The 2-minute demo video and its poster.** Until they exist, the "Watch the 2-minute demo" button and the screening room are not rendered.
+- **Curator:** name, photo path, email. Until then, Room 9 is not rendered.
+- **FAQ:** cost after the pilot and self-hosting. Until answered, those two questions are not shown. The rest come from facts you have already given (Python on GitHub; Semgrep, CodeQL, Snyk Code, osv-scanner; it never merges by itself; where code runs).
+- **Room 1's severity.** The acquisition record shows rule, CWE, file and line. A severity line needs the level your scanner gave this finding; it is left off until you name it.
+- **Gallery Rules: GitHub App scopes and retention.** Shown as "agreed per design partner", exactly as you asked.
+- **Footer:** privacy and terms pages.
 
-## Facts only you can give (placeholders until then)
+## Status
 
-No numbers, scopes or names will be invented. These stay as clearly marked placeholders until you provide them:
+- **Phase 1, done (8 November):** the plan, the specimen and the palette, and a static build of every room. The city moved to `/tour/`, where all 13 of its suites pass.
+- **Phase 2, done (8 November):** the route line, the amber dot, the walls and quiet mode (`src/exhibit/route.ts`, `quiet.ts`; `tests/exhibit.py`, 22 checks).
+  - **A change from the brief, for legibility.** The page's colour blends only across the pale walls (limestone, celadon, paper). The two dark rooms keep their own walls and are entered through a doorway. Measured frame by frame, a pale-to-dark blend dropped text to 3.3:1 on a laptop and 2.7:1 on a phone; with the doorways, every word stays at or above 4.5:1 at every scroll position.
+  - **The line reads on both kinds of wall.** It inverts against the wall behind it, dark on pale and pale on dark. The dot sits on its own layer and keeps its amber.
 
-- Form backend (7): Web3Forms is wired. Still needed: the reply-from address (`src/lib/site.ts`, `replyFrom`).
-- Booking link (9): Cal.com or Calendly URL (`src/lib/site.ts`, `bookingUrl`; the button shows once it is set).
-- GitHub App scopes, where code runs, data retention (10).
-- FAQ answers: cost after the pilot, time to first verified PR, self-hosting (11).
-- The real pilot timeline (12).
-- Comparison facts, especially "time to start" (13).
-- Sample evidence pack (14): a two-page sample marked "illustrative" is in `public/`; the final pack format is to confirm.
-- Founder name, photo and note (15).
-- Footer routes: Security, Privacy, Terms, Contact (16). They link to `/security`, `/privacy`, `/terms` and `/contact`, which do not exist yet.
+- **Phase 3, done (8 November):** each room's moment (`proof.ts`, `clean-room.ts`, `gates.ts`, `moment.ts`); `tests/exhibit.py`, 33 checks.
+  - **The Proof:** the run types out once, line by line, with Run it again and a spoken status.
+  - **The Clean Room:** the wire snaps, the read-only seal stamps on and a time bar drains. The bar shows no number, because no limit has been stated. Then the patch is written and the case empties.
+  - **The Gates:** a beam from each case runs through three arches, across on a wide screen and down on a narrow one. The careless fix stops at the third with a red bar and "Rejected"; AUTOSP's runs through with "Accepted". The results are said aloud, and lighting a case frames it without dimming the other.
+  - **No layout shift:** lines, verdicts and results waiting their turn keep their space, so the page never moves while a room plays.
+  - **Moments start by position:** each begins when its room's top reaches 70% of the way down the screen, so tall rooms on phones still play.
 
-## Item → files
+- **Phase 4, done (8 November):** the Guestbook and the Signing (`guestbook.ts`, `signing.ts`); `tests/exhibit.py`, 44 checks.
+  - **The Guestbook:** the printed fingerprints are the real chain, recomputed in the browser (`lib/sha256.ts`, shared with the Annex). Tampering rewrites entry 2 to "passed". Fingerprints 2 to 4 are recomputed, run once in ink (an SVG turbulence filter, then removed) and stay red as "No longer matches". Restore dries them back.
+  - **The Signing:** hold by pointer, Space or Enter, and the signature draws along the line. Letting go early retracts it. A full hold merges: the dot turns viridian, main becomes one line, a phone gives a small tap, and entry 5 is written into the Guestbook with its own sealed fingerprint. A screen reader's activation signs at once, and Undo puts it back.
 
-### Phase 1: first impression and readability
-1. Hero overlay: `index.html` (`.beat--sky`), `world.css` (hero), `modules/reveal.ts`, `modules/scroll.ts` (the two CTAs). New H1 and sub-line, a secondary "See how it works ↓" and a scroll cue that fades as the descent begins. The hero already fades as the visitor falls.
-2. The line: `world/scan.ts`, `modules/world-stage.ts` (`driveScan`), `shaders/scan.glsl`, `tests/scan.py`. Per your answer: remove, or keep it off the hero and make it read as a scanner.
-3. Scrims and contrast: `world-tokens.css` (`--mist-300` → #C9CED8 equivalents), `world.css` (`.beat__text`, `.track__text`, `.beat__note`, `.hold__hint`), `tests/panels.py` (pixel contrast, which already reads every box).
-4. Transition overlaps: `world.css` (`.track__panel` `--shown`, `--reveal`), `modules/tracks.ts`, `modules/world-stage.ts` (label avoidance), `tests/panels.py` sweep (one more check: no two beats' panels or texts on screen at once).
-5. Rail: `index.html` (`.rail`), `modules/rail.ts`, `world.css` (`.rail`). Backdrop, click to scroll (it already links), progress fill, `aria-current`.
-6. Dead scroll: `world.css` (`.descent__gap`, `.track` heights), `world/shots.ts` (camera ranges are shares of each section, so they follow), `tests/camera.py`.
+- **Phase 5, done (8 November):** the form (`rsvp.ts`), the facts still to come (`site.ts`), the phone's apply bar (`apply-bar.ts`), and the accessibility, mobile and performance passes. Lighthouse went from 90 / 96 / 100 / 100 to 100 / 100 / 100 / 100 on mobile, and from 100 / 96 / 100 / 100 to 100 / 100 / 100 / 100 on desktop. `tests/exhibit.py` has 55 checks. `CHANGELOG.md` covers every phase.
 
-### Phase 2: trust and conversion
-7. `modules/apply.ts` (fetch to the backend, states), `index.html` (status region), `annotations.css`, `light.ts` and `.calm-form` (the phone page uses the same backend).
-8. `index.html` form steps, `modules/stepper.ts` (reorder; the tower already follows the company field), `tests/panels.py`, `tests/world.py`.
-9. `index.html` success state, `modules/apply.ts`.
-10–13, 15. New sections before `#apply` in `index.html`, styled in `annotations.css` (`world.css` for layout), mirrored in the phone page (`.calm`, `light.css`). FAQ: native `<details>` with one open at a time (`modules/faq.ts`).
-14. `public/sample-evidence-pack.pdf` (placeholder), link in `#record`.
-16. `index.html` `.foot` and `.calm-foot`.
+## Rooms → build
 
-### Phase 3: repetition and brand
-17. `index.html` (remove `.panel__note` lines), a fixed badge in `annotations.css`.
-18. `annotations.ts` (`.tape__fp`), `annotations.css`.
-19. `world.css` / `annotations.css` per chapter (three chapters get new layouts). The camera framing in `shots.ts` must be checked for each.
-20. `world-tokens.css` (tokens), `public/fonts`. Two or three typeface options for you to choose from first.
-21. `index.html` hero.
+| Room | Wall | Holds | Moment (once, on entry) | Reuses |
+|---|---|---|---|---|
+| 0 Entrance | limestone | Glass case with the amber line, headline, one plain line, buttons, Annex link | The amber glow breathes (opacity, 6 s); the route line starts at the case | — |
+| 1 The Finding | limestone | Acquisition record: rule, CWE, file, line | — | `lib/fixes.ts` |
+| Screening room | slate | Poster, click to play | — (no bytes until play) | needs the video |
+| 2 The Proof | projection slate | The test, the run typing once, FAILED in muted red, Run it again | Line-by-line typing | `modules/reproduce.ts` (re-skinned) |
+| 3 The Clean Room | celadon | The case sealed: network line snaps, read-only seal, timer, 1-line diff, case empties | Snap, seal, diff, empty | `lib/fixes.ts` |
+| 4 The Three Gates | limestone | Two cases (careless / AUTOSP) with a code comparison; three arches; beams; Accepted / Rejected placards; toggle | Beams travel (stroke-dashoffset) | `lib/gates.ts` |
+| 5 The Guestbook | paper | Five ink entries with SHA-256; Tamper / Restore; PDF link | Ink bleeds once on tamper (SVG turbulence, removed after) | `modules/record.ts`, `hash-log.ts` |
+| 6 The Signing | deep viridian | The PR as a document; hold to sign; signature path draws | Signature draws while held; the dot turns viridian; the route merges into main | `modules/merge-step.ts` (hold logic) |
+| 7 Results Wall | limestone | 16 cast tiles (14 viridian, 2 unpainted), plaque "0 merges made by AUTOSP", the caveat full size | Tiles set in once | — |
+| 8 Gallery Rules | limestone | May / May not, from your brief | — | — |
+| 9 The Curator | limestone | Photo, two lines, email | — | needs your facts |
+| 10 Invitation | paper | RSVP form; programme Week 1 / 2 / 4 | — | `modules/apply.ts` |
+| 11 Visitor Information | limestone | Information-desk FAQ; exit footer (Nexarise, the Annex, privacy, terms) | — | `modules/faq.ts` |
 
-### Phase 4: immersion
-22. `world/world.ts` (screen hit-test on findings, which already project to the screen), `modules/world-stage.ts` (tooltip, click → `#pick`).
-23. `world/world.ts` + `shaders/facade.frag.glsl` (a pointer uniform), hero only, not on touch.
-24. `modules/minimap.ts` (2D canvas from `city.buildings` and the camera), hidden below 60rem.
-25. `modules/reproduce.ts` (it already types its run line by line), `annotations.css` (flash).
-26. `modules/gates-step.ts` (highlighting, line reveal, Copy patch).
-27. `modules/pipeline.ts`, `world.css` (sticky stepper synced to `trackProgress`).
-28. `annotations.css` + `modules/annotations.ts` (magnetic hover, press feedback).
-29. `modules/keys.ts` (J/K, arrows, M, ? overlay; ignored in fields).
-30. `modules/sound.ts` (Web Audio, toggle in the strip, `localStorage`). This is Phase 9 of the roadmap.
-31. `index.html` + `modules/world-stage.ts` (only if you still want it, see the table above).
+**The three threads:**
 
-### Phase 5: performance, accessibility, mobile
-32. `world/world.ts` still mode, `world.css`: crossfades between still frames.
-33. A toggle in the strip that opens the calm page (`lib/experience.ts` + the head script, `?view=simple`).
-34. `modules/world-stage.ts` (sustained frame time → quality tier), `world/world.ts` (DPR, building count).
-35. The calm page at 375 and 768 (`tests/light.py`), and the cinematic page between 960 and 1280.
-36. Audit across `index.html` and the modules; `tests/*` gain the checks.
-37. Lighthouse before and after (`npx lighthouse`), on the build.
+- **Route line:** one SVG path in the left gutter, drawn by `stroke-dashoffset` from scroll.
+- **Amber dot:** placed along the path with `getPointAtLength`.
+- **Wall colour:** one `--wall` custom property interpolated between room colours.
 
-## Working method
+All three run from one `requestAnimationFrame` loop. Each room's moment runs under an IntersectionObserver, plays once, then stops.
 
-Each phase: build, typecheck, lint, the test suites on a production build, a full scroll sweep reviewed frame by frame, then a summary. I stop after each phase until you say "continue". `CHANGELOG.md` at the end.
+## Files
+
+- `index.html`: the exhibition. Each room is a `<section class="room" data-wall="…">` with a placard.
+- `tour/index.html`: the city, moved as it is. A `vite.config.ts` gains the second input.
+- `src/exhibit/`: `main.ts`, `route.ts` (line, dot, walls), `quiet.ts`, `proof.ts`, `clean-room.ts`, `gates.ts`, `guestbook.ts`, `signing.ts`, `results.ts`, `sticky-cta.ts`.
+- `src/styles/exhibit/`: `tokens.css` (the palette and the type below, one table), `rooms.css`, `cases.css`.
+- `tests/exhibit.py`: still frames (no half-faded text), quiet mode, keyboard, live regions, no placeholder text, JS budget, mobile.
+
+## Quiet mode
+
+It turns on for any of these: `prefers-reduced-motion`, Save-Data, `deviceMemory ≤ 4`, or `hardwareConcurrency ≤ 4`.
+
+When quiet: no Lenis, no filters, the route line drawn whole, every room in its final state. The interactive demos still work.
+
+## Palette (measured; `specimen.html`)
+
+| Wall | Hex | Text on it (contrast) |
+|---|---|---|
+| Limestone | `#E2DFD6` | ink `#16191E` 13.2 · ink-soft `#4A4F57` 6.2 · amber `#8A5300` 4.7 · viridian `#1E6B52` 4.8 · red `#A3271D` 5.5 |
+| Projection slate | `#26303F` | chalk `#EEF0EA` 11.6 · chalk-soft `#B9C0C2` 7.2 · amber `#F0B357` 7.2 · viridian `#7FD6B4` 7.7 · red `#F29A90` 6.2 |
+| Celadon | `#D3DFD0` | ink 12.8 · ink-soft 6.0 · amber 4.6 · viridian 4.6 · red 5.3 |
+| Paper | `#EAE4D6` | ink 13.9 · ink-soft 6.5 · amber 5.0 · viridian 5.1 · red 5.8 |
+| Deep viridian | `#17352E` | chalk 11.5 · chalk-soft 7.2 · amber 7.1 · viridian 7.7 · red 6.2 |
+
+Every pair clears AA (4.5:1) for body text. The amber glow behind the exhibit line is `#E8A43A`, a light, never text.
+
+## Type (picked: A; `specimen.html`)
+
+- **A. Zodiak + Switzer** (Fontshare): a sharp gallery serif with Swiss placards.
+- **B. Bricolage Grotesque + Schibsted Grotesk** (Google Fonts, open licence): a contemporary art centre.
+- **C. Gloock + Hanken Grotesk** (Google Fonts, open licence): an ink-drawn serif for a written record.
+
+Code stays in a system monospace, so it adds no font file. The chosen pair is self-hosted as at most 4 subset files.
+
+## Phases (each ends with your review)
+
+1. This plan, the specimen, the palette, then a static build of every room with final copy (after your type pick).
+2. Route line, amber dot, wall interpolation, quiet mode.
+3. The Proof typing, the Clean Room seal, the gates beams and placards.
+4. Guestbook tamper with ink bleed, hold to sign.
+5. Form backend, mobile pass, accessibility pass, Lighthouse before and after, CHANGELOG.md.
+
+## Budget checks, every phase
+
+- JS ≤ 60 KB gzipped for `/`, measured from the build's manifest.
+- Animate only transform, opacity and stroke-dashoffset.
+- LCP < 2.0 s and CLS < 0.05 on Lighthouse's mobile profile.
+- Lighthouse mobile Performance ≥ 85, Accessibility ≥ 95.

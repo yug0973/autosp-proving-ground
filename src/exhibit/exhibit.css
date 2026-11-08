@@ -1,0 +1,1376 @@
+/* One Fix: an exhibition of one vulnerability, and how it was closed.
+   Tokens first (the palette and the type, in one place, measured in specimen.html and PLAN.md), then the
+   rooms. Colour carries meaning: amber is only ever the finding, viridian only a fix that passed, red only a
+   failure or a refusal. Each room paints its own wall. */
+
+@layer reset, tokens, base, rooms, pieces;
+
+@layer tokens {
+  @font-face {
+    font-family: "Zodiak";
+    src: url("/fonts/zodiak-700.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Zodiak";
+    src: url("/fonts/zodiak-400.woff2") format("woff2");
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Switzer";
+    src: url("/fonts/switzer-400.woff2") format("woff2");
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Switzer";
+    src: url("/fonts/switzer-500.woff2") format("woff2");
+    font-weight: 500;
+    font-display: swap;
+  }
+
+  :root {
+    /* walls */
+    --limestone: #e2dfd6;
+    --projection: #26303f;
+    --celadon: #d3dfd0;
+    --paper: #eae4d6;
+    --signing: #17352e;
+
+    /* text on the light walls (contrast on limestone): ink 13.2, ink-soft 6.2 */
+    --ink: #16191e;
+    --ink-soft: #4a4f57;
+    --rule: rgb(22 25 30 / 0.2);
+    /* text on the dark walls (on projection slate): chalk 11.6, chalk-soft 7.2 */
+    --chalk: #eef0ea;
+    --chalk-soft: #b9c0c2;
+
+    /* meaning, on a light wall / on a dark wall (every pair at least 4.6:1) */
+    --amber: #8a5300; /* the finding, and only the finding */
+    --amber-on-dark: #f0b357;
+    --amber-glow: #e8a43a; /* light behind the exhibit line, never text */
+    --viridian: #1e6b52; /* a fix that passed, and only that */
+    --viridian-on-dark: #7fd6b4;
+    --red: #a3271d; /* a failure or a refusal */
+    --red-on-dark: #f29a90;
+
+    /* type: Zodiak for the rooms, Switzer for placards and body (its figures are tabular), code in the
+       system monospace, which costs no file */
+    --display: "Zodiak", "Iowan Old Style", Georgia, serif;
+    --body: "Switzer", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+    --step-0: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem); /* 18px at 1440 */
+    --step-1: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+    --step-2: clamp(1.75rem, 1.3rem + 1.6vw, 2.75rem);
+    --step-3: clamp(2.5rem, 1.6rem + 3.6vw, 5.25rem);
+    --step-4: clamp(2.9rem, 1.6rem + 5.4vw, 7rem);
+
+    --gutter: clamp(1.25rem, 4vw, 3rem);
+    --route: clamp(1.25rem, 6vw, 7rem); /* the left margin the route line walks down */
+    --measure: 62ch;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  body,
+  h1,
+  h2,
+  h3,
+  p,
+  figure,
+  blockquote,
+  dl,
+  dd,
+  ol,
+  ul {
+    margin: 0;
+  }
+  ol,
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 4rem;
+  }
+  body {
+    background: var(--wall, var(--limestone));
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: var(--step-0);
+    line-height: 1.55;
+    text-rendering: optimizeLegibility;
+  }
+  a {
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+  code,
+  pre {
+    font-family: var(--mono);
+    font-size: 0.88em;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .skip {
+    position: absolute;
+    top: -4rem;
+    left: var(--gutter);
+    z-index: 10;
+    padding: 0.6rem 1rem;
+    background: #16191e;
+    color: #eef0ea;
+  }
+  .skip:focus {
+    top: 0.75rem;
+  }
+}
+
+@layer rooms {
+  /* the way in and out of the building */
+  .door {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem var(--gutter) 0 var(--route);
+    font-size: 1rem;
+  }
+  .door a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+  .door__name {
+    text-decoration: none;
+  }
+  .door__name b {
+    font-weight: 500;
+  }
+
+  /* a room: its own wall, one idea, readable as a still frame */
+  .room {
+    position: relative;
+    display: grid;
+    /* one column that may shrink below its widest line of code: the code scrolls inside itself */
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    min-height: 100svh;
+    padding: clamp(5rem, 14vh, 9rem) var(--gutter) clamp(5rem, 14vh, 9rem) var(--route);
+    background: var(--room-wall);
+    scroll-margin-top: 0;
+  }
+  .room[data-wall="limestone"] {
+    --room-wall: var(--limestone);
+  }
+  .room[data-wall="projection"] {
+    --room-wall: var(--projection);
+  }
+  .room[data-wall="celadon"] {
+    --room-wall: var(--celadon);
+  }
+  .room[data-wall="paper"] {
+    --room-wall: var(--paper);
+  }
+  .room[data-wall="signing"] {
+    --room-wall: var(--signing);
+  }
+  /* A dark room carries its own wall and its own chalk, with the moving walls or without them: it is
+     entered through a doorway, as a darkened room is. */
+  .room:is([data-wall="projection"], [data-wall="signing"]) {
+    --ink: var(--chalk);
+    --ink-soft: var(--chalk-soft);
+    --rule: rgb(238 240 234 / 0.22);
+    --amber: var(--amber-on-dark);
+    --viridian: var(--viridian-on-dark);
+    --red: var(--red-on-dark);
+    color: var(--ink);
+  }
+  /* the moving walls: one colour for the page across the pale rooms, which clear so it shows through */
+  :root[data-walls] .room:not([data-wall="projection"], [data-wall="signing"]) {
+    --room-wall: var(--wall, var(--limestone));
+    background: transparent;
+  }
+
+  .room__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+    gap: 1.5rem 4rem;
+    align-items: start;
+  }
+  .room__title {
+    max-width: 16ch;
+    font-family: var(--display);
+    font-size: var(--step-3);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.015em;
+  }
+  .room__text {
+    max-width: var(--measure);
+    margin-top: 1.5rem;
+  }
+  .room__text + .room__text {
+    margin-top: 1rem;
+  }
+  .soft {
+    color: var(--ink-soft);
+  }
+
+  /* the placard: the room's real facts, as a museum puts them on the wall */
+  .placard {
+    max-width: 20rem;
+    padding-left: 1rem;
+    border-left: 1px solid currentColor;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+  .placard__title {
+    font-weight: 500;
+  }
+  .placard__medium {
+    display: block;
+    color: var(--ink-soft);
+  }
+  .placard__caption {
+    display: block;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 52rem) {
+    .room__head {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+@layer pieces {
+  /* --- Room 0: the entrance ------------------------------------------------------------------------ */
+  .entrance {
+    align-content: start;
+    padding-top: clamp(3rem, 9vh, 6rem);
+  }
+  .entrance__title {
+    max-width: 19ch;
+    font-family: var(--display);
+    font-size: var(--step-4);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+  }
+  .entrance__lede {
+    max-width: 54ch;
+    font-size: var(--step-1);
+    line-height: 1.45;
+  }
+  .entrance__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 2rem;
+  }
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0 1.5rem;
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    background: var(--ink);
+    color: var(--room-wall, var(--limestone));
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .button--plain {
+    background: transparent;
+    color: var(--ink);
+  }
+  .annex-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  /* the glass case: one line of code, lit faintly amber from inside */
+  .case {
+    position: relative;
+    max-width: 52rem;
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    border: 1px solid var(--rule);
+    background: rgb(255 255 255 / 0.28);
+  }
+  .room[data-wall="projection"] .case,
+  .room[data-wall="signing"] .case {
+    background: rgb(255 255 255 / 0.05);
+  }
+  .case__label {
+    margin-bottom: 0.75rem;
+    color: var(--ink-soft);
+    font-size: 0.875rem;
+  }
+  .exhibit-line {
+    display: block;
+    overflow-x: auto;
+    color: var(--amber);
+    font-family: var(--mono);
+    font-size: clamp(0.8rem, 0.62rem + 0.7vw, 1.15rem);
+    line-height: 1.6;
+    white-space: pre;
+    text-shadow: 0 0 0.9em rgb(232 164 58 / 0.55);
+  }
+
+  /* --- Room 1: the acquisition record -------------------------------------------------------------- */
+  .record-card {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.6rem 2rem;
+    max-width: 44rem;
+    padding: 1.5rem 0;
+    border-block: 1px solid var(--rule);
+  }
+  .record-card dt {
+    color: var(--ink-soft);
+  }
+  .record-card dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .record-card dd code {
+    font-size: 0.95em;
+  }
+  .finding-mark {
+    color: var(--amber);
+    font-weight: 500;
+  }
+
+  /* --- code panels (the proof, the clean room, the gates) ------------------------------------------- */
+  .code {
+    max-width: 52rem;
+    overflow-x: auto;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    white-space: pre;
+  }
+  .code + .code {
+    margin-top: -1px;
+  }
+  .line {
+    display: block;
+  }
+  .line--fail {
+    color: var(--red);
+  }
+  .line--dim {
+    color: var(--ink-soft);
+  }
+  .line--del {
+    color: var(--red);
+  }
+  .line--add {
+    color: var(--viridian);
+  }
+
+  /* --- Room 3: the clean room's seals --------------------------------------------------------------- */
+  .seals {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    max-width: 52rem;
+    border: 1px solid var(--rule);
+    background: var(--rule);
+  }
+  .seals div {
+    padding: 1rem 1.1rem;
+    background: var(--room-wall);
+  }
+  .seals dt {
+    color: var(--ink-soft);
+    font-size: 0.875rem;
+  }
+  .seals dd {
+    font-weight: 500;
+  }
+  .gone {
+    max-width: var(--measure);
+    font-family: var(--display);
+    font-size: var(--step-1);
+  }
+
+  /* --- Room 4: the two cases and the three arches --------------------------------------------------- */
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+  }
+  .compare__case {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 1px solid var(--rule);
+    background: rgb(255 255 255 / 0.28);
+  }
+  .compare__case h3 {
+    font-family: var(--display);
+    font-size: var(--step-1);
+    font-weight: 700;
+  }
+  .compare__case .code {
+    padding: 1rem;
+    border: 0;
+    background: rgb(22 25 30 / 0.04);
+    font-size: 0.8125rem;
+  }
+  .verdict {
+    justify-self: start;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid currentColor;
+    font-weight: 500;
+  }
+  .verdict--rejected {
+    color: var(--red);
+  }
+  .verdict--accepted {
+    color: var(--viridian);
+  }
+  .gates-route {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--rule);
+    background: var(--rule);
+  }
+  .gates-route li {
+    padding: 1rem 1.1rem;
+    background: var(--room-wall);
+  }
+  .gates-route b {
+    display: block;
+    font-weight: 500;
+  }
+  .gates-route span {
+    display: block;
+    font-size: 0.9375rem;
+  }
+  .pass {
+    color: var(--viridian);
+  }
+  .fail {
+    color: var(--red);
+  }
+
+  /* --- Room 5: the guestbook ------------------------------------------------------------------------- */
+  .guestbook {
+    display: grid;
+    max-width: 52rem;
+    border-top: 1px solid var(--rule);
+  }
+  .guestbook li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .guestbook__n {
+    font-family: var(--display);
+    font-size: var(--step-1);
+    line-height: 1.2;
+  }
+  .guestbook__entry {
+    min-width: 0;
+    overflow-wrap: anywhere; /* a test's name is one long word */
+    font-family: var(--display);
+    font-size: var(--step-1);
+    line-height: 1.3;
+  }
+  .guestbook__fp {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    grid-column: 2;
+    color: var(--ink-soft);
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+  }
+  .guestbook__fp code {
+    min-width: 0;
+    transition: color 600ms var(--ease);
+  }
+
+  /* --- Room 6: the pull request, a document awaiting a signature --------------------------------------- */
+  .document {
+    max-width: 40rem;
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+    background: var(--paper);
+    color: #16191e;
+  }
+  .document__kind {
+    color: #4a4f57;
+    font-size: 0.9375rem;
+  }
+  .document__title {
+    margin-top: 0.25rem;
+    font-family: var(--display);
+    font-size: var(--step-2);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .document__branch {
+    margin-top: 0.5rem;
+    color: #4a4f57;
+    font-size: 0.9375rem;
+  }
+  .document__evidence {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 2rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgb(22 25 30 / 0.2);
+  }
+  .document__evidence dt {
+    color: #4a4f57;
+  }
+  .document__evidence dd {
+    text-align: right;
+  }
+  .document__sign {
+    margin-top: 2rem;
+    padding-top: 2.5rem;
+    border-bottom: 1px solid #16191e;
+  }
+  .document__sign-label {
+    margin-top: 0.5rem;
+    color: #4a4f57;
+    font-size: 0.875rem;
+  }
+
+  /* --- Room 7: the results wall ---------------------------------------------------------------------- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(8, clamp(2.25rem, 5vw, 3.75rem));
+    gap: clamp(0.5rem, 1.2vw, 0.9rem);
+  }
+  .tile {
+    aspect-ratio: 1;
+    border: 1px solid var(--viridian);
+    background: var(--viridian);
+  }
+  .tile--bare {
+    background: transparent;
+    border-color: var(--ink-soft);
+    border-style: dashed;
+  }
+  .wall-numbers {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, max-content));
+    gap: 1.5rem clamp(2rem, 5vw, 4.5rem);
+  }
+  .wall-numbers big {
+    display: block;
+    font-family: var(--display);
+    font-size: var(--step-3);
+    line-height: 1;
+  }
+  .wall-numbers .pass big {
+    color: var(--viridian);
+  }
+  .wall-numbers span {
+    display: block;
+    max-width: 18ch;
+    margin-top: 0.5rem;
+  }
+  .caveat {
+    max-width: 44rem;
+    padding: 1.5rem 1.75rem;
+    border: 1px solid var(--ink);
+    font-size: var(--step-1);
+    line-height: 1.4;
+  }
+  .caveat b {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+  }
+
+  /* --- Room 8: gallery rules -------------------------------------------------------------------------- */
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 60rem;
+    border: 2px solid var(--ink);
+  }
+  .rules > div {
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+  .rules > div + div {
+    border-left: 2px solid var(--ink);
+  }
+  .rules h3 {
+    margin-bottom: 1rem;
+    font-family: var(--display);
+    font-size: var(--step-2);
+    font-weight: 700;
+  }
+  .rules li + li {
+    margin-top: 0.6rem;
+  }
+  .rules__note {
+    max-width: var(--measure);
+  }
+
+  /* --- Room 10: the invitation ------------------------------------------------------------------------ */
+  .invitation {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+  .rsvp {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+    border: 1px solid var(--ink);
+    background: rgb(255 255 255 / 0.35);
+  }
+  .rsvp__title {
+    font-family: var(--display);
+    font-size: var(--step-2);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .rsvp__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+  .field {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .field__label {
+    font-weight: 500;
+  }
+  .field__label small {
+    color: var(--ink-soft);
+    font-size: 0.875em;
+    font-weight: 400;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    min-height: 3rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgb(22 25 30 / 0.45);
+    border-radius: 2px;
+    background: rgb(255 255 255 / 0.6);
+    font-size: max(16px, 1rem);
+  }
+  .field textarea {
+    min-height: 6rem;
+    resize: vertical;
+  }
+  .choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    border: 0;
+  }
+  .choices legend {
+    margin-bottom: 0.5rem;
+    padding: 0;
+    font-weight: 500;
+  }
+  .choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+    border: 1px solid rgb(22 25 30 / 0.45);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .choice:has(:checked) {
+    border-color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  .choice:has(:focus-visible) {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+  .trap {
+    position: absolute;
+    left: -100vw;
+  }
+  .programme {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .programme h3 {
+    font-family: var(--display);
+    font-size: var(--step-2);
+    font-weight: 700;
+  }
+  .programme li {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--rule);
+  }
+  .programme li b {
+    font-weight: 500;
+  }
+
+  /* --- Room 11: the information desk, and the exit --------------------------------------------------- */
+  .desk {
+    max-width: 52rem;
+    border-top: 1px solid var(--rule);
+  }
+  .desk details {
+    border-bottom: 1px solid var(--rule);
+  }
+  .desk summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3rem;
+    padding: 1rem 0;
+    font-family: var(--display);
+    font-size: var(--step-1);
+    list-style: none;
+    cursor: pointer;
+  }
+  .desk summary::-webkit-details-marker {
+    display: none;
+  }
+  .desk summary::after {
+    content: "+";
+    font-family: var(--body);
+  }
+  .desk details[open] summary::after {
+    content: "\2212";
+  }
+  .desk details p {
+    max-width: var(--measure);
+    padding-bottom: 1.25rem;
+  }
+  .exit {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    position: relative;
+    z-index: 2;
+    padding: 2.5rem var(--gutter) 2.5rem var(--route);
+    background: #16191e;
+    color: #eef0ea;
+    font-size: 1rem;
+  }
+  .exit ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+  }
+  .exit a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  @media (max-width: 52rem) {
+    .seals {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .gates-route {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .compare,
+    .rules,
+    .invitation,
+    .rsvp__row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .rules > div + div {
+      border-left: 0;
+      border-top: 2px solid var(--ink);
+    }
+    .tiles {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+    .wall-numbers {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .document__evidence {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.15rem;
+    }
+    .document__evidence dd {
+      margin-bottom: 0.6rem;
+      text-align: left;
+    }
+  }
+
+  /* --- the route line, the main line, the stops and the amber dot (route.ts) ----------------------------- */
+  .route {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    overflow: visible;
+    pointer-events: none;
+  }
+  /* the lines invert against whatever wall is behind them: dark on the pale walls, pale on the dark */
+  .route:not(.route--dot) {
+    mix-blend-mode: difference;
+  }
+  .route__main {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1;
+    stroke-dasharray: 2 6;
+    opacity: 0.35;
+  }
+  .route__line {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .route__stops circle {
+    fill: #000;
+    stroke: #fff;
+    stroke-width: 1.25;
+  }
+  .route__dot {
+    fill: var(--amber-glow);
+    stroke: #16191e;
+    stroke-width: 1;
+  }
+  .route__dot[data-signed] {
+    fill: var(--viridian-on-dark);
+  }
+
+  /* --- Phase 3: each room's moment. Only opacity, transform and stroke-dashoffset move. ------------------- */
+  /* a line still to come keeps its place, so nothing below it moves while the room plays */
+  .line--wait {
+    visibility: hidden;
+  }
+  .line--in {
+    animation: line-in 420ms var(--ease) both;
+  }
+  @keyframes line-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.25em);
+    }
+  }
+  .run-again {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    margin-top: 1.25rem;
+  }
+  .run-again__status {
+    color: var(--ink-soft);
+  }
+
+  /* the clean room: the case, the wire that snaps, the seal, the time running down, the emptying */
+  .sandbox {
+    position: relative;
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr);
+    align-items: center;
+    max-width: 58rem;
+  }
+  .sandbox__net {
+    width: 100%;
+    height: 0.75rem;
+    overflow: visible;
+  }
+  .sandbox__wire {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    transition:
+      transform 600ms var(--ease),
+      opacity 600ms var(--ease);
+  }
+  .sandbox[data-stage="open"] .sandbox__wire {
+    transform: none;
+  }
+  /* the wire snaps: the two ends spring apart and the outer end slackens */
+  .sandbox:not([data-stage="open"]) .sandbox__wire--out {
+    transform: translate(-10px, 2px) rotate(-4deg);
+    opacity: 0.45;
+  }
+  .sandbox:not([data-stage="open"]) .sandbox__wire--in {
+    transform: translateX(10px);
+  }
+  .sandbox__case {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem;
+    border: 1px solid var(--ink);
+    transition: border-color 600ms var(--ease);
+  }
+  .sandbox[data-stage="empty"] .sandbox__case {
+    border-style: dashed;
+    border-color: var(--ink-soft);
+  }
+  .sandbox__job {
+    font-weight: 500;
+  }
+  .sandbox .seals {
+    border: 0;
+  }
+  .seal {
+    display: inline-block;
+    width: 0.8em;
+    height: 0.95em;
+    margin-right: 0.3em;
+    vertical-align: -0.1em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    transition:
+      transform 500ms var(--ease),
+      opacity 500ms var(--ease);
+  }
+  .sandbox[data-stage="open"] .seal {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+  .sandbox__time {
+    height: 3px;
+    overflow: hidden;
+    background: var(--rule);
+  }
+  .sandbox__time i {
+    display: block;
+    height: 100%;
+    background: var(--ink);
+    transform-origin: left;
+  }
+  .sandbox[data-stage="sealed"] .sandbox__time i {
+    transform: scaleX(0.15);
+    transition: transform 3s linear;
+  }
+  .sandbox[data-stage="empty"] .sandbox__time i {
+    transform: scaleX(0);
+  }
+
+  /* the gates: the corridor of arches and the two beams */
+  .corridor {
+    max-width: 64rem;
+  }
+  .corridor svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .corridor__arch {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.25;
+  }
+  .corridor__name {
+    fill: var(--ink-soft);
+    font-family: var(--body);
+    font-size: 13px;
+  }
+  .corridor__glow {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    opacity: 0.18;
+  }
+  .corridor__core {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .corridor__beam--careless {
+    stroke: var(--ink-soft);
+  }
+  .corridor__beam--autosp {
+    stroke: var(--viridian);
+  }
+  .corridor__stop {
+    stroke: var(--red);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .corridor__through {
+    fill: var(--viridian);
+  }
+  .corridor__stop,
+  .corridor__through {
+    opacity: 0;
+    transition: opacity 400ms var(--ease);
+  }
+  :is(.corridor__stop, .corridor__through).is-shown {
+    opacity: 1;
+  }
+  .gates-route li {
+    display: grid;
+    grid-template-areas:
+      "name"
+      "result";
+  }
+  .gates-route li > b {
+    grid-area: name;
+  }
+  .gates-route li > span {
+    grid-area: result;
+  }
+  .gates-route li[data-note] > span {
+    visibility: hidden;
+  }
+  .gates-route li[data-note]::after {
+    content: attr(data-note);
+    grid-area: result;
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+  }
+  /* the lit case: a stronger frame and more light inside it; the other stays fully readable */
+  .compare__case {
+    transition: background-color 500ms var(--ease);
+  }
+  #gates[data-lit="careless"] [data-case="careless"],
+  #gates[data-lit="autosp"] [data-case="autosp"] {
+    border-color: var(--ink);
+    background: rgb(255 255 255 / 0.62);
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  #gates[data-lit="careless"] .corridor__beam--autosp,
+  #gates[data-lit="autosp"] .corridor__beam--careless {
+    opacity: 0.12;
+  }
+  .lights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .lights [aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--room-wall, var(--limestone));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .line--in,
+    .sandbox__wire,
+    .seal,
+    .sandbox__case,
+    .compare__case,
+    :is(.corridor__stop, .corridor__through) {
+      animation: none;
+      transition: none;
+    }
+  }
+
+  /* --- Phase 4: the guestbook's ink, and the signing ----------------------------------------------------- */
+  .guestbook__state {
+    font-family: var(--body);
+    font-size: 0.8125rem;
+  }
+  /* a rewritten entry, and every fingerprint after it that no longer matches: in red ink */
+  [data-entry][data-rewritten] .guestbook__entry,
+  [data-entry][data-broken] :is(code, .guestbook__state) {
+    color: var(--red);
+  }
+  [data-entry][data-rewritten] .guestbook__entry {
+    text-decoration: underline wavy;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  [data-entry][data-pending] .guestbook__entry {
+    color: var(--ink-soft);
+  }
+  .guestbook__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+  }
+  .guestbook__live {
+    color: var(--ink-soft);
+  }
+  .button:disabled {
+    opacity: 1;
+    border-color: var(--rule);
+    color: var(--ink-soft);
+    cursor: default;
+  }
+  .ink-filter {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  /* the signature, drawn along the line while the visitor holds */
+  .document__sign {
+    position: relative;
+    padding-top: 0;
+    height: 4.5rem;
+  }
+  .signature {
+    position: absolute;
+    left: 0.5rem;
+    bottom: 0.25rem;
+    width: min(20rem, 85%);
+    height: auto;
+    overflow: visible;
+  }
+  .signature path {
+    fill: none;
+    stroke: #16191e;
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hold {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+  .hold__button {
+    position: relative;
+    justify-self: start;
+    min-height: 3.25rem;
+    padding: 0 1.75rem;
+    overflow: hidden;
+    border: 1px solid #16191e;
+    border-radius: 2px;
+    background: transparent;
+    color: #16191e;
+    font-weight: 500;
+    cursor: pointer;
+    touch-action: none; /* a hold keeps the finger: a scroll starting under it would cancel it */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .hold__fill {
+    position: absolute;
+    inset: 0;
+    background: #16191e;
+    transform: scaleX(var(--hold, 0));
+    transform-origin: left;
+  }
+  .hold__label {
+    position: relative;
+    mix-blend-mode: difference;
+    color: #eae4d6;
+  }
+  .hold__button:focus-visible {
+    outline: 2px solid #16191e;
+    outline-offset: 3px;
+  }
+  .hold__button:disabled {
+    cursor: default;
+  }
+  .hold__hint {
+    color: #4a4f57;
+    font-size: 0.9375rem;
+  }
+  .hold__done {
+    color: var(--viridian-on-light, #1e6b52);
+    font-family: var(--display);
+    font-size: var(--step-1);
+    font-weight: 700;
+  }
+  .hold__undo {
+    justify-self: start;
+    min-height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #16191e;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+  /* once signed, the route and main are one line */
+  :root[data-signed] .route__main {
+    stroke-dasharray: none;
+    opacity: 0.8;
+  }
+
+  /* --- Phase 5: the form's states, the phone's apply bar, and the parts that wait for their facts ------ */
+  .field__error {
+    color: var(--red);
+    font-size: 0.9375rem;
+  }
+  .choices .field__error {
+    flex-basis: 100%;
+    margin-top: 0.25rem;
+  }
+  [aria-invalid="true"]:is(input, textarea) {
+    border-color: var(--red);
+  }
+  .rsvp__status:empty {
+    display: none;
+  }
+  .rsvp__status {
+    color: var(--red);
+  }
+  .rsvp button[aria-busy="true"] {
+    cursor: progress;
+  }
+  .rsvp--done {
+    align-content: start;
+  }
+  .rsvp--done:focus {
+    outline: none;
+  }
+
+  /* the phone's bar at the foot of the screen */
+  .apply-bar {
+    display: none;
+  }
+  @media (max-width: 52rem) {
+    .apply-bar {
+      position: fixed;
+      right: 0.75rem;
+      bottom: calc(0.75rem + env(safe-area-inset-bottom));
+      left: 0.75rem;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.25rem;
+      border-radius: 2px;
+      background: #16191e;
+      color: #eef0ea;
+      font-weight: 500;
+      text-decoration: none;
+      opacity: 0;
+      transform: translateY(140%);
+      transition:
+        transform 450ms var(--ease),
+        opacity 450ms var(--ease);
+      pointer-events: none;
+    }
+    .apply-bar[data-up] {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+    .apply-bar:focus-visible {
+      outline: 2px solid #eef0ea;
+      outline-offset: -5px;
+    }
+    /* room at the foot of the page, so the bar never covers the last words */
+    .exit {
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  /* the screening room and the curator, once their facts are given (site.ts) */
+  .screen {
+    position: relative;
+    display: block;
+    width: min(100%, 52rem);
+    padding: 0;
+    border: 1px solid var(--rule);
+    background: #000;
+    cursor: pointer;
+  }
+  .screen img,
+  .screen__video {
+    display: block;
+    width: 100%;
+    max-width: 52rem;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  .screen__play {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    padding: 0.6rem 1rem;
+    background: #eef0ea;
+    color: #16191e;
+    font-weight: 500;
+  }
+  .curator {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: 1rem 2rem;
+    margin-top: 1.5rem;
+    max-width: 52rem;
+  }
+  .curator__photo {
+    grid-row: span 2;
+    width: 10rem;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+  .curator__note {
+    margin: 0;
+    font-family: var(--display);
+    font-size: var(--step-1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .apply-bar {
+      transition: none;
+    }
+  }
+}

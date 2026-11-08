@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>One Fix: type and palette specimen</title>
+    <meta name="robots" content="noindex" />
+    <!-- specimen only: the chosen pairing is self-hosted and subset for the real page -->
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=zodiak@400,700&display=swap" />
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@400,500&display=swap" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Schibsted+Grotesk:wght@400;500&family=Gloock&family=Hanken+Grotesk:wght@400;500&display=swap"
+    />
+    <style>
+      :root {
+        --limestone: #e2dfd6;
+        --projection: #26303f;
+        --celadon: #d3dfd0;
+        --paper: #eae4d6;
+        --signing: #17352e;
+        --ink: #16191e;
+        --ink-soft: #4a4f57;
+        --chalk: #eef0ea;
+        --chalk-soft: #b9c0c2;
+        --amber: #8a5300;
+        --amber-glow: #e8a43a;
+        --amber-dark: #f0b357;
+        --viridian: #1e6b52;
+        --viridian-dark: #7fd6b4;
+        --red: #a3271d;
+        --red-dark: #f29a90;
+        --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--limestone);
+        color: var(--ink);
+        font:
+          18px/1.55 system-ui,
+          sans-serif;
+      }
+      .intro {
+        max-width: 64rem;
+        padding: 4rem 6vw 2rem;
+      }
+      .intro h1 {
+        margin: 0 0 0.75rem;
+        font-size: 1.5rem;
+      }
+      .intro p {
+        max-width: 62ch;
+        margin: 0 0 0.75rem;
+        color: var(--ink-soft);
+      }
+      .pairing {
+        border-top: 1px solid rgb(22 25 30 / 0.15);
+      }
+      .pairing__label {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.5rem;
+        align-items: baseline;
+        padding: 1.5rem 6vw 0;
+        font-size: 1rem;
+      }
+      .pairing__label strong {
+        font-size: 1.35rem;
+      }
+      .pairing__label span {
+        color: var(--ink-soft);
+      }
+      .room {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 17rem);
+        gap: 2rem 4rem;
+        align-items: end;
+        padding: 3rem 6vw 3.5rem;
+      }
+      .room--dark {
+        background: var(--projection);
+        color: var(--chalk);
+      }
+      .title {
+        max-width: 18ch;
+        margin: 0 0 1.25rem;
+        font-size: clamp(2.6rem, 5.4vw, 5rem);
+        line-height: 0.98;
+      }
+      .body {
+        max-width: 60ch;
+        margin: 0;
+      }
+      .case {
+        display: inline-block;
+        margin-top: 1.75rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid rgb(22 25 30 / 0.22);
+        background: rgb(255 255 255 / 0.32);
+        font: 0.9rem/1.5 var(--mono);
+      }
+      .case mark {
+        background: none;
+        color: var(--amber);
+        text-shadow: 0 0 0.8em rgb(232 164 58 / 0.55);
+      }
+      .placard {
+        padding: 1rem 1.1rem;
+        border-left: 1px solid currentColor;
+        font-size: 0.95rem;
+        line-height: 1.45;
+      }
+      .placard b {
+        display: block;
+        font-size: 1.05rem;
+      }
+      .placard i {
+        font-style: normal;
+        opacity: 0.78;
+      }
+      .figures {
+        display: flex;
+        gap: 2.5rem;
+        margin-top: 1.5rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .figures div {
+        display: grid;
+      }
+      .figures big {
+        font-size: 3.2rem;
+        line-height: 1;
+      }
+      .figures .pass {
+        color: var(--viridian-dark);
+      }
+      .figures small {
+        color: var(--chalk-soft);
+        font-size: 0.9rem;
+      }
+      .run {
+        margin-top: 1.5rem;
+        font: 0.9rem/1.6 var(--mono);
+      }
+      .run .fail {
+        color: var(--red-dark);
+      }
+
+      /* the three pairings */
+      .a .title {
+        font-family: 'Zodiak', serif;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+      }
+      .a .figures big {
+        font-family: 'Zodiak', serif;
+      }
+      .a {
+        font-family: 'Switzer', sans-serif;
+      }
+      .b .title {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 700;
+        font-variation-settings: 'opsz' 96;
+        letter-spacing: -0.03em;
+      }
+      .b .figures big {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 600;
+      }
+      .b {
+        font-family: 'Schibsted Grotesk', sans-serif;
+      }
+      .c .title {
+        font-family: 'Gloock', serif;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+      }
+      .c .figures big {
+        font-family: 'Gloock', serif;
+      }
+      .c {
+        font-family: 'Hanken Grotesk', sans-serif;
+      }
+
+      /* the palette */
+      .palette {
+        padding: 3rem 6vw 5rem;
+        border-top: 1px solid rgb(22 25 30 / 0.15);
+      }
+      .palette h2 {
+        margin: 0 0 0.5rem;
+        font-size: 1.5rem;
+      }
+      .palette > p {
+        max-width: 62ch;
+        margin: 0 0 1.5rem;
+        color: var(--ink-soft);
+      }
+      .walls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+        gap: 1px;
+        background: rgb(22 25 30 / 0.15);
+      }
+      .wall {
+        padding: 1.25rem;
+      }
+      .wall h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1.05rem;
+      }
+      .wall ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.95rem;
+      }
+      .wall li {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.15rem 0;
+      }
+      .wall code {
+        font-family: var(--mono);
+        font-size: 0.85rem;
+      }
+      @media (max-width: 48rem) {
+        .room {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="intro">
+      <h1>One Fix: three type pairings and the wall palette</h1>
+      <p>
+        Each pairing is set twice in the exhibition's own words: the Entrance on the limestone wall, and the
+        Results Wall in the slate-blue projection room. Display face for room titles and the entrance line;
+        quiet face for placards and body, with tabular figures. Code stays in a plain system monospace.
+      </p>
+      <p>
+        Pick one. Below them, every wall colour with the contrast of each text colour on it, measured in this
+        page.
+      </p>
+    </header>
+
+    <!-- the three pairings, rendered from one template -->
+    <main id="pairings"></main>
+
+    <section class="palette">
+      <h2>The walls, and the text on them</h2>
+      <p>
+        Amber is only ever the finding, viridian only a fix that passed, red only a failure or a refusal. AA
+        asks for 4.5:1 for body text; every pair below is measured here, live.
+      </p>
+      <div class="walls" id="walls"></div>
+    </section>
+
+    <template id="pairing">
+      <section class="pairing">
+        <p class="pairing__label"><strong></strong><span></span></p>
+        <div class="room">
+          <div>
+            <h2 class="title">An exhibition of one vulnerability, and how it was closed.</h2>
+            <p class="body">
+              AUTOSP takes a finding from your scanner, proves it with a failing test, fixes it in a sealed
+              sandbox, checks the fix three ways and opens a pull request. A person always signs it off.
+            </p>
+            <div class="case">
+              <mark>cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</mark>
+            </div>
+          </div>
+          <p class="placard">
+            <b>Room 1. The Finding.</b>
+            <i>SQL injection, CWE-89. Python, 2026.</i><br />
+            app/repositories/invoices.py, line 42. Your scanner has reported it before, and nobody owns it.
+          </p>
+        </div>
+        <div class="room room--dark">
+          <div>
+            <h2 class="title">Early results, on test applications.</h2>
+            <div class="figures">
+              <div><big class="pass">14</big><small>of 16 runs ended with a verified fix</small></div>
+              <div><big>2</big><small>closed as inconclusive, no patch written</small></div>
+              <div><big>0</big><small>merges made by AUTOSP</small></div>
+            </div>
+            <div class="run">
+              <div>$ pytest tests/test_invoices.py -q</div>
+              <div class="fail">FAILED tests/test_invoices.py::test_invoice_id_cannot_change_the_query</div>
+            </div>
+          </div>
+          <p class="placard">
+            <b>The caveat.</b>
+            Test applications and a development model, not customer code. A small sample from our 15 October
+            2026 baseline: an early signal, not a benchmark.
+          </p>
+        </div>
+      </section>
+    </template>
+
+    <script>
+      const PAIRINGS = [
+        [
+          'a',
+          'A. Zodiak with Switzer',
+          'A sharp, high-contrast serif for the rooms; a Swiss grotesk for the placards. The classic gallery wall, made less polite. Both Fontshare, free.',
+        ],
+        [
+          'b',
+          'B. Bricolage Grotesque with Schibsted Grotesk',
+          'A grotesk with ink traps and real optical sizes, expressive when large; a newsroom grotesk for the placards. A contemporary art centre. Both Google Fonts, open licence.',
+        ],
+        [
+          'c',
+          'C. Gloock with Hanken Grotesk',
+          'A single-weight display serif with an ink-drawn edge, for an exhibition about a written record; a clean grotesk for the placards. Both Google Fonts, open licence.',
+        ],
+      ];
+      const template = document.getElementById('pairing');
+      for (const [cls, name, note] of PAIRINGS) {
+        const node = template.content.cloneNode(true);
+        node.querySelector('.pairing').classList.add(cls);
+        node.querySelector('strong').textContent = name;
+        node.querySelector('span').textContent = note;
+        document.getElementById('pairings').append(node);
+      }
+
+      const lum = (hex) => {
+        const c = [1, 3, 5]
+          .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+          .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+      };
+      const ratio = (a, b) => {
+        const [x, y] = [lum(a), lum(b)];
+        return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+      };
+      const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      const WALLS = [
+        ['Limestone: entrance, results, rules', '--limestone', false],
+        ['Projection room: the proof', '--projection', true],
+        ['Celadon: the clean room', '--celadon', false],
+        ['Paper: the guestbook', '--paper', false],
+        ['Deep viridian: the signing', '--signing', true],
+      ];
+      const LIGHT = [
+        ['Ink', '--ink'],
+        ['Ink, soft', '--ink-soft'],
+        ['Amber (the finding)', '--amber'],
+        ['Viridian (passed)', '--viridian'],
+        ['Red (failed)', '--red'],
+      ];
+      const DARK = [
+        ['Chalk', '--chalk'],
+        ['Chalk, soft', '--chalk-soft'],
+        ['Amber (the finding)', '--amber-dark'],
+        ['Viridian (passed)', '--viridian-dark'],
+        ['Red (failed)', '--red-dark'],
+      ];
+      for (const [name, wall, dark] of WALLS) {
+        const box = document.createElement('div');
+        box.className = 'wall';
+        box.style.background = css(wall);
+        box.style.color = css(dark ? '--chalk' : '--ink');
+        const h = document.createElement('h3');
+        h.textContent = `${name}  ${css(wall)}`;
+        const list = document.createElement('ul');
+        for (const [label, token] of dark ? DARK : LIGHT) {
+          const li = document.createElement('li');
+          const left = document.createElement('span');
+          left.style.color = css(token);
+          left.textContent = `${label} ${css(token)}`;
+          const right = document.createElement('code');
+          const r = ratio(css(token), css(wall));
+          right.textContent = `${r.toFixed(1)}:1 ${r >= 4.5 ? 'AA' : 'fails'}`;
+          li.append(left, right);
+          list.append(li);
+        }
+        box.append(h, list);
+        document.getElementById('walls').append(box);
+      }
+    </script>
+  </body>
+</html>

@@ -1,5 +1,7 @@
 # Font credits
 
+- **Zodiak** (Regular 400, Bold 700) and **Switzer** (Regular 400, Medium 500) are typefaces by the Indian Type Foundry (ITF), distributed free through Fontshare under the ITF Free Font License. Zodiak and Switzer are trademarks of ITF, which owns their copyright. Terms: https://fontshare.com/terms. Downloaded from Fontshare's CDN (`api.fontshare.com/v2/css`) on 8 November 2026 for "One Fix", the exhibition page.
+
 - **Clash Display** (Semibold 600) is a typeface by the Indian Type Foundry (ITF), distributed free through Fontshare under the ITF Free Font License. Clash Display is a trademark of ITF, which owns its copyright. Terms: https://fontshare.com/terms. Downloaded from Fontshare's CDN (`api.fontshare.com/v2/css`) on 7 November 2026. It carries the headlines since then.
 
 - **Cabinet Grotesk** (Extrabold 800) and **General Sans** (Regular 400, Medium 500) are typefaces by the Indian Type Foundry (ITF), distributed free through Fontshare under the ITF Free Font License. Cabinet Grotesk and General Sans are trademarks of ITF, which owns their copyright. Terms: https://fontshare.com/terms. The files were downloaded from Fontshare's CDN (`api.fontshare.com/v2/css`) on 25 October 2026.
