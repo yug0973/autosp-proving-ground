@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>autosp by Nexarise</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#7fc6f8" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap"
+    />
+    <script type="module" src="/src/site/scroll.ts"></script>
+  </head>
+  <body>
+    <div class="scene" data-scene>
+      <div class="stage">
+        <div class="bg" aria-hidden="true">
+          <div class="bg__sky"></div>
+          <div class="bg__glow"></div>
+        </div>
+
+        <header class="nav">
+          <a class="logo" href="#"><span class="logo__mark" aria-hidden="true"></span>autosp</a>
+          <nav class="nav__links" aria-label="Sections">
+            <a href="#how">Product</a>
+            <a href="#verification">How it works</a>
+            <a href="#security">Security</a>
+            <a href="#results">Results</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <div class="nav__right">
+            <a class="nav__contact" href="#pilot">Contact</a>
+            <a class="nav__cta" href="#pilot" data-nav-cta>Apply for the pilot<i aria-hidden="true"></i></a>
+          </div>
+        </header>
+
+        <!-- everything in here scrolls up together and slides behind the nav, as in the reference -->
+        <div class="lower-wrap">
+          <h1 class="headline" id="hero-title" data-glitter="load">
+            Meet autosp, your <em>AI</em> teammate <br />for verified security fixes
+          </h1>
+          <div class="lower" data-lower>
+            <div class="lower__left">
+              <p class="lower__label">Works with the scanners you already run</p>
+              <a class="cta" href="#pilot">Apply for the pilot<i aria-hidden="true"></i></a>
+            </div>
+            <ul class="lower__grid" aria-label="Scanners">
+              <li>Semgrep</li>
+              <li>CodeQL</li>
+              <li>Snyk Code</li>
+              <li>osv-scanner</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="statement" data-glitter="scene">
+          autosp is an AI teammate <br />that finds vulnerabilities, proves them <br />with a failing test, fixes them
+          in <br />a sealed sandbox, checks every fix three ways <br />and waits for you to merge
+        </p>
+      </div>
+    </div>
+
+    <main class="page">
+      <!-- how it works (the problem is its first line) -->
+      <section class="sec" id="how" aria-labelledby="how-title">
+        <div class="wrap split">
+          <div class="split__head" data-reveal>
+            <h2 class="title" id="how-title">Finding vulnerabilities is easy. Closing them is the work.</h2>
+            <p class="lede">AUTOSP takes one finding from report to a pull request with proof. A person decides what merges.</p>
+          </div>
+          <ol class="steps">
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">1</span>
+              <div>
+                <h3>Find</h3>
+                <p>It scans the repositories you choose, or takes results from the scanner you already run.</p>
+                <div class="vis" aria-label="Example: a finding from your scanner">
+                  <ul class="chips"><li>Semgrep</li><li>CodeQL</li><li>Snyk Code</li><li>osv-scanner</li></ul>
+                  <p class="vis__row"><b class="tag tag--open">CWE-89</b><code>app/repositories/invoices.py</code></p>
+                </div>
+              </div>
+            </li>
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">2</span>
+              <div>
+                <h3>Reproduce</h3>
+                <p>An agent writes a test that exploits the finding. The test has to fail. No failing test, no patch.</p>
+                <div class="vis" aria-label="Example: the exploit as a failing test">
+                  <pre class="code"><span class="mute"># the exploit, as a test</span>
+def test_find_invoice_injection(client):
+    r = client.get(INJECTION)
+    assert r.status_code == 404</pre>
+                  <p class="vis__row"><b class="tag tag--open">1 failed in 0.21s</b></p>
+                </div>
+              </div>
+            </li>
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">3</span>
+              <div>
+                <h3>Fix</h3>
+                <p>A second agent writes the smallest fix it can, in a sealed copy of your code.</p>
+                <div class="vis" aria-label="Example: the fix, in a sealed sandbox">
+                  <ul class="chips"><li>No network</li><li>Read-only</li><li>Non-root</li></ul>
+                  <pre class="code code--diff"><span class="del">- "… WHERE id = '" + invoice_id + "'"</span>
+<span class="add">+ "… WHERE id = %s", (invoice_id,)</span></pre>
+                </div>
+              </div>
+            </li>
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">4</span>
+              <div>
+                <h3>Verify</h3>
+                <p>Three independent gates check the fix. The agents can't see or change them.</p>
+                <div class="vis" aria-label="Example: the three checks">
+                  <ul class="ticklist"><li>The exploit test now passes</li><li>The full test suite passes</li><li>A fresh scan finds nothing new</li></ul>
+                </div>
+              </div>
+            </li>
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">5</span>
+              <div>
+                <h3>Review</h3>
+                <p>AUTOSP opens a pull request with the evidence and stops. Your reviewers merge it.</p>
+                <div class="vis" aria-label="Example: the pull request">
+                  <p class="vis__row vis__row--split"><span class="mono">Pull request #412</span><b class="tag tag--hold">Waiting for you</b></p>
+                  <p class="vis__title">Fix SQL injection in find_invoice</p>
+                  <p class="vis__row vis__row--split"><span class="merge">Merge</span><span>Merges made by autosp: <b>0</b></span></p>
+                </div>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- verification -->
+      <section class="sec sec--sky" id="verification" aria-labelledby="verify-title">
+        <div class="wrap">
+          <h2 class="title head--centre" id="verify-title" data-reveal>Three gates. Any one of them can send a fix back.</h2>
+          <ol class="gates">
+            <li data-reveal>
+              <span class="gates__n" aria-hidden="true">1</span>
+              <h3>The exploit fails now</h3>
+              <p>The test that failed before must pass on the patched code.</p>
+              <div class="vis vis--glass" aria-label="Before: failed. Now: passed"><p class="vis__row"><b class="tag tag--open">before: failed</b><b class="tag tag--pass">now: passed</b></p></div>
+            </li>
+            <li data-reveal>
+              <span class="gates__n" aria-hidden="true">2</span>
+              <h3>So do the variations</h3>
+              <p>Attack variants run against the fix, judged by rules AUTOSP owns, not by the agent that wrote it. For SQL injection: 18 variants.</p>
+              <div class="vis vis--glass" aria-label="18 attack variants, all refused"><ul class="dots"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>
+            </li>
+            <li data-reveal>
+              <span class="gates__n" aria-hidden="true">3</span>
+              <h3>Nothing else broke</h3>
+              <p>Your test suite still passes, a fresh scan no longer reports the finding, and your tests and CI are untouched.</p>
+              <div class="vis vis--glass" aria-label="Three things checked"><ul class="ticklist"><li>Test suite</li><li>Fresh scan</li><li>Tests and CI untouched</li></ul></div>
+            </li>
+          </ol>
+          <p class="gates__note" data-reveal>If a fix can't be proven, AUTOSP says so. It's never called fixed without evidence.</p>
+        </div>
+      </section>
+
+      <!-- control and security -->
+      <section class="sec" id="security" aria-labelledby="security-title">
+        <div class="wrap split">
+          <div class="split__head" data-reveal>
+            <h2 class="title" id="security-title">AUTOSP never merges. Not even when every check passes.</h2>
+            <figure class="chain" aria-label="Three log entries, each carrying the fingerprint of the one before">
+              <ol>
+                <li><b>entry 41</b><code>sha-256 9c1e…07ab</code></li>
+                <li><b>entry 42</b><code>previous 9c1e…07ab</code></li>
+                <li><b>entry 43</b><code>previous 4d82…f31c</code></li>
+              </ol>
+              <figcaption>Illustrative. Change any entry and the chain breaks.</figcaption>
+            </figure>
+          </div>
+          <ul class="rules">
+            <li data-reveal>
+              <h3>Only the repositories you pick</h3>
+              <p>A GitHub App with four permissions: Contents, Pull requests, Checks and Metadata. It never asks for Administration, so it can't touch your branch protection.</p>
+              <ul class="chips"><li>Contents</li><li>Pull requests</li><li>Checks</li><li>Metadata</li></ul>
+            </li>
+            <li data-reveal>
+              <h3>A sealed sandbox</h3>
+              <p>Every job runs with no network and a read-only file system, on a disposable copy that is deleted afterwards.</p>
+              <ul class="chips"><li>No network</li><li>Read-only</li><li>Non-root</li><li>Time limit</li></ul>
+            </li>
+            <li data-reveal>
+              <h3>Little goes to the AI model</h3>
+              <p>It sees the finding and the specific files it needs, never your whole repository or your Git history.</p>
+            </li>
+            <li data-reveal>
+              <h3>Every step on the record</h3>
+              <p>An append-only log where each entry carries the fingerprint of the one before it, so a change can't go unnoticed.</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- results -->
+      <section class="sec sec--pale" id="results" aria-labelledby="results-title">
+        <div class="wrap">
+          <h2 class="title head--centre" id="results-title" data-reveal>Early results, on our test applications.</h2>
+          <table class="results" data-reveal>
+            <caption class="sr-only">Verified fixes by run set</caption>
+            <thead>
+              <tr><th scope="col">Run set</th><th scope="col">Date</th><th scope="col">Verified</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">SQL injection</th><td>22 Oct 2026</td><td><span class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>5 of 5</td></tr>
+              <tr><th scope="row">Access control (IDOR)</th><td>22 Oct 2026</td><td><span class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>5 of 5</td></tr>
+              <tr><th scope="row">Mixed run set</th><td>2 Nov 2026</td><td><span class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>15 of 15</td></tr>
+            </tbody>
+          </table>
+          <p class="results__line" data-reveal><b>0 merges made by AUTOSP</b>, and known-bad fixes rejected every time.</p>
+          <p class="caveat" data-reveal>
+            <b>Read this before the numbers.</b> These are test applications and a free development model, not customer
+            code and not the production model. Small samples: an early signal, not a benchmark.
+          </p>
+        </div>
+      </section>
+
+      <!-- the pilot -->
+      <section class="sec sec--pilot" id="pilot" aria-labelledby="pilot-title">
+        <div class="wrap split">
+          <div class="split__head" data-reveal>
+            <h2 class="title" id="pilot-title">Try it on your own code.</h2>
+            <p class="lede">For Python teams on GitHub, of 20 to 150 engineers, with no dedicated security engineer.</p>
+            <ul class="ticks">
+              <li>You sign a scope document naming the repositories</li>
+              <li>Your reviewers handle AUTOSP's pull requests</li>
+              <li>Your tests run offline</li>
+            </ul>
+            <p class="assure">Nothing touches your code until you've signed a scope agreement.</p>
+          </div>
+
+          <form class="form" data-rsvp action="https://api.web3forms.com/submit" method="post" novalidate data-reveal>
+            <input type="hidden" name="access_key" value="" />
+            <input type="hidden" name="subject" value="AUTOSP pilot application" />
+            <div class="form__row">
+              <label class="field"><span class="field__label">Your name</span><input name="name" autocomplete="name" required /></label>
+              <label class="field"><span class="field__label">Work email</span><input name="email" type="email" autocomplete="email" required /></label>
+            </div>
+            <label class="field"><span class="field__label">Company</span><input name="company" autocomplete="organization" required /></label>
+            <fieldset class="choices">
+              <legend>Engineering team size</legend>
+              <label class="choice"><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label>
+              <label class="choice"><input type="radio" name="team" value="20 to 150" /><span>20 to 150</span></label>
+              <label class="choice"><input type="radio" name="team" value="Over 150" /><span>Over 150</span></label>
+            </fieldset>
+            <label class="field"><span class="field__label">Anything we should know <small>Optional</small></span><textarea name="note" rows="3"></textarea></label>
+            <input class="trap" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <button class="button" type="submit">Apply for the pilot</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="sec sec--pale sec--faq" id="faq" aria-labelledby="faq-title">
+        <div class="wrap">
+          <h2 class="title head--centre" id="faq-title" data-reveal>Questions teams ask.</h2>
+          <div class="faq">
+            <details data-reveal>
+              <summary>Does AUTOSP replace my scanner?</summary>
+              <p>No. Its job is closing findings, not finding more of them. Keep your scanner; AUTOSP fixes what it reports.</p>
+            </details>
+            <details data-reveal>
+              <summary>Can it merge by itself?</summary>
+              <p>No. Not in any configuration. Your reviewers merge.</p>
+            </details>
+            <details data-reveal>
+              <summary>What does it cover today?</summary>
+              <p>Python on GitHub: SQL injection, cross-site scripting, insecure direct object references and vulnerable dependencies. It works with Semgrep, CodeQL, Snyk Code and osv-scanner.</p>
+            </details>
+            <details data-reveal>
+              <summary>What if it can't fix something?</summary>
+              <p>It says so: inconclusive, needs human review, or a recommendation clearly marked as advice.</p>
+            </details>
+            <details data-reveal>
+              <summary>Will a passing scan mean my app is secure?</summary>
+              <p>No. "No findings from these scanners" is all a scan can say, and that's how AUTOSP reports it.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- final call -->
+      <section class="final" aria-labelledby="final-title">
+        <div class="wrap">
+          <h2 class="big" id="final-title" data-reveal>Your scanner did its job. <span>Let's finish it.</span></h2>
+          <span class="orb" aria-hidden="true"></span>
+          <a class="cta cta--light" href="#pilot" data-reveal>Apply for the pilot<i aria-hidden="true"></i></a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot__row">
+          <a class="logo" href="#"><span class="logo__mark" aria-hidden="true"></span>autosp</a>
+          <p>by Nexarise</p>
+          <nav aria-label="More">
+            <a href="/sample-evidence-pack.pdf">Sample evidence pack</a>
+            <a href="/tour/">3D tour</a>
+          </nav>
+        </div>
+        <p class="foot__note">
+          AUTOSP does not guarantee that an application is secure. Results shown are from test applications.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

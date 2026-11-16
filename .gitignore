@@ -13,3 +13,6 @@ tests/**/output/
 # local settings, such as the Web3Forms key
 .env.local
 .env.*.local
+
+# the Instagram reel's renders (the project itself is in reel/)
+reel/out/

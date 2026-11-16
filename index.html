@@ -3,485 +3,440 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>One Fix: an exhibition of one vulnerability | AUTOSP by Nexarise</title>
+    <title>AUTOSP by Nexarise: verified fixes for what your scanner finds</title>
     <meta
       name="description"
-      content="AUTOSP takes a finding from the scanner you already run, proves it with a failing test, fixes it in a sealed sandbox, checks the fix three ways and opens a pull request. A person always signs it off."
+      content="AUTOSP takes a finding from the scanner you already run, proves it with a failing test, fixes it in a sealed sandbox, checks the fix three ways and opens a pull request. A person always decides what merges."
     />
-    <meta name="theme-color" content="#e2dfd6" />
+    <meta name="theme-color" content="#070b16" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preload" href="/fonts/zodiak-700.woff2" as="font" type="font/woff2" crossorigin />
-    <script type="module" src="/src/exhibit/main.ts"></script>
+    <link rel="preload" href="/fonts/clash-display-600.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/general-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+    <script type="module" src="/src/site/main.ts"></script>
   </head>
   <body>
-    <a class="skip" href="#main">Skip to the exhibition</a>
+    <a class="skip" href="#main">Skip to content</a>
 
-    <header class="door">
-      <a class="door__name" href="https://nexarise-website.vercel.app/">Nexarise / <b>AUTOSP</b></a>
-      <a href="#invitation">Apply for the free pilot</a>
+    <header class="nav" data-nav>
+      <div class="nav__inner wrap">
+        <a class="brand" href="#top" aria-label="AUTOSP by Nexarise, back to top">
+          <svg class="brand__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z" />
+            <path class="brand__tick" d="m8 12.5 2.8 2.8L16.5 9.5" />
+          </svg>
+          <span>AUTOSP</span><small>by Nexarise</small>
+        </a>
+        <nav class="nav__links" aria-label="Sections">
+          <a href="#how">How it works</a>
+          <a href="#checks">The checks</a>
+          <a href="#control">Control</a>
+          <a href="#results">Results</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <a class="btn btn--sm" href="#pilot">Apply for the free pilot</a>
+      </div>
     </header>
 
     <main id="main" tabindex="-1">
-      <!-- Room 0. The Entrance -->
-      <section class="room entrance" data-wall="limestone" id="entrance" aria-labelledby="entrance-title">
-        <h1 class="entrance__title" id="entrance-title">
-          An exhibition of one vulnerability, and how it was closed.
-        </h1>
-        <p class="entrance__lede">
-          AUTOSP takes a finding from the scanner you already run, proves it with a failing test, fixes it in
-          a sealed sandbox, checks the fix three ways and opens a pull request. A person always signs it off.
-        </p>
-        <div class="entrance__actions">
-          <a class="button" href="#invitation">Apply for the free pilot</a>
-          <a class="annex-link" href="/tour/">Visit the Annex: your codebase as a city</a>
-        </div>
-        <figure class="case">
-          <figcaption class="case__label">The exhibit. app/repositories/invoices.py, line 2</figcaption>
-          <code class="exhibit-line"
-            >cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</code
-          >
-        </figure>
-      </section>
-
-      <!-- Room 1. The Finding -->
-      <section class="room" data-wall="limestone" id="finding" aria-labelledby="finding-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="finding-title">Reported, again.</h2>
-            <p class="room__text">
-              The exhibit came in like every finding does: as a line in your scanner's report. It builds a SQL
-              query from a string, so whoever controls the invoice id can rewrite the query.
+      <!-- Hero -->
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero__grid wrap">
+          <div class="hero__copy">
+            <p class="tag"><span class="dot dot--pass" aria-hidden="true"></span> Free pilot for Python teams on GitHub</p>
+            <h1 id="hero-title">Verified fixes for the findings your scanner keeps reporting.</h1>
+            <p class="lede">
+              AUTOSP takes a finding from the scanner you already run, proves it with a failing test, fixes it in
+              a sealed sandbox, checks the fix three ways and opens a pull request.
+              <strong>A person always decides what merges.</strong>
+            </p>
+            <div class="actions">
+              <a class="btn" href="#pilot">Apply for the free pilot</a>
+              <a class="btn btn--ghost" href="#how">See how it works</a>
+            </div>
+            <p class="works">
+              Takes findings from <b>Semgrep</b>, <b>CodeQL</b>, <b>Snyk Code</b> and <b>osv-scanner</b>
             </p>
           </div>
-          <p class="placard">
-            <span class="placard__title">Room 1. The Finding.</span><br />
-            <span class="placard__medium">A scanner report. Python, 2026.</span>
-            <span class="placard__caption">The scanner has reported this before, and nobody owns it.</span>
-          </p>
-        </div>
-        <dl class="record-card" aria-label="The acquisition record">
-          <dt>Reported by</dt>
-          <dd>Your existing scanner</dd>
-          <dt>Rule</dt>
-          <dd>SQL built from string concatenation</dd>
-          <dt>Weakness</dt>
-          <dd><span class="finding-mark">CWE-89</span>, SQL injection</dd>
-          <dt>File</dt>
-          <dd><code>app/repositories/invoices.py</code></dd>
-          <dt>Line</dt>
-          <dd>2, in <code>find_invoice</code></dd>
-        </dl>
-      </section>
 
-      <!-- Room 2. The Proof -->
-      <section class="room" data-wall="projection" id="proof" aria-labelledby="proof-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="proof-title">It has to fail first.</h2>
-            <p class="room__text">
-              Before anything is changed, AUTOSP writes a test that exploits the finding and runs it against
-              your code as it is. If the bug can't be reproduced, no patch is written.
-            </p>
+          <div class="demo" data-demo>
+            <div class="window">
+              <div class="window__bar">
+                <span class="window__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span class="window__file">app/repositories/invoices.py</span>
+                <div class="switch" role="group" aria-label="Which code runs">
+                  <button type="button" aria-pressed="true" data-mode="vulnerable">Vulnerable</button>
+                  <button type="button" aria-pressed="false" data-mode="fixed">AUTOSP's fix</button>
+                </div>
+              </div>
+              <pre class="code code--hero" data-demo-code aria-live="polite"></pre>
+              <form class="probe" data-probe>
+                <label class="probe__label" for="probe-input">invoice_id</label>
+                <div class="probe__row">
+                  <input
+                    id="probe-input"
+                    class="probe__input"
+                    value="1042"
+                    maxlength="120"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                  <button class="btn btn--run" type="submit">Run query</button>
+                </div>
+                <div class="presets" role="group" aria-label="Try an input">
+                  <button type="button" data-preset="1042">1042</button>
+                  <button type="button" data-preset="' OR '1'='1">' OR '1'='1</button>
+                  <button type="button" data-preset="1042'">1042'</button>
+                </div>
+              </form>
+              <div class="result" data-result role="status" aria-live="polite"></div>
+            </div>
+            <p class="caption">Simulated query on sample data. Nothing leaves your browser.</p>
           </div>
-          <p class="placard">
-            <span class="placard__title">Room 2. The Proof.</span><br />
-            <span class="placard__medium">A failing test. Python, 2026.</span>
-            <span class="placard__caption">No failing test, no patch.</span>
-          </p>
-        </div>
-        <div>
-          <p class="visually-hidden">The test, tests/test_invoices.py</p>
-
-          <pre
-            class="code"
-          ><span class="line">def test_invoice_id_cannot_change_the_query(db):</span><span class="line">    row = find_invoice(db.cursor(), "1' OR '1'='1")</span><span class="line">    assert row is None</span></pre>
-          <p class="visually-hidden">The run</p>
-
-          <pre
-            class="code run"
-            data-run
-          ><span class="line line--dim">$ pytest tests/test_invoices.py -q</span><span class="line line--fail">F</span><span class="line line--fail">FAILED tests/test_invoices.py::test_invoice_id_cannot_change_the_query</span><span class="line">&gt;       assert row is None</span><span class="line line--fail">E       AssertionError: assert (1, 'ACME Ltd', 1200.0) is None</span><span class="line line--fail">1 failed in 0.21s</span></pre>
-          <p class="run-again">
-            <button class="button button--plain" type="button" data-run-again>Run it again</button>
-            <span class="run-again__status" role="status" data-run-status></span>
-          </p>
         </div>
       </section>
 
-      <!-- Room 3. The Clean Room -->
-      <section class="room" data-wall="celadon" id="clean-room" aria-labelledby="clean-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="clean-title">Written where it can't reach anything.</h2>
-            <p class="room__text">
-              A second agent writes the smallest fix it can, inside a throwaway container: no network, a
-              read-only file system, a hard time limit.
+      <!-- Problem -->
+      <section class="band band--tight" aria-labelledby="problem-title">
+        <div class="wrap problem">
+          <h2 id="problem-title">Finding it was the easy part.</h2>
+          <div class="problem__body">
+            <p>
+              Your scanner reports the same SQL injection every week, and nobody owns it. Fixing it means someone
+              has to understand the finding, prove it is real, write a safe patch and convince a reviewer that
+              nothing else broke.
             </p>
+            <p>AUTOSP does that work and hands your team the evidence. Your reviewers keep the final say.</p>
           </div>
-          <p class="placard">
-            <span class="placard__title">Room 3. The Clean Room.</span><br />
-            <span class="placard__medium">A sealed sandbox. Container, 2026.</span>
-            <span class="placard__caption">One line removed, one line added.</span>
-          </p>
         </div>
-        <figure class="sandbox" data-sandbox aria-labelledby="sandbox-job">
-          <svg class="sandbox__net" viewBox="0 0 96 12" aria-hidden="true" focusable="false">
-            <path class="sandbox__wire sandbox__wire--out" d="M 0 6 L 46 6" />
-            <path class="sandbox__wire sandbox__wire--in" d="M 50 6 L 96 6" />
-          </svg>
-          <div class="sandbox__case">
-            <p class="sandbox__job" id="sandbox-job" data-sandbox-job>Job sbx-7f3a, sealed</p>
-            <dl class="seals" aria-label="The seals on the sandbox">
+      </section>
+
+      <!-- How it works -->
+      <section class="band" id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <header class="head">
+            <p class="kicker">How it works</p>
+            <h2 id="how-title">One finding, from report to pull request.</h2>
+            <p class="head__text">Follow one real example, CWE-89 in <code>find_invoice</code>, through all five steps.</p>
+          </header>
+
+          <div class="steps" data-steps>
+            <div class="steps__list" role="tablist" aria-label="The five steps">
+              <button role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">
+                <span class="steps__n">1</span><span><b>Reported</b><small>Your scanner flags it</small></span>
+              </button>
+              <button role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">
+                <span class="steps__n">2</span><span><b>Reproduced</b><small>A failing test proves it</small></span>
+              </button>
+              <button role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">
+                <span class="steps__n">3</span><span><b>Patched</b><small>Fixed in a sealed sandbox</small></span>
+              </button>
+              <button role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false" tabindex="-1">
+                <span class="steps__n">4</span><span><b>Verified</b><small>Three independent checks</small></span>
+              </button>
+              <button role="tab" id="tab-5" aria-controls="panel-5" aria-selected="false" tabindex="-1">
+                <span class="steps__n">5</span><span><b>Approved</b><small>A person merges</small></span>
+              </button>
+            </div>
+
+            <div class="steps__stage">
+              <div class="panel" role="tabpanel" id="panel-1" aria-labelledby="tab-1" tabindex="0">
+                <h3>Your scanner reports it, again.</h3>
+                <p>
+                  The line builds a SQL query from a string, so whoever controls the invoice id can rewrite the
+                  query.
+                </p>
+                <dl class="facts">
+                  <div><dt>Reported by</dt><dd>Your existing scanner</dd></div>
+                  <div><dt>Rule</dt><dd>SQL built from string concatenation</dd></div>
+                  <div><dt>Weakness</dt><dd><span class="pill pill--open">CWE-89</span> SQL injection</dd></div>
+                  <div><dt>Location</dt><dd><code>app/repositories/invoices.py</code>, line 2</dd></div>
+                </dl>
+                <pre class="code"><span class="ln">1</span><span class="k">def</span> <span class="f">find_invoice</span>(cur, invoice_id):
+<span class="ln">2</span><mark class="hl-open">    cur.execute(<span class="s">"SELECT * FROM invoices WHERE id = '"</span> + invoice_id + <span class="s">"'"</span>)</mark>
+<span class="ln">3</span>    <span class="k">return</span> cur.fetchone()</pre>
+              </div>
+
+              <div class="panel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" tabindex="0" hidden>
+                <h3>It has to fail first.</h3>
+                <p>
+                  Before anything is changed, AUTOSP writes a test that exploits the finding and runs it against
+                  your code as it is. If the bug can't be reproduced, no patch is written.
+                </p>
+                <pre class="code"><span class="c"># tests/test_invoices.py</span>
+<span class="k">def</span> <span class="f">test_invoice_id_cannot_change_the_query</span>(db):
+    row = find_invoice(db.cursor(), <span class="s">"1' OR '1'='1"</span>)
+    <span class="k">assert</span> row <span class="k">is</span> None</pre>
+                <pre class="code code--term" data-run><span class="dim">$ pytest tests/test_invoices.py -q</span>
+<span class="t-open">FAILED tests/test_invoices.py::test_invoice_id_cannot_change_the_query</span>
+<span class="t-open">E   AssertionError: assert (1, 'ACME Ltd', 1200.0) is None</span>
+<span class="t-open">1 failed in 0.21s</span></pre>
+                <p class="note"><span class="pill pill--open">Reproduced</span> The finding is real. Now it can be fixed.</p>
+              </div>
+
+              <div class="panel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" tabindex="0" hidden>
+                <h3>Written where it can't reach anything.</h3>
+                <p>
+                  A second agent writes the smallest fix it can, inside a throwaway container. The container is
+                  gone when the job ends.
+                </p>
+                <ul class="seals" aria-label="Sandbox limits">
+                  <li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h5M12 10h5M8 7l4 6M12 7l-4 6" /></svg>No network</li>
+                  <li><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="1.5" /><path d="M7 9V6.5a3 3 0 0 1 6 0V9" /></svg>Read-only file system</li>
+                  <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3" /><path d="M4 17c1-3 3.5-4.5 6-4.5s5 1.5 6 4.5" /></svg>Non-root user</li>
+                  <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="11" r="6" /><path d="M10 8v3l2 1.5M8 3h4" /></svg>Hard time limit</li>
+                </ul>
+                <pre class="code code--diff"><span class="dim">  def find_invoice(cur, invoice_id):</span>
+<span class="del">-     cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</span>
+<span class="add">+     cur.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))</span>
+<span class="dim">      return cur.fetchone()</span></pre>
+                <p class="note">One line removed, one line added.</p>
+              </div>
+
+              <div class="panel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" tabindex="0" hidden>
+                <h3>Any one of three checks can send it back.</h3>
+                <p>
+                  The agents can't reach these checks. A fix that fails any one of them goes back to the sandbox.
+                </p>
+                <ol class="checks">
+                  <li><span class="check check--pass" aria-hidden="true"></span><div><b>Reproduction test</b><small>Failed before, passes now</small></div><span class="pill pill--pass">Passed</span></li>
+                  <li><span class="check check--pass" aria-hidden="true"></span><div><b>Your existing suite</b><small>214 passed</small></div><span class="pill pill--pass">Passed</span></li>
+                  <li><span class="check check--pass" aria-hidden="true"></span><div><b>Fresh static scan</b><small>0 findings</small></div><span class="pill pill--pass">Passed</span></li>
+                </ol>
+                <p class="note"><a href="#checks">See a careless fix get caught</a></p>
+              </div>
+
+              <div class="panel" role="tabpanel" id="panel-5" aria-labelledby="tab-5" tabindex="0" hidden>
+                <h3>A person always decides.</h3>
+                <p>
+                  AUTOSP opens a pull request with the evidence and stops there. Your reviewers approve and merge
+                  under your own branch protection.
+                </p>
+                <div class="pr-mini">
+                  <p class="pr-mini__title"><span class="pill pill--hold">Open</span> Fix SQL injection in find_invoice <span class="muted">#412</span></p>
+                  <p class="muted"><code>autosp/fix-cwe-89</code> into <code>main</code></p>
+                  <p>Untouched: tests, CI, linter and scanner config.</p>
+                  <p class="pr-mini__wait"><span class="dot dot--hold" aria-hidden="true"></span> Waiting for your reviewer</p>
+                </div>
+                <p class="note"><a href="#control">Try merging it yourself</a></p>
+              </div>
+
+              <div class="steps__nav">
+                <button class="btn btn--ghost btn--sm" type="button" data-prev>Previous step</button>
+                <button class="btn btn--sm" type="button" data-next>Next step</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Checks: careless vs AUTOSP -->
+      <section class="band band--alt" id="checks" aria-labelledby="checks-title">
+        <div class="wrap">
+          <header class="head">
+            <p class="kicker">The checks</p>
+            <h2 id="checks-title">A fix that only looks right gets sent back.</h2>
+            <p class="head__text">
+              Stripping quotes passes the test and the suite. The fresh static scan still sees SQL built from
+              strings, and refuses it.
+            </p>
+          </header>
+
+          <div class="versus" data-versus>
+            <article class="case" data-case="careless" aria-labelledby="careless-title">
+              <header class="case__head">
+                <h3 id="careless-title">A careless fix</h3>
+                <span class="verdict" data-verdict hidden>Rejected</span>
+              </header>
+              <pre class="code code--diff"><span class="del">-  cur.execute("... WHERE id = '" + invoice_id + "'")</span>
+<span class="add">+  safe_id = invoice_id.replace("'", "")</span>
+<span class="add">+  cur.execute("... WHERE id = '" + safe_id + "'")</span></pre>
+              <ol class="gates">
+                <li data-result="pass"><b>Reproduction test</b><span>1 passed</span></li>
+                <li data-result="pass"><b>Existing suite</b><span>214 passed</span></li>
+                <li data-result="fail"><b>Fresh static scan</b><span>SQL still built from strings</span></li>
+              </ol>
+            </article>
+
+            <article class="case" data-case="autosp" aria-labelledby="autosp-title">
+              <header class="case__head">
+                <h3 id="autosp-title">AUTOSP's fix</h3>
+                <span class="verdict" data-verdict hidden>Accepted</span>
+              </header>
+              <pre class="code code--diff"><span class="del">-  cur.execute("... WHERE id = '" + invoice_id + "'")</span>
+<span class="add">+  cur.execute("... WHERE id = %s", (invoice_id,))</span>
+<span class="dim"> </span></pre>
+              <ol class="gates">
+                <li data-result="pass"><b>Reproduction test</b><span>1 passed</span></li>
+                <li data-result="pass"><b>Existing suite</b><span>214 passed</span></li>
+                <li data-result="pass"><b>Fresh static scan</b><span>0 findings</span></li>
+              </ol>
+            </article>
+          </div>
+          <div class="versus__actions">
+            <button class="btn" type="button" data-run-checks>Run the three checks</button>
+            <span class="sr-only" role="status" data-checks-status></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Control -->
+      <section class="band" id="control" aria-labelledby="control-title">
+        <div class="wrap control">
+          <div class="control__copy">
+            <p class="kicker">You stay in control</p>
+            <h2 id="control-title">AUTOSP never merges. You do.</h2>
+            <p class="head__text">
+              It works through a GitHub App on the repositories you choose. Your branch protection stays in
+              charge, and the app can't change or bypass it.
+            </p>
+            <div class="rules">
               <div>
-                <dt>Network</dt>
-                <dd>None</dd>
+                <h3><span class="dot dot--pass" aria-hidden="true"></span> AUTOSP may</h3>
+                <ul>
+                  <li>Read the repositories you choose</li>
+                  <li>Read your scanner's findings</li>
+                  <li>Run code in a sealed sandbox</li>
+                  <li>Open pull requests on its own branches</li>
+                </ul>
               </div>
               <div>
-                <dt>File system</dt>
-                <dd>
-                  <svg class="seal" viewBox="0 0 12 14" aria-hidden="true" focusable="false">
-                    <path d="M3 6 V4 a3 3 0 0 1 6 0 V6" />
-                    <rect x="1.5" y="6" width="9" height="7" rx="1" />
-                  </svg>
-                  Read-only
-                </dd>
+                <h3><span class="dot dot--open" aria-hidden="true"></span> AUTOSP may not</h3>
+                <ul>
+                  <li>Merge or approve</li>
+                  <li>Push to main or protected branches</li>
+                  <li>Change repository settings</li>
+                  <li>Keep your code after a job</li>
+                </ul>
               </div>
-              <div>
-                <dt>User</dt>
-                <dd>Non-root</dd>
-              </div>
-              <div>
-                <dt>Time</dt>
-                <dd>A hard limit</dd>
-              </div>
-            </dl>
-            <div class="sandbox__time" aria-hidden="true"><i></i></div>
+            </div>
+            <p class="fine">GitHub App permissions and data retention are agreed per design partner.</p>
           </div>
-        </figure>
-        <p class="visually-hidden">The patch</p>
 
-        <pre
-          class="code patch"
-          data-patch
-        ><span class="line line--dim"> def find_invoice(cur, invoice_id):</span><span class="line line--del">-    cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</span><span class="line line--add">+    cur.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))</span><span class="line line--dim">     return cur.fetchone()</span></pre>
-        <p class="gone">The container is gone when the job ends.</p>
-      </section>
-
-      <!-- Room 4. The Three Gates -->
-      <section class="room" data-wall="limestone" id="gates" aria-labelledby="gates-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="gates-title">Any one of three checks can send it back.</h2>
-            <p class="room__text">
-              Every fix walks through the same three gates: the reproduction test has to pass now, your
-              existing suite has to pass, and a fresh static scan has to come back clear. The agents can't
-              reach these checks.
-            </p>
-          </div>
-          <p class="placard">
-            <span class="placard__title">Room 4. The Three Gates.</span><br />
-            <span class="placard__medium">Two fixes, compared. Python, 2026.</span>
-            <span class="placard__caption">A fix that fails one goes back to the sandbox.</span>
-          </p>
-        </div>
-        <div class="compare">
-          <article class="compare__case" data-case="careless" aria-labelledby="careless-title">
-            <h3 id="careless-title">A careless fix</h3>
-            <pre
-              class="code"
-            ><span class="line line--del">-    cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</span><span class="line line--add">+    safe_id = invoice_id.replace("'", "")</span><span class="line line--add">+    cur.execute("SELECT * FROM invoices WHERE id = '" + safe_id + "'")</span></pre>
-            <ol class="gates-route" aria-label="The careless fix at each gate">
-              <li><b>Reproduction test</b><span class="pass">Passed: 1 passed</span></li>
-              <li><b>Existing suite</b><span class="pass">Passed: 214 passed</span></li>
-              <li><b>Fresh static scan</b><span class="fail">Refused: SQL still built from strings</span></li>
-            </ol>
-            <p class="verdict verdict--rejected" data-verdict>Rejected, at the third gate</p>
-          </article>
-          <article class="compare__case" data-case="autosp" aria-labelledby="autosp-title">
-            <h3 id="autosp-title">AUTOSP's fix</h3>
-            <pre
-              class="code"
-            ><span class="line line--del">-    cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</span><span class="line line--add">+    cur.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))</span></pre>
-            <ol class="gates-route" aria-label="AUTOSP's fix at each gate">
-              <li><b>Reproduction test</b><span class="pass">Passed: 1 passed</span></li>
-              <li><b>Existing suite</b><span class="pass">Passed: 214 passed</span></li>
-              <li><b>Fresh static scan</b><span class="pass">Passed: 0 findings</span></li>
-            </ol>
-            <p class="verdict verdict--accepted" data-verdict>Accepted, through all three</p>
-          </article>
-        </div>
-        <div class="corridor" data-corridor aria-hidden="true"></div>
-        <div class="lights" role="group" aria-label="Which case is lit">
-          <button class="button button--plain" type="button" data-light="careless" aria-pressed="false">
-            Light the careless fix
-          </button>
-          <button class="button button--plain" type="button" data-light="autosp" aria-pressed="false">
-            Light AUTOSP's fix
-          </button>
-          <span class="visually-hidden" role="status" data-gates-status></span>
-        </div>
-      </section>
-
-      <!-- Room 5. The Guestbook -->
-      <section class="room" data-wall="paper" id="guestbook" aria-labelledby="guestbook-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="guestbook-title">A record nobody can quietly change.</h2>
-            <p class="room__text">
-              Every step of the fix is written into an append-only log, and each entry carries the fingerprint
-              of the one before it. Rewrite any entry and every fingerprint after it stops matching.
-            </p>
-            <p class="room__text">
-              Your auditor gets an evidence pack for each assessment.
-              <a href="/sample-evidence-pack.pdf" download>Sample evidence pack (PDF)</a>
-            </p>
-          </div>
-          <p class="placard">
-            <span class="placard__title">Room 5. The Guestbook.</span><br />
-            <span class="placard__medium">An append-only record. SHA-256, 2026.</span>
-            <span class="placard__caption">The fingerprints are real, computed in your browser.</span>
-          </p>
-        </div>
-        <ol class="guestbook" aria-label="The record of this fix" data-guestbook>
-          <li data-entry>
-            <span class="guestbook__n">1</span>
-            <span class="guestbook__entry" data-entry-text
-              >Reported: CWE-89 in app/repositories/invoices.py</span
-            >
-            <span class="guestbook__fp">
-              <code data-entry-fp>d84ab5e4ca8fe5840de48f4f74ed3ceccb311abeb18949aebdb8e41eb1f4ac11</code>
-              <span class="guestbook__state" data-entry-state>Sealed</span>
-            </span>
-          </li>
-          <li data-entry>
-            <span class="guestbook__n">2</span>
-            <span class="guestbook__entry" data-entry-text
-              >Reproduced: test_invoice_id_cannot_change_the_query failed</span
-            >
-            <span class="guestbook__fp">
-              <code data-entry-fp>fead3b3a5eced2cd326382e3800b5b8fc1ece4d5ac7d9b64e93eeab444d823f0</code>
-              <span class="guestbook__state" data-entry-state>Sealed</span>
-            </span>
-          </li>
-          <li data-entry>
-            <span class="guestbook__n">3</span>
-            <span class="guestbook__entry" data-entry-text
-              >Patched in sandbox sbx-7f3a: 1 line removed, 1 added</span
-            >
-            <span class="guestbook__fp">
-              <code data-entry-fp>9e267cd2a625451e62887a4ecadd1dfd755d72774268f02d5df8ad05244a1765</code>
-              <span class="guestbook__state" data-entry-state>Sealed</span>
-            </span>
-          </li>
-          <li data-entry>
-            <span class="guestbook__n">4</span>
-            <span class="guestbook__entry" data-entry-text>Verified: all three gates passed</span>
-            <span class="guestbook__fp">
-              <code data-entry-fp>c16297b38bb8adb8402e32409b9fd46bc03caeafcea9cf734a4a6f17a1b4e59f</code>
-              <span class="guestbook__state" data-entry-state>Sealed</span>
-            </span>
-          </li>
-          <li data-entry data-pending>
-            <span class="guestbook__n">5</span>
-            <span class="guestbook__entry" data-entry-text>Waiting for a person to sign</span>
-            <span class="guestbook__fp">
-              <code data-entry-fp>Written when the pull request is merged</code>
-              <span class="guestbook__state" data-entry-state></span>
-            </span>
-          </li>
-        </ol>
-        <p class="guestbook__actions">
-          <button class="button button--plain" type="button" data-tamper>Tamper with entry 2</button>
-          <button class="button button--plain" type="button" data-restore disabled>Restore the record</button>
-          <span class="guestbook__live" role="status" data-guestbook-status></span>
-        </p>
-        <svg class="ink-filter" aria-hidden="true" focusable="false" width="0" height="0">
-          <filter id="ink-bleed" x="-10%" y="-60%" width="120%" height="220%">
-            <feTurbulence
-              type="fractalNoise"
-              baseFrequency="0.035 0.6"
-              numOctaves="2"
-              seed="7"
-              result="paper"
-            />
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="paper"
-              scale="0"
-              xChannelSelector="R"
-              yChannelSelector="G"
-              data-bleed
-            />
-          </filter>
-        </svg>
-      </section>
-
-      <!-- Room 6. The Signing -->
-      <section class="room" data-wall="signing" id="signing" aria-labelledby="signing-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="signing-title">A person always decides.</h2>
-            <p class="room__text">
-              AUTOSP opens a pull request with the evidence and stops there. Your reviewers approve and merge
-              under your own branch protection, and the GitHub App can't change or bypass it.
-            </p>
-          </div>
-          <p class="placard">
-            <span class="placard__title">Room 6. The Signing.</span><br />
-            <span class="placard__medium">A pull request awaiting a signature. 2026.</span>
-            <span class="placard__caption">AUTOSP makes no merges.</span>
-          </p>
-        </div>
-        <article class="document" aria-labelledby="pr-title">
-          <p class="document__kind">Pull request #412, awaiting a signature</p>
-          <h3 class="document__title" id="pr-title">Fix SQL injection in find_invoice</h3>
-          <p class="document__branch"><code>autosp/fix-cwe-89</code> into <code>main</code></p>
-          <dl class="document__evidence">
-            <dt>Reproduction test</dt>
-            <dd>Failed before, passes now</dd>
-            <dt>Existing suite</dt>
-            <dd>214 passed</dd>
-            <dt>Static scan</dt>
-            <dd>Clear</dd>
-            <dt>Review</dt>
-            <dd>1 approving review required</dd>
-          </dl>
-          <div class="document__sign">
-            <svg class="signature" viewBox="0 0 320 70" aria-hidden="true" focusable="false">
-              <path
-                data-signature
-                d="M 8 48 C 22 10, 34 10, 30 40 C 27 62, 46 60, 54 34 C 60 16, 70 18, 66 42 C 63 60, 78 58, 88 36 C 96 20, 104 26, 100 44 C 97 58, 114 54, 124 38 C 134 22, 148 24, 146 40 C 144 54, 160 52, 172 36 C 184 20, 196 30, 190 44 C 186 54, 204 50, 216 40 C 236 26, 262 30, 300 22"
-              />
-            </svg>
-          </div>
-          <p class="document__sign-label">Signature of the reviewer who merges</p>
-          <div class="hold" data-hold-area>
-            <button class="hold__button" type="button" data-hold aria-describedby="hold-hint">
+          <article class="pr" aria-labelledby="pr-title" data-pr>
+            <header class="pr__head">
+              <span class="pill pill--hold" data-pr-state>Open</span>
+              <span class="muted">Pull request #412</span>
+            </header>
+            <h3 class="pr__title" id="pr-title">Fix SQL injection in find_invoice</h3>
+            <p class="muted"><code>autosp/fix-cwe-89</code> into <code>main</code></p>
+            <ul class="pr__checks">
+              <li><span class="check check--pass" aria-hidden="true"></span>Reproduction test: failed before, passes now</li>
+              <li><span class="check check--pass" aria-hidden="true"></span>Existing suite: 214 passed</li>
+              <li><span class="check check--pass" aria-hidden="true"></span>Static scan: clear</li>
+              <li><span class="check check--hold" aria-hidden="true" data-review-icon></span><span data-review>Review: 1 approving review required</span></li>
+            </ul>
+            <button class="hold" type="button" data-hold aria-describedby="hold-hint">
               <span class="hold__fill" aria-hidden="true"></span>
-              <span class="hold__label">Hold to sign and merge</span>
+              <span class="hold__label" data-hold-label>Hold to approve and merge</span>
             </button>
-            <p class="hold__hint" id="hold-hint">
-              Press and hold, or hold Space or Enter. Letting go early cancels it.
+            <p class="hold__hint" id="hold-hint">Press and hold, or hold Space or Enter. Letting go early cancels it.</p>
+            <dl class="tally">
+              <div><dt>Merges made by AUTOSP</dt><dd>0</dd></div>
+              <div><dt>Merges made by you</dt><dd data-yours>0</dd></div>
+            </dl>
+            <button class="link" type="button" data-unmerge hidden>Undo the demo merge</button>
+            <span class="sr-only" role="status" data-hold-status></span>
+          </article>
+        </div>
+      </section>
+
+      <!-- Evidence log -->
+      <section class="band band--alt" id="evidence" aria-labelledby="evidence-title">
+        <div class="wrap evidence">
+          <div class="evidence__copy">
+            <p class="kicker">Evidence for your auditor</p>
+            <h2 id="evidence-title">A record nobody can quietly change.</h2>
+            <p class="head__text">
+              Every step is written into an append-only log, and each entry carries the fingerprint of the one
+              before it. Edit any entry below and watch every fingerprint after it stop matching.
             </p>
-            <p class="hold__done" data-signed-note hidden>Merged. You made the call, and the test stays.</p>
-            <button class="hold__undo" type="button" data-unsign hidden>Undo the demo signing</button>
-            <span class="visually-hidden" role="status" data-hold-status></span>
+            <p class="head__text">Your auditor gets an evidence pack for each assessment.</p>
+            <a class="btn btn--ghost" href="/sample-evidence-pack.pdf" download>Download a sample evidence pack (PDF)</a>
           </div>
-        </article>
+
+          <div class="ledger" data-ledger>
+            <ol class="ledger__list" data-ledger-list>
+              <li class="entry">
+                <label class="entry__label" for="entry-1">Entry 1</label>
+                <input class="entry__text" id="entry-1" value="Reported: CWE-89 in app/repositories/invoices.py" spellcheck="false" />
+                <div class="entry__meta"><code class="entry__fp" data-fp>d84ab5e4ca8fe5840de48f4f74ed3ceccb311abeb18949aebdb8e41eb1f4ac11</code><span class="entry__state" data-state>Sealed</span></div>
+              </li>
+              <li class="entry">
+                <label class="entry__label" for="entry-2">Entry 2</label>
+                <input class="entry__text" id="entry-2" value="Reproduced: test_invoice_id_cannot_change_the_query failed" spellcheck="false" />
+                <div class="entry__meta"><code class="entry__fp" data-fp>fead3b3a5eced2cd326382e3800b5b8fc1ece4d5ac7d9b64e93eeab444d823f0</code><span class="entry__state" data-state>Sealed</span></div>
+              </li>
+              <li class="entry">
+                <label class="entry__label" for="entry-3">Entry 3</label>
+                <input class="entry__text" id="entry-3" value="Patched in sandbox sbx-7f3a: 1 line removed, 1 added" spellcheck="false" />
+                <div class="entry__meta"><code class="entry__fp" data-fp>9e267cd2a625451e62887a4ecadd1dfd755d72774268f02d5df8ad05244a1765</code><span class="entry__state" data-state>Sealed</span></div>
+              </li>
+              <li class="entry">
+                <label class="entry__label" for="entry-4">Entry 4</label>
+                <input class="entry__text" id="entry-4" value="Verified: all three gates passed" spellcheck="false" />
+                <div class="entry__meta"><code class="entry__fp" data-fp>c16297b38bb8adb8402e32409b9fd46bc03caeafcea9cf734a4a6f17a1b4e59f</code><span class="entry__state" data-state>Sealed</span></div>
+              </li>
+            </ol>
+            <div class="ledger__actions">
+              <button class="btn btn--ghost btn--sm" type="button" data-tamper>Tamper with entry 2</button>
+              <button class="btn btn--ghost btn--sm" type="button" data-restore disabled>Restore the record</button>
+            </div>
+            <p class="ledger__status" role="status" data-ledger-status>All fingerprints match. Computed with SHA-256 in your browser.</p>
+          </div>
+        </div>
       </section>
 
-      <!-- Room 7. The Results Wall -->
-      <section class="room" data-wall="limestone" id="results" aria-labelledby="results-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="results-title">Early results, on test applications.</h2>
+      <!-- Results -->
+      <section class="band" id="results" aria-labelledby="results-title">
+        <div class="wrap">
+          <header class="head">
+            <p class="kicker">Early results</p>
+            <h2 id="results-title">Sixteen runs on test applications.</h2>
+          </header>
+          <div class="results">
+            <dl class="stats">
+              <div class="stat stat--pass"><dt>ended with a verified fix</dt><dd>14<small>/16</small></dd></div>
+              <div class="stat"><dt>closed as inconclusive, with no patch written</dt><dd>2</dd></div>
+              <div class="stat"><dt>merges made by AUTOSP</dt><dd>0</dd></div>
+            </dl>
+            <div class="tiles" role="img" aria-label="16 runs: 14 ended with a verified fix, 2 were closed as inconclusive">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="bare"></i><i class="bare"></i>
+            </div>
           </div>
-          <p class="placard">
-            <span class="placard__title">Room 7. The Results Wall.</span><br />
-            <span class="placard__medium">Sixteen runs. 15 October 2026.</span>
-            <span class="placard__caption">Each tile is one run.</span>
+          <p class="caveat">
+            <b>Read this before the numbers.</b> Test applications and a development model, not customer code. A
+            small sample from our 15 October 2026 baseline: an early signal, not a benchmark.
           </p>
         </div>
-        <div
-          class="tiles"
-          role="img"
-          aria-label="16 runs: 14 ended with a verified fix, 2 were closed as inconclusive"
-        >
-          <span class="tile"></span><span class="tile"></span><span class="tile"></span
-          ><span class="tile"></span><span class="tile"></span><span class="tile"></span
-          ><span class="tile"></span><span class="tile"></span><span class="tile"></span
-          ><span class="tile"></span><span class="tile"></span><span class="tile"></span
-          ><span class="tile"></span><span class="tile"></span><span class="tile tile--bare"></span
-          ><span class="tile tile--bare"></span>
-        </div>
-        <dl class="wall-numbers">
-          <div class="pass">
-            <dt class="visually-hidden">Verified fixes</dt>
-            <dd>
-              <big>14<span class="visually-hidden"> of 16</span></big
-              ><span>of 16 runs ended with a verified fix</span>
-            </dd>
-          </div>
-          <div>
-            <dt class="visually-hidden">Inconclusive</dt>
-            <dd><big>2</big><span>inconclusive, no patch written (the two unpainted tiles)</span></dd>
-          </div>
-          <div>
-            <dt class="visually-hidden">Merges by AUTOSP</dt>
-            <dd><big>0</big><span>merges made by AUTOSP</span></dd>
-          </div>
-        </dl>
-        <p class="caveat">
-          <b>Read this before the numbers.</b>
-          Test applications and a development model, not customer code. A small sample from our 15 October
-          2026 baseline: an early signal, not a benchmark.
-        </p>
       </section>
 
-      <!-- Room 8. Gallery Rules -->
-      <section class="room" data-wall="limestone" id="rules" aria-labelledby="rules-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="rules-title">Gallery rules.</h2>
-            <p class="room__text">What AUTOSP can and can't touch in your organisation.</p>
-          </div>
-          <p class="placard">
-            <span class="placard__title">Room 8. Gallery Rules.</span><br />
-            <span class="placard__medium">A GitHub App, on the repositories you choose.</span>
-            <span class="placard__caption"
-              >Nothing touches your code until you've signed a scope agreement.</span
-            >
-          </p>
-        </div>
-        <div class="rules">
-          <div>
-            <h3>AUTOSP may</h3>
-            <ul>
-              <li>Read the repositories you choose</li>
-              <li>Open pull requests on its own branches</li>
-              <li>Read your scanner's findings</li>
-              <li>Run code in a sealed sandbox</li>
-            </ul>
-          </div>
-          <div>
-            <h3>AUTOSP may not</h3>
-            <ul>
-              <li>Merge or approve</li>
-              <li>Push to main or to protected branches</li>
-              <li>Change repository settings</li>
-              <li>Keep your code after a job</li>
-            </ul>
-          </div>
-        </div>
-        <p class="rules__note soft">GitHub App permissions and data retention: agreed per design partner.</p>
-      </section>
-
-      <!-- Room 9. Invitation (Room 10 once the curator is in) -->
-      <section class="room" data-wall="paper" id="invitation" aria-labelledby="invitation-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="invitation-title">The next exhibition: your codebase.</h2>
-            <p class="room__text">
-              For engineering teams of 20 to 150 running a scanner on GitHub-hosted Python services. The pilot
-              is free.
+      <!-- Pilot -->
+      <section class="band band--alt" id="pilot" aria-labelledby="pilot-title">
+        <div class="wrap pilot">
+          <div class="pilot__copy">
+            <p class="kicker">Free pilot</p>
+            <h2 id="pilot-title">Try it on your own codebase.</h2>
+            <p class="head__text">
+              For engineering teams of 20 to 150 running a scanner on GitHub-hosted Python services. The pilot is
+              free.
+            </p>
+            <ol class="timeline">
+              <li><b>Week 1</b><span>Connect</span></li>
+              <li><b>Week 2</b><span>First verified pull requests</span></li>
+              <li><b>Week 4</b><span>Findings report and evidence pack</span></li>
+            </ol>
+            <p class="assure">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 3 5v5c0 4 3 7.4 7 8 4-.6 7-4 7-8V5l-7-3Z" /></svg>
+              Nothing touches your code until you've signed a scope agreement.
             </p>
           </div>
-          <p class="placard">
-            <span class="placard__title">Room 9. Invitation.</span><br />
-            <span class="placard__medium">A free pilot.</span>
-            <span class="placard__caption"
-              >Nothing touches your code until you've signed a scope agreement.</span
-            >
-          </p>
-        </div>
-        <div class="invitation">
-          <form class="rsvp" data-rsvp action="https://api.web3forms.com/submit" method="post" novalidate>
-            <p class="rsvp__title">Répondez, s'il vous plaît.</p>
-            <input type="hidden" name="access_key" value="%VITE_WEB3FORMS_KEY%" data-key />
+
+          <form class="form" data-rsvp action="https://api.web3forms.com/submit" method="post" novalidate>
+            <input type="hidden" name="access_key" value="" />
             <input type="hidden" name="subject" value="AUTOSP free pilot" />
-            <div class="rsvp__row">
+            <div class="form__row">
               <label class="field">
                 <span class="field__label">Your name</span>
                 <input name="name" autocomplete="name" required />
@@ -491,7 +446,7 @@
                 <input name="email" type="email" autocomplete="email" required />
               </label>
             </div>
-            <div class="rsvp__row">
+            <div class="form__row">
               <label class="field">
                 <span class="field__label">Company</span>
                 <input name="company" autocomplete="organization" required />
@@ -503,95 +458,84 @@
             </div>
             <fieldset class="choices">
               <legend>Engineering team size</legend>
-              <label class="choice"
-                ><input type="radio" name="team" value="Under 20" required /> Under 20</label
-              >
-              <label class="choice"><input type="radio" name="team" value="20 to 150" /> 20 to 150</label>
-              <label class="choice"><input type="radio" name="team" value="Over 150" /> Over 150</label>
+              <label class="choice"><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label>
+              <label class="choice"><input type="radio" name="team" value="20 to 150" /><span>20 to 150</span></label>
+              <label class="choice"><input type="radio" name="team" value="Over 150" /><span>Over 150</span></label>
             </fieldset>
-            <fieldset class="choices">
-              <legend>Scanners you run <small class="soft">Optional</small></legend>
-              <label class="choice"><input type="checkbox" name="scanners" value="Semgrep" /> Semgrep</label>
-              <label class="choice"><input type="checkbox" name="scanners" value="CodeQL" /> CodeQL</label>
-              <label class="choice"
-                ><input type="checkbox" name="scanners" value="Snyk Code" /> Snyk Code</label
-              >
-              <label class="choice"
-                ><input type="checkbox" name="scanners" value="osv-scanner" /> osv-scanner</label
-              >
+            <fieldset class="choices choices--multi">
+              <legend>Scanners you run <small>Optional</small></legend>
+              <label class="choice"><input type="checkbox" name="scanners" value="Semgrep" /><span>Semgrep</span></label>
+              <label class="choice"><input type="checkbox" name="scanners" value="CodeQL" /><span>CodeQL</span></label>
+              <label class="choice"><input type="checkbox" name="scanners" value="Snyk Code" /><span>Snyk Code</span></label>
+              <label class="choice"><input type="checkbox" name="scanners" value="osv-scanner" /><span>osv-scanner</span></label>
             </fieldset>
             <label class="field">
               <span class="field__label">Anything we should know <small>Optional</small></span>
               <textarea name="note" rows="3"></textarea>
             </label>
-            <input
-              class="trap"
-              type="checkbox"
-              name="botcheck"
-              tabindex="-1"
-              autocomplete="off"
-              aria-hidden="true"
-            />
-            <button class="button" type="submit">Apply for the free pilot</button>
+            <input class="trap" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <button class="btn btn--block" type="submit">Apply for the free pilot</button>
           </form>
-          <div class="programme">
-            <h3>The programme</h3>
-            <ol>
-              <li><b>Week 1</b><span>Connect</span></li>
-              <li><b>Week 2</b><span>First verified pull requests</span></li>
-              <li><b>Week 4</b><span>Findings report and evidence pack</span></li>
-            </ol>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="band" id="faq" aria-labelledby="faq-title">
+        <div class="wrap faq">
+          <h2 id="faq-title">Questions</h2>
+          <div class="faq__list">
+            <details name="faq" open>
+              <summary>Which languages does it work with?</summary>
+              <p>The pilot is for Python services hosted on GitHub.</p>
+            </details>
+            <details name="faq">
+              <summary>Which scanners does it take findings from?</summary>
+              <p>Semgrep, CodeQL, Snyk Code and osv-scanner.</p>
+            </details>
+            <details name="faq">
+              <summary>Can it merge by itself?</summary>
+              <p>
+                No. It opens pull requests with the evidence and stops there. Your reviewers approve and merge under
+                your own branch protection, and the GitHub App can't change or bypass it.
+              </p>
+            </details>
+            <details name="faq">
+              <summary>Where does my code run?</summary>
+              <p>
+                In a throwaway container with no network, a read-only file system and a hard time limit. The
+                container is gone when the job ends.
+              </p>
+            </details>
+            <details name="faq">
+              <summary>What happens when it can't reproduce a finding?</summary>
+              <p>No patch is written. The finding is closed as inconclusive.</p>
+            </details>
           </div>
         </div>
       </section>
 
-      <!-- Room 10. Visitor Information (Room 11 once the curator is in) -->
-      <section class="room" data-wall="limestone" id="information" aria-labelledby="information-title">
-        <div class="room__head">
-          <div>
-            <h2 class="room__title" id="information-title">Visitor information.</h2>
+      <!-- Final CTA -->
+      <section class="cta" aria-labelledby="cta-title">
+        <div class="wrap cta__inner">
+          <h2 id="cta-title">Your scanner did its job. Let's finish it.</h2>
+          <div class="actions">
+            <a class="btn" href="#pilot">Apply for the free pilot</a>
+            <a class="btn btn--ghost" href="/tour/">Take the 3D tour</a>
           </div>
-          <p class="placard">
-            <span class="placard__title">Room 10. Visitor Information.</span><br />
-            <span class="placard__medium">The information desk.</span>
-            <span class="placard__caption">Ask anything else in the invitation's note.</span>
-          </p>
-        </div>
-        <div class="desk">
-          <details name="desk">
-            <summary>Which languages does it work with?</summary>
-            <p>The pilot is for Python services hosted on GitHub.</p>
-          </details>
-          <details name="desk">
-            <summary>Which scanners does it take findings from?</summary>
-            <p>Semgrep, CodeQL, Snyk Code and osv-scanner.</p>
-          </details>
-          <details name="desk">
-            <summary>Can it merge by itself?</summary>
-            <p>
-              No. It opens pull requests with the evidence and stops there. Your reviewers approve and merge
-              under your own branch protection, and the GitHub App can't change or bypass it.
-            </p>
-          </details>
-          <details name="desk">
-            <summary>Where does my code run?</summary>
-            <p>
-              In a throwaway container with no network, a read-only file system and a hard time limit. The
-              container is gone when the job ends.
-            </p>
-          </details>
         </div>
       </section>
     </main>
 
-    <a class="apply-bar" href="#invitation" data-apply-bar hidden>Apply for the free pilot</a>
-
-    <footer class="exit">
-      <p>The exit. <a href="https://nexarise-website.vercel.app/">Back to Nexarise</a></p>
-      <ul aria-label="More">
-        <li><a href="/tour/">The Annex: your codebase as a city</a></li>
-        <li><a href="/sample-evidence-pack.pdf" download>Sample evidence pack (PDF)</a></li>
-      </ul>
+    <footer class="footer">
+      <div class="wrap footer__inner">
+        <p class="brand brand--small">AUTOSP <small>by Nexarise</small></p>
+        <ul aria-label="More">
+          <li><a href="https://nexarise-website.vercel.app/">Nexarise</a></li>
+          <li><a href="/tour/">3D tour</a></li>
+          <li><a href="/sample-evidence-pack.pdf" download>Sample evidence pack</a></li>
+        </ul>
+        <p class="fine">AUTOSP does not guarantee that an application is secure. Interactive examples on this page are illustrative.</p>
+      </div>
     </footer>
   </body>
 </html>
