@@ -3,538 +3,313 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AUTOSP by Nexarise: verified fixes for what your scanner finds</title>
-    <meta
-      name="description"
-      content="AUTOSP takes a finding from the scanner you already run, proves it with a failing test, fixes it in a sealed sandbox, checks the fix three ways and opens a pull request. A person always decides what merges."
-    />
-    <meta name="theme-color" content="#070b16" />
+    <title>autosp by Nexarise</title>
+    <meta name="theme-color" content="#7fc6f8" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preload" href="/fonts/clash-display-600.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/general-sans-400.woff2" as="font" type="font/woff2" crossorigin />
-    <script type="module" src="/src/site/main.ts"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap"
+    />
+    <script type="module" src="/src/site/scroll.ts"></script>
   </head>
   <body>
-    <a class="skip" href="#main">Skip to content</a>
-
-    <header class="nav" data-nav>
-      <div class="nav__inner wrap">
-        <a class="brand" href="#top" aria-label="AUTOSP by Nexarise, back to top">
-          <svg class="brand__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z" />
-            <path class="brand__tick" d="m8 12.5 2.8 2.8L16.5 9.5" />
-          </svg>
-          <span>AUTOSP</span><small>by Nexarise</small>
-        </a>
-        <nav class="nav__links" aria-label="Sections">
-          <a href="#how">How it works</a>
-          <a href="#checks">The checks</a>
-          <a href="#control">Control</a>
-          <a href="#results">Results</a>
-          <a href="#faq">FAQ</a>
-        </nav>
-        <a class="btn btn--sm" href="#pilot">Apply for the free pilot</a>
-      </div>
-    </header>
-
-    <main id="main" tabindex="-1">
-      <!-- Hero -->
-      <section class="hero" id="top" aria-labelledby="hero-title">
-        <div class="hero__grid wrap">
-          <div class="hero__copy">
-            <p class="tag"><span class="dot dot--pass" aria-hidden="true"></span> Free pilot for Python teams on GitHub</p>
-            <h1 id="hero-title">Verified fixes for the findings your scanner keeps reporting.</h1>
-            <p class="lede">
-              AUTOSP takes a finding from the scanner you already run, proves it with a failing test, fixes it in
-              a sealed sandbox, checks the fix three ways and opens a pull request.
-              <strong>A person always decides what merges.</strong>
-            </p>
-            <div class="actions">
-              <a class="btn" href="#pilot">Apply for the free pilot</a>
-              <a class="btn btn--ghost" href="#how">See how it works</a>
-            </div>
-            <p class="works">
-              Takes findings from <b>Semgrep</b>, <b>CodeQL</b>, <b>Snyk Code</b> and <b>osv-scanner</b>
-            </p>
-          </div>
-
-          <div class="demo" data-demo>
-            <div class="window">
-              <div class="window__bar">
-                <span class="window__dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                <span class="window__file">app/repositories/invoices.py</span>
-                <div class="switch" role="group" aria-label="Which code runs">
-                  <button type="button" aria-pressed="true" data-mode="vulnerable">Vulnerable</button>
-                  <button type="button" aria-pressed="false" data-mode="fixed">AUTOSP's fix</button>
-                </div>
-              </div>
-              <pre class="code code--hero" data-demo-code aria-live="polite"></pre>
-              <form class="probe" data-probe>
-                <label class="probe__label" for="probe-input">invoice_id</label>
-                <div class="probe__row">
-                  <input
-                    id="probe-input"
-                    class="probe__input"
-                    value="1042"
-                    maxlength="120"
-                    autocomplete="off"
-                    spellcheck="false"
-                  />
-                  <button class="btn btn--run" type="submit">Run query</button>
-                </div>
-                <div class="presets" role="group" aria-label="Try an input">
-                  <button type="button" data-preset="1042">1042</button>
-                  <button type="button" data-preset="' OR '1'='1">' OR '1'='1</button>
-                  <button type="button" data-preset="1042'">1042'</button>
-                </div>
-              </form>
-              <div class="result" data-result role="status" aria-live="polite"></div>
-            </div>
-            <p class="caption">Simulated query on sample data. Nothing leaves your browser.</p>
-          </div>
+    <div class="scene" data-scene>
+      <div class="stage">
+        <div class="bg" aria-hidden="true">
+          <div class="bg__sky"></div>
+          <div class="bg__glow"></div>
         </div>
-      </section>
 
-      <!-- Problem -->
-      <section class="band band--tight" aria-labelledby="problem-title">
-        <div class="wrap problem">
-          <h2 id="problem-title">Finding it was the easy part.</h2>
-          <div class="problem__body">
-            <p>
-              Your scanner reports the same SQL injection every week, and nobody owns it. Fixing it means someone
-              has to understand the finding, prove it is real, write a safe patch and convince a reviewer that
-              nothing else broke.
-            </p>
-            <p>AUTOSP does that work and hands your team the evidence. Your reviewers keep the final say.</p>
+        <header class="nav">
+          <a class="logo" href="#"><span class="logo__mark" aria-hidden="true"></span>autosp</a>
+          <nav class="nav__links" aria-label="Sections">
+            <a href="#how">Product</a>
+            <a href="#verification">How it works</a>
+            <a href="#security">Security</a>
+            <a href="#results">Results</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <div class="nav__right">
+            <a class="nav__contact" href="#pilot">Contact</a>
+            <a class="nav__cta" href="#pilot" data-nav-cta>Apply for the pilot<i aria-hidden="true"></i></a>
           </div>
-        </div>
-      </section>
+        </header>
 
-      <!-- How it works -->
-      <section class="band" id="how" aria-labelledby="how-title">
-        <div class="wrap">
-          <header class="head">
-            <p class="kicker">How it works</p>
-            <h2 id="how-title">One finding, from report to pull request.</h2>
-            <p class="head__text">Follow one real example, CWE-89 in <code>find_invoice</code>, through all five steps.</p>
-          </header>
-
-          <div class="steps" data-steps>
-            <div class="steps__list" role="tablist" aria-label="The five steps">
-              <button role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">
-                <span class="steps__n">1</span><span><b>Reported</b><small>Your scanner flags it</small></span>
-              </button>
-              <button role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">
-                <span class="steps__n">2</span><span><b>Reproduced</b><small>A failing test proves it</small></span>
-              </button>
-              <button role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">
-                <span class="steps__n">3</span><span><b>Patched</b><small>Fixed in a sealed sandbox</small></span>
-              </button>
-              <button role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false" tabindex="-1">
-                <span class="steps__n">4</span><span><b>Verified</b><small>Three independent checks</small></span>
-              </button>
-              <button role="tab" id="tab-5" aria-controls="panel-5" aria-selected="false" tabindex="-1">
-                <span class="steps__n">5</span><span><b>Approved</b><small>A person merges</small></span>
-              </button>
+        <!-- everything in here scrolls up together and slides behind the nav, as in the reference -->
+        <div class="lower-wrap">
+          <h1 class="headline" id="hero-title" data-glitter="load">
+            Meet autosp, your <em>AI</em> teammate <br />for verified security fixes
+          </h1>
+          <div class="lower" data-lower>
+            <div class="lower__left">
+              <p class="lower__label">Works with the scanners you already run</p>
+              <a class="cta" href="#pilot">Apply for the pilot<i aria-hidden="true"></i></a>
             </div>
-
-            <div class="steps__stage">
-              <div class="panel" role="tabpanel" id="panel-1" aria-labelledby="tab-1" tabindex="0">
-                <h3>Your scanner reports it, again.</h3>
-                <p>
-                  The line builds a SQL query from a string, so whoever controls the invoice id can rewrite the
-                  query.
-                </p>
-                <dl class="facts">
-                  <div><dt>Reported by</dt><dd>Your existing scanner</dd></div>
-                  <div><dt>Rule</dt><dd>SQL built from string concatenation</dd></div>
-                  <div><dt>Weakness</dt><dd><span class="pill pill--open">CWE-89</span> SQL injection</dd></div>
-                  <div><dt>Location</dt><dd><code>app/repositories/invoices.py</code>, line 2</dd></div>
-                </dl>
-                <pre class="code"><span class="ln">1</span><span class="k">def</span> <span class="f">find_invoice</span>(cur, invoice_id):
-<span class="ln">2</span><mark class="hl-open">    cur.execute(<span class="s">"SELECT * FROM invoices WHERE id = '"</span> + invoice_id + <span class="s">"'"</span>)</mark>
-<span class="ln">3</span>    <span class="k">return</span> cur.fetchone()</pre>
-              </div>
-
-              <div class="panel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" tabindex="0" hidden>
-                <h3>It has to fail first.</h3>
-                <p>
-                  Before anything is changed, AUTOSP writes a test that exploits the finding and runs it against
-                  your code as it is. If the bug can't be reproduced, no patch is written.
-                </p>
-                <pre class="code"><span class="c"># tests/test_invoices.py</span>
-<span class="k">def</span> <span class="f">test_invoice_id_cannot_change_the_query</span>(db):
-    row = find_invoice(db.cursor(), <span class="s">"1' OR '1'='1"</span>)
-    <span class="k">assert</span> row <span class="k">is</span> None</pre>
-                <pre class="code code--term" data-run><span class="dim">$ pytest tests/test_invoices.py -q</span>
-<span class="t-open">FAILED tests/test_invoices.py::test_invoice_id_cannot_change_the_query</span>
-<span class="t-open">E   AssertionError: assert (1, 'ACME Ltd', 1200.0) is None</span>
-<span class="t-open">1 failed in 0.21s</span></pre>
-                <p class="note"><span class="pill pill--open">Reproduced</span> The finding is real. Now it can be fixed.</p>
-              </div>
-
-              <div class="panel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" tabindex="0" hidden>
-                <h3>Written where it can't reach anything.</h3>
-                <p>
-                  A second agent writes the smallest fix it can, inside a throwaway container. The container is
-                  gone when the job ends.
-                </p>
-                <ul class="seals" aria-label="Sandbox limits">
-                  <li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h5M12 10h5M8 7l4 6M12 7l-4 6" /></svg>No network</li>
-                  <li><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="1.5" /><path d="M7 9V6.5a3 3 0 0 1 6 0V9" /></svg>Read-only file system</li>
-                  <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3" /><path d="M4 17c1-3 3.5-4.5 6-4.5s5 1.5 6 4.5" /></svg>Non-root user</li>
-                  <li><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="11" r="6" /><path d="M10 8v3l2 1.5M8 3h4" /></svg>Hard time limit</li>
-                </ul>
-                <pre class="code code--diff"><span class="dim">  def find_invoice(cur, invoice_id):</span>
-<span class="del">-     cur.execute("SELECT * FROM invoices WHERE id = '" + invoice_id + "'")</span>
-<span class="add">+     cur.execute("SELECT * FROM invoices WHERE id = %s", (invoice_id,))</span>
-<span class="dim">      return cur.fetchone()</span></pre>
-                <p class="note">One line removed, one line added.</p>
-              </div>
-
-              <div class="panel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" tabindex="0" hidden>
-                <h3>Any one of three checks can send it back.</h3>
-                <p>
-                  The agents can't reach these checks. A fix that fails any one of them goes back to the sandbox.
-                </p>
-                <ol class="checks">
-                  <li><span class="check check--pass" aria-hidden="true"></span><div><b>Reproduction test</b><small>Failed before, passes now</small></div><span class="pill pill--pass">Passed</span></li>
-                  <li><span class="check check--pass" aria-hidden="true"></span><div><b>Your existing suite</b><small>214 passed</small></div><span class="pill pill--pass">Passed</span></li>
-                  <li><span class="check check--pass" aria-hidden="true"></span><div><b>Fresh static scan</b><small>0 findings</small></div><span class="pill pill--pass">Passed</span></li>
-                </ol>
-                <p class="note"><a href="#checks">See a careless fix get caught</a></p>
-              </div>
-
-              <div class="panel" role="tabpanel" id="panel-5" aria-labelledby="tab-5" tabindex="0" hidden>
-                <h3>A person always decides.</h3>
-                <p>
-                  AUTOSP opens a pull request with the evidence and stops there. Your reviewers approve and merge
-                  under your own branch protection.
-                </p>
-                <div class="pr-mini">
-                  <p class="pr-mini__title"><span class="pill pill--hold">Open</span> Fix SQL injection in find_invoice <span class="muted">#412</span></p>
-                  <p class="muted"><code>autosp/fix-cwe-89</code> into <code>main</code></p>
-                  <p>Untouched: tests, CI, linter and scanner config.</p>
-                  <p class="pr-mini__wait"><span class="dot dot--hold" aria-hidden="true"></span> Waiting for your reviewer</p>
-                </div>
-                <p class="note"><a href="#control">Try merging it yourself</a></p>
-              </div>
-
-              <div class="steps__nav">
-                <button class="btn btn--ghost btn--sm" type="button" data-prev>Previous step</button>
-                <button class="btn btn--sm" type="button" data-next>Next step</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Checks: careless vs AUTOSP -->
-      <section class="band band--alt" id="checks" aria-labelledby="checks-title">
-        <div class="wrap">
-          <header class="head">
-            <p class="kicker">The checks</p>
-            <h2 id="checks-title">A fix that only looks right gets sent back.</h2>
-            <p class="head__text">
-              Stripping quotes passes the test and the suite. The fresh static scan still sees SQL built from
-              strings, and refuses it.
-            </p>
-          </header>
-
-          <div class="versus" data-versus>
-            <article class="case" data-case="careless" aria-labelledby="careless-title">
-              <header class="case__head">
-                <h3 id="careless-title">A careless fix</h3>
-                <span class="verdict" data-verdict hidden>Rejected</span>
-              </header>
-              <pre class="code code--diff"><span class="del">-  cur.execute("... WHERE id = '" + invoice_id + "'")</span>
-<span class="add">+  safe_id = invoice_id.replace("'", "")</span>
-<span class="add">+  cur.execute("... WHERE id = '" + safe_id + "'")</span></pre>
-              <ol class="gates">
-                <li data-result="pass"><b>Reproduction test</b><span>1 passed</span></li>
-                <li data-result="pass"><b>Existing suite</b><span>214 passed</span></li>
-                <li data-result="fail"><b>Fresh static scan</b><span>SQL still built from strings</span></li>
-              </ol>
-            </article>
-
-            <article class="case" data-case="autosp" aria-labelledby="autosp-title">
-              <header class="case__head">
-                <h3 id="autosp-title">AUTOSP's fix</h3>
-                <span class="verdict" data-verdict hidden>Accepted</span>
-              </header>
-              <pre class="code code--diff"><span class="del">-  cur.execute("... WHERE id = '" + invoice_id + "'")</span>
-<span class="add">+  cur.execute("... WHERE id = %s", (invoice_id,))</span>
-<span class="dim"> </span></pre>
-              <ol class="gates">
-                <li data-result="pass"><b>Reproduction test</b><span>1 passed</span></li>
-                <li data-result="pass"><b>Existing suite</b><span>214 passed</span></li>
-                <li data-result="pass"><b>Fresh static scan</b><span>0 findings</span></li>
-              </ol>
-            </article>
-          </div>
-          <div class="versus__actions">
-            <button class="btn" type="button" data-run-checks>Run the three checks</button>
-            <span class="sr-only" role="status" data-checks-status></span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Control -->
-      <section class="band" id="control" aria-labelledby="control-title">
-        <div class="wrap control">
-          <div class="control__copy">
-            <p class="kicker">You stay in control</p>
-            <h2 id="control-title">AUTOSP never merges. You do.</h2>
-            <p class="head__text">
-              It works through a GitHub App on the repositories you choose. Your branch protection stays in
-              charge, and the app can't change or bypass it.
-            </p>
-            <div class="rules">
-              <div>
-                <h3><span class="dot dot--pass" aria-hidden="true"></span> AUTOSP may</h3>
-                <ul>
-                  <li>Read the repositories you choose</li>
-                  <li>Read your scanner's findings</li>
-                  <li>Run code in a sealed sandbox</li>
-                  <li>Open pull requests on its own branches</li>
-                </ul>
-              </div>
-              <div>
-                <h3><span class="dot dot--open" aria-hidden="true"></span> AUTOSP may not</h3>
-                <ul>
-                  <li>Merge or approve</li>
-                  <li>Push to main or protected branches</li>
-                  <li>Change repository settings</li>
-                  <li>Keep your code after a job</li>
-                </ul>
-              </div>
-            </div>
-            <p class="fine">GitHub App permissions and data retention are agreed per design partner.</p>
-          </div>
-
-          <article class="pr" aria-labelledby="pr-title" data-pr>
-            <header class="pr__head">
-              <span class="pill pill--hold" data-pr-state>Open</span>
-              <span class="muted">Pull request #412</span>
-            </header>
-            <h3 class="pr__title" id="pr-title">Fix SQL injection in find_invoice</h3>
-            <p class="muted"><code>autosp/fix-cwe-89</code> into <code>main</code></p>
-            <ul class="pr__checks">
-              <li><span class="check check--pass" aria-hidden="true"></span>Reproduction test: failed before, passes now</li>
-              <li><span class="check check--pass" aria-hidden="true"></span>Existing suite: 214 passed</li>
-              <li><span class="check check--pass" aria-hidden="true"></span>Static scan: clear</li>
-              <li><span class="check check--hold" aria-hidden="true" data-review-icon></span><span data-review>Review: 1 approving review required</span></li>
+            <ul class="lower__grid" aria-label="Scanners">
+              <li>Semgrep</li>
+              <li>CodeQL</li>
+              <li>Snyk Code</li>
+              <li>osv-scanner</li>
             </ul>
-            <button class="hold" type="button" data-hold aria-describedby="hold-hint">
-              <span class="hold__fill" aria-hidden="true"></span>
-              <span class="hold__label" data-hold-label>Hold to approve and merge</span>
-            </button>
-            <p class="hold__hint" id="hold-hint">Press and hold, or hold Space or Enter. Letting go early cancels it.</p>
-            <dl class="tally">
-              <div><dt>Merges made by AUTOSP</dt><dd>0</dd></div>
-              <div><dt>Merges made by you</dt><dd data-yours>0</dd></div>
-            </dl>
-            <button class="link" type="button" data-unmerge hidden>Undo the demo merge</button>
-            <span class="sr-only" role="status" data-hold-status></span>
-          </article>
+          </div>
+        </div>
+
+        <p class="statement" data-glitter="scene">
+          autosp is an AI teammate <br />that finds vulnerabilities, proves them <br />with a failing test, fixes them
+          in <br />a sealed sandbox, checks every fix three ways <br />and waits for you to merge
+        </p>
+      </div>
+    </div>
+
+    <main class="page">
+      <!-- how it works (the problem is its first line) -->
+      <section class="sec" id="how" aria-labelledby="how-title">
+        <div class="wrap split">
+          <div class="split__head" data-reveal>
+            <h2 class="title" id="how-title">Finding vulnerabilities is easy. Closing them is the work.</h2>
+            <p class="lede">AUTOSP takes one finding from report to a pull request with proof. A person decides what merges.</p>
+          </div>
+          <ol class="steps">
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">1</span>
+              <div>
+                <h3>Find</h3>
+                <p>It scans the repositories you choose, or takes results from the scanner you already run.</p>
+                <div class="vis" aria-label="Example: a finding from your scanner">
+                  <ul class="chips"><li>Semgrep</li><li>CodeQL</li><li>Snyk Code</li><li>osv-scanner</li></ul>
+                  <p class="vis__row"><b class="tag tag--open">CWE-89</b><code>app/repositories/invoices.py</code></p>
+                </div>
+              </div>
+            </li>
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">2</span>
+              <div>
+                <h3>Reproduce</h3>
+                <p>An agent writes a test that exploits the finding. The test has to fail. No failing test, no patch.</p>
+                <div class="vis" aria-label="Example: the exploit as a failing test">
+                  <pre class="code"><span class="mute"># the exploit, as a test</span>
+def test_find_invoice_injection(client):
+    r = client.get(INJECTION)
+    assert r.status_code == 404</pre>
+                  <p class="vis__row"><b class="tag tag--open">1 failed in 0.21s</b></p>
+                </div>
+              </div>
+            </li>
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">3</span>
+              <div>
+                <h3>Fix</h3>
+                <p>A second agent writes the smallest fix it can, in a sealed copy of your code.</p>
+                <div class="vis" aria-label="Example: the fix, in a sealed sandbox">
+                  <ul class="chips"><li>No network</li><li>Read-only</li><li>Non-root</li></ul>
+                  <pre class="code code--diff"><span class="del">- "… WHERE id = '" + invoice_id + "'"</span>
+<span class="add">+ "… WHERE id = %s", (invoice_id,)</span></pre>
+                </div>
+              </div>
+            </li>
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">4</span>
+              <div>
+                <h3>Verify</h3>
+                <p>Three independent gates check the fix. The agents can't see or change them.</p>
+                <div class="vis" aria-label="Example: the three checks">
+                  <ul class="ticklist"><li>The exploit test now passes</li><li>The full test suite passes</li><li>A fresh scan finds nothing new</li></ul>
+                </div>
+              </div>
+            </li>
+            <li data-reveal>
+              <span class="steps__n" aria-hidden="true">5</span>
+              <div>
+                <h3>Review</h3>
+                <p>AUTOSP opens a pull request with the evidence and stops. Your reviewers merge it.</p>
+                <div class="vis" aria-label="Example: the pull request">
+                  <p class="vis__row vis__row--split"><span class="mono">Pull request #412</span><b class="tag tag--hold">Waiting for you</b></p>
+                  <p class="vis__title">Fix SQL injection in find_invoice</p>
+                  <p class="vis__row vis__row--split"><span class="merge">Merge</span><span>Merges made by autosp: <b>0</b></span></p>
+                </div>
+              </div>
+            </li>
+          </ol>
         </div>
       </section>
 
-      <!-- Evidence log -->
-      <section class="band band--alt" id="evidence" aria-labelledby="evidence-title">
-        <div class="wrap evidence">
-          <div class="evidence__copy">
-            <p class="kicker">Evidence for your auditor</p>
-            <h2 id="evidence-title">A record nobody can quietly change.</h2>
-            <p class="head__text">
-              Every step is written into an append-only log, and each entry carries the fingerprint of the one
-              before it. Edit any entry below and watch every fingerprint after it stop matching.
-            </p>
-            <p class="head__text">Your auditor gets an evidence pack for each assessment.</p>
-            <a class="btn btn--ghost" href="/sample-evidence-pack.pdf" download>Download a sample evidence pack (PDF)</a>
-          </div>
-
-          <div class="ledger" data-ledger>
-            <ol class="ledger__list" data-ledger-list>
-              <li class="entry">
-                <label class="entry__label" for="entry-1">Entry 1</label>
-                <input class="entry__text" id="entry-1" value="Reported: CWE-89 in app/repositories/invoices.py" spellcheck="false" />
-                <div class="entry__meta"><code class="entry__fp" data-fp>d84ab5e4ca8fe5840de48f4f74ed3ceccb311abeb18949aebdb8e41eb1f4ac11</code><span class="entry__state" data-state>Sealed</span></div>
-              </li>
-              <li class="entry">
-                <label class="entry__label" for="entry-2">Entry 2</label>
-                <input class="entry__text" id="entry-2" value="Reproduced: test_invoice_id_cannot_change_the_query failed" spellcheck="false" />
-                <div class="entry__meta"><code class="entry__fp" data-fp>fead3b3a5eced2cd326382e3800b5b8fc1ece4d5ac7d9b64e93eeab444d823f0</code><span class="entry__state" data-state>Sealed</span></div>
-              </li>
-              <li class="entry">
-                <label class="entry__label" for="entry-3">Entry 3</label>
-                <input class="entry__text" id="entry-3" value="Patched in sandbox sbx-7f3a: 1 line removed, 1 added" spellcheck="false" />
-                <div class="entry__meta"><code class="entry__fp" data-fp>9e267cd2a625451e62887a4ecadd1dfd755d72774268f02d5df8ad05244a1765</code><span class="entry__state" data-state>Sealed</span></div>
-              </li>
-              <li class="entry">
-                <label class="entry__label" for="entry-4">Entry 4</label>
-                <input class="entry__text" id="entry-4" value="Verified: all three gates passed" spellcheck="false" />
-                <div class="entry__meta"><code class="entry__fp" data-fp>c16297b38bb8adb8402e32409b9fd46bc03caeafcea9cf734a4a6f17a1b4e59f</code><span class="entry__state" data-state>Sealed</span></div>
-              </li>
-            </ol>
-            <div class="ledger__actions">
-              <button class="btn btn--ghost btn--sm" type="button" data-tamper>Tamper with entry 2</button>
-              <button class="btn btn--ghost btn--sm" type="button" data-restore disabled>Restore the record</button>
-            </div>
-            <p class="ledger__status" role="status" data-ledger-status>All fingerprints match. Computed with SHA-256 in your browser.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Results -->
-      <section class="band" id="results" aria-labelledby="results-title">
+      <!-- verification -->
+      <section class="sec sec--sky" id="verification" aria-labelledby="verify-title">
         <div class="wrap">
-          <header class="head">
-            <p class="kicker">Early results</p>
-            <h2 id="results-title">Sixteen runs on test applications.</h2>
-          </header>
-          <div class="results">
-            <dl class="stats">
-              <div class="stat stat--pass"><dt>ended with a verified fix</dt><dd>14<small>/16</small></dd></div>
-              <div class="stat"><dt>closed as inconclusive, with no patch written</dt><dd>2</dd></div>
-              <div class="stat"><dt>merges made by AUTOSP</dt><dd>0</dd></div>
-            </dl>
-            <div class="tiles" role="img" aria-label="16 runs: 14 ended with a verified fix, 2 were closed as inconclusive">
-              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="bare"></i><i class="bare"></i>
-            </div>
+          <h2 class="title head--centre" id="verify-title" data-reveal>Three gates. Any one of them can send a fix back.</h2>
+          <ol class="gates">
+            <li data-reveal>
+              <span class="gates__n" aria-hidden="true">1</span>
+              <h3>The exploit fails now</h3>
+              <p>The test that failed before must pass on the patched code.</p>
+              <div class="vis vis--glass" aria-label="Before: failed. Now: passed"><p class="vis__row"><b class="tag tag--open">before: failed</b><b class="tag tag--pass">now: passed</b></p></div>
+            </li>
+            <li data-reveal>
+              <span class="gates__n" aria-hidden="true">2</span>
+              <h3>So do the variations</h3>
+              <p>Attack variants run against the fix, judged by rules AUTOSP owns, not by the agent that wrote it. For SQL injection: 18 variants.</p>
+              <div class="vis vis--glass" aria-label="18 attack variants, all refused"><ul class="dots"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>
+            </li>
+            <li data-reveal>
+              <span class="gates__n" aria-hidden="true">3</span>
+              <h3>Nothing else broke</h3>
+              <p>Your test suite still passes, a fresh scan no longer reports the finding, and your tests and CI are untouched.</p>
+              <div class="vis vis--glass" aria-label="Three things checked"><ul class="ticklist"><li>Test suite</li><li>Fresh scan</li><li>Tests and CI untouched</li></ul></div>
+            </li>
+          </ol>
+          <p class="gates__note" data-reveal>If a fix can't be proven, AUTOSP says so. It's never called fixed without evidence.</p>
+        </div>
+      </section>
+
+      <!-- control and security -->
+      <section class="sec" id="security" aria-labelledby="security-title">
+        <div class="wrap split">
+          <div class="split__head" data-reveal>
+            <h2 class="title" id="security-title">AUTOSP never merges. Not even when every check passes.</h2>
+            <figure class="chain" aria-label="Three log entries, each carrying the fingerprint of the one before">
+              <ol>
+                <li><b>entry 41</b><code>sha-256 9c1e…07ab</code></li>
+                <li><b>entry 42</b><code>previous 9c1e…07ab</code></li>
+                <li><b>entry 43</b><code>previous 4d82…f31c</code></li>
+              </ol>
+              <figcaption>Illustrative. Change any entry and the chain breaks.</figcaption>
+            </figure>
           </div>
-          <p class="caveat">
-            <b>Read this before the numbers.</b> Test applications and a development model, not customer code. A
-            small sample from our 15 October 2026 baseline: an early signal, not a benchmark.
+          <ul class="rules">
+            <li data-reveal>
+              <h3>Only the repositories you pick</h3>
+              <p>A GitHub App with four permissions: Contents, Pull requests, Checks and Metadata. It never asks for Administration, so it can't touch your branch protection.</p>
+              <ul class="chips"><li>Contents</li><li>Pull requests</li><li>Checks</li><li>Metadata</li></ul>
+            </li>
+            <li data-reveal>
+              <h3>A sealed sandbox</h3>
+              <p>Every job runs with no network and a read-only file system, on a disposable copy that is deleted afterwards.</p>
+              <ul class="chips"><li>No network</li><li>Read-only</li><li>Non-root</li><li>Time limit</li></ul>
+            </li>
+            <li data-reveal>
+              <h3>Little goes to the AI model</h3>
+              <p>It sees the finding and the specific files it needs, never your whole repository or your Git history.</p>
+            </li>
+            <li data-reveal>
+              <h3>Every step on the record</h3>
+              <p>An append-only log where each entry carries the fingerprint of the one before it, so a change can't go unnoticed.</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- results -->
+      <section class="sec sec--pale" id="results" aria-labelledby="results-title">
+        <div class="wrap">
+          <h2 class="title head--centre" id="results-title" data-reveal>Early results, on our test applications.</h2>
+          <table class="results" data-reveal>
+            <caption class="sr-only">Verified fixes by run set</caption>
+            <thead>
+              <tr><th scope="col">Run set</th><th scope="col">Date</th><th scope="col">Verified</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">SQL injection</th><td>22 Oct 2026</td><td><span class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>5 of 5</td></tr>
+              <tr><th scope="row">Access control (IDOR)</th><td>22 Oct 2026</td><td><span class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>5 of 5</td></tr>
+              <tr><th scope="row">Mixed run set</th><td>2 Nov 2026</td><td><span class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>15 of 15</td></tr>
+            </tbody>
+          </table>
+          <p class="results__line" data-reveal><b>0 merges made by AUTOSP</b>, and known-bad fixes rejected every time.</p>
+          <p class="caveat" data-reveal>
+            <b>Read this before the numbers.</b> These are test applications and a free development model, not customer
+            code and not the production model. Small samples: an early signal, not a benchmark.
           </p>
         </div>
       </section>
 
-      <!-- Pilot -->
-      <section class="band band--alt" id="pilot" aria-labelledby="pilot-title">
-        <div class="wrap pilot">
-          <div class="pilot__copy">
-            <p class="kicker">Free pilot</p>
-            <h2 id="pilot-title">Try it on your own codebase.</h2>
-            <p class="head__text">
-              For engineering teams of 20 to 150 running a scanner on GitHub-hosted Python services. The pilot is
-              free.
-            </p>
-            <ol class="timeline">
-              <li><b>Week 1</b><span>Connect</span></li>
-              <li><b>Week 2</b><span>First verified pull requests</span></li>
-              <li><b>Week 4</b><span>Findings report and evidence pack</span></li>
-            </ol>
-            <p class="assure">
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 3 5v5c0 4 3 7.4 7 8 4-.6 7-4 7-8V5l-7-3Z" /></svg>
-              Nothing touches your code until you've signed a scope agreement.
-            </p>
+      <!-- the pilot -->
+      <section class="sec sec--pilot" id="pilot" aria-labelledby="pilot-title">
+        <div class="wrap split">
+          <div class="split__head" data-reveal>
+            <h2 class="title" id="pilot-title">Try it on your own code.</h2>
+            <p class="lede">For Python teams on GitHub, of 20 to 150 engineers, with no dedicated security engineer.</p>
+            <ul class="ticks">
+              <li>You sign a scope document naming the repositories</li>
+              <li>Your reviewers handle AUTOSP's pull requests</li>
+              <li>Your tests run offline</li>
+            </ul>
+            <p class="assure">Nothing touches your code until you've signed a scope agreement.</p>
           </div>
 
-          <form class="form" data-rsvp action="https://api.web3forms.com/submit" method="post" novalidate>
+          <form class="form" data-rsvp action="https://api.web3forms.com/submit" method="post" novalidate data-reveal>
             <input type="hidden" name="access_key" value="" />
-            <input type="hidden" name="subject" value="AUTOSP free pilot" />
+            <input type="hidden" name="subject" value="AUTOSP pilot application" />
             <div class="form__row">
-              <label class="field">
-                <span class="field__label">Your name</span>
-                <input name="name" autocomplete="name" required />
-              </label>
-              <label class="field">
-                <span class="field__label">Work email</span>
-                <input name="email" type="email" autocomplete="email" required />
-              </label>
+              <label class="field"><span class="field__label">Your name</span><input name="name" autocomplete="name" required /></label>
+              <label class="field"><span class="field__label">Work email</span><input name="email" type="email" autocomplete="email" required /></label>
             </div>
-            <div class="form__row">
-              <label class="field">
-                <span class="field__label">Company</span>
-                <input name="company" autocomplete="organization" required />
-              </label>
-              <label class="field">
-                <span class="field__label">Python services <small>Optional</small></span>
-                <input name="services" inputmode="numeric" pattern="[0-9]*" />
-              </label>
-            </div>
+            <label class="field"><span class="field__label">Company</span><input name="company" autocomplete="organization" required /></label>
             <fieldset class="choices">
               <legend>Engineering team size</legend>
               <label class="choice"><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label>
               <label class="choice"><input type="radio" name="team" value="20 to 150" /><span>20 to 150</span></label>
               <label class="choice"><input type="radio" name="team" value="Over 150" /><span>Over 150</span></label>
             </fieldset>
-            <fieldset class="choices choices--multi">
-              <legend>Scanners you run <small>Optional</small></legend>
-              <label class="choice"><input type="checkbox" name="scanners" value="Semgrep" /><span>Semgrep</span></label>
-              <label class="choice"><input type="checkbox" name="scanners" value="CodeQL" /><span>CodeQL</span></label>
-              <label class="choice"><input type="checkbox" name="scanners" value="Snyk Code" /><span>Snyk Code</span></label>
-              <label class="choice"><input type="checkbox" name="scanners" value="osv-scanner" /><span>osv-scanner</span></label>
-            </fieldset>
-            <label class="field">
-              <span class="field__label">Anything we should know <small>Optional</small></span>
-              <textarea name="note" rows="3"></textarea>
-            </label>
+            <label class="field"><span class="field__label">Anything we should know <small>Optional</small></span><textarea name="note" rows="3"></textarea></label>
             <input class="trap" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
-            <button class="btn btn--block" type="submit">Apply for the free pilot</button>
+            <button class="button" type="submit">Apply for the pilot</button>
           </form>
         </div>
       </section>
 
       <!-- FAQ -->
-      <section class="band" id="faq" aria-labelledby="faq-title">
-        <div class="wrap faq">
-          <h2 id="faq-title">Questions</h2>
-          <div class="faq__list">
-            <details name="faq" open>
-              <summary>Which languages does it work with?</summary>
-              <p>The pilot is for Python services hosted on GitHub.</p>
+      <section class="sec sec--pale sec--faq" id="faq" aria-labelledby="faq-title">
+        <div class="wrap">
+          <h2 class="title head--centre" id="faq-title" data-reveal>Questions teams ask.</h2>
+          <div class="faq">
+            <details data-reveal>
+              <summary>Does AUTOSP replace my scanner?</summary>
+              <p>No. Its job is closing findings, not finding more of them. Keep your scanner; AUTOSP fixes what it reports.</p>
             </details>
-            <details name="faq">
-              <summary>Which scanners does it take findings from?</summary>
-              <p>Semgrep, CodeQL, Snyk Code and osv-scanner.</p>
-            </details>
-            <details name="faq">
+            <details data-reveal>
               <summary>Can it merge by itself?</summary>
-              <p>
-                No. It opens pull requests with the evidence and stops there. Your reviewers approve and merge under
-                your own branch protection, and the GitHub App can't change or bypass it.
-              </p>
+              <p>No. Not in any configuration. Your reviewers merge.</p>
             </details>
-            <details name="faq">
-              <summary>Where does my code run?</summary>
-              <p>
-                In a throwaway container with no network, a read-only file system and a hard time limit. The
-                container is gone when the job ends.
-              </p>
+            <details data-reveal>
+              <summary>What does it cover today?</summary>
+              <p>Python on GitHub: SQL injection, cross-site scripting, insecure direct object references and vulnerable dependencies. It works with Semgrep, CodeQL, Snyk Code and osv-scanner.</p>
             </details>
-            <details name="faq">
-              <summary>What happens when it can't reproduce a finding?</summary>
-              <p>No patch is written. The finding is closed as inconclusive.</p>
+            <details data-reveal>
+              <summary>What if it can't fix something?</summary>
+              <p>It says so: inconclusive, needs human review, or a recommendation clearly marked as advice.</p>
+            </details>
+            <details data-reveal>
+              <summary>Will a passing scan mean my app is secure?</summary>
+              <p>No. "No findings from these scanners" is all a scan can say, and that's how AUTOSP reports it.</p>
             </details>
           </div>
         </div>
       </section>
 
-      <!-- Final CTA -->
-      <section class="cta" aria-labelledby="cta-title">
-        <div class="wrap cta__inner">
-          <h2 id="cta-title">Your scanner did its job. Let's finish it.</h2>
-          <div class="actions">
-            <a class="btn" href="#pilot">Apply for the free pilot</a>
-            <a class="btn btn--ghost" href="/tour/">Take the 3D tour</a>
-          </div>
+      <!-- final call -->
+      <section class="final" aria-labelledby="final-title">
+        <div class="wrap">
+          <h2 class="big" id="final-title" data-reveal>Your scanner did its job. <span>Let's finish it.</span></h2>
+          <span class="orb" aria-hidden="true"></span>
+          <a class="cta cta--light" href="#pilot" data-reveal>Apply for the pilot<i aria-hidden="true"></i></a>
         </div>
       </section>
     </main>
 
-    <footer class="footer">
-      <div class="wrap footer__inner">
-        <p class="brand brand--small">AUTOSP <small>by Nexarise</small></p>
-        <ul aria-label="More">
-          <li><a href="https://nexarise-website.vercel.app/">Nexarise</a></li>
-          <li><a href="/tour/">3D tour</a></li>
-          <li><a href="/sample-evidence-pack.pdf" download>Sample evidence pack</a></li>
-        </ul>
-        <p class="fine">AUTOSP does not guarantee that an application is secure. Interactive examples on this page are illustrative.</p>
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot__row">
+          <a class="logo" href="#"><span class="logo__mark" aria-hidden="true"></span>autosp</a>
+          <p>by Nexarise</p>
+          <nav aria-label="More">
+            <a href="/sample-evidence-pack.pdf">Sample evidence pack</a>
+            <a href="/tour/">3D tour</a>
+          </nav>
+        </div>
+        <p class="foot__note">
+          AUTOSP does not guarantee that an application is secure. Results shown are from test applications.
+        </p>
       </div>
     </footer>
   </body>
