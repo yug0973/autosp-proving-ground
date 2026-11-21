@@ -16,3 +16,5 @@ tests/**/output/
 
 # the Instagram reel's renders (the project itself is in reel/)
 reel/out/
+.vercel
+.env*

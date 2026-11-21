@@ -189,7 +189,7 @@ def main() -> int:
         clear = page.evaluate("(() => { const b = document.querySelector('.calm-hero .calm-button').getBoundingClientRect(); const m = document.querySelector('.calm__mist').getBoundingClientRect(); return b.bottom <= m.top + m.height * 0.3; })()")
         check('with the mist still low beneath it', clear)
         links = page.evaluate("[...document.querySelectorAll('a')].filter((a) => a.textContent.trim() === 'Nexarise').map((a) => a.href)")
-        check('every Nexarise link goes to the Nexarise site', links and all(u == 'https://nexarise-website.vercel.app/' for u in links), str(links))
+        check('every Nexarise link goes to the Nexarise site', links and all(u == 'https://nexarise.site/' for u in links), str(links))
         check('the closing line is gone', 'Software that rises' not in page.evaluate('document.body.textContent'))
         check('one heading level one showing', page.evaluate("[...document.querySelectorAll('h1')].filter((h) => h.getBoundingClientRect().height > 0).length") == 1)
         text = page.evaluate("document.querySelector('.calm').textContent.replace(/\\s+/g, ' ')")

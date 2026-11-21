@@ -4,6 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>autosp by Nexarise</title>
+    <meta name="description" content="autosp is an AI teammate for verified security fixes: it proves each finding with a failing test, writes the fix in a sealed sandbox, and a person on your team approves what merges. By Nexarise." />
+    <link rel="canonical" href="https://autosp.nexarise.site/" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="autosp by Nexarise" />
+    <meta property="og:title" content="autosp: verified security fixes, by Nexarise" />
+    <meta property="og:description" content="autosp is an AI teammate for verified security fixes: it proves each finding with a failing test, writes the fix in a sealed sandbox, and a person on your team approves what merges. By Nexarise." />
+    <meta property="og:url" content="https://autosp.nexarise.site/" />
+    <meta property="og:image" content="https://nexarise.site/img/og.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://nexarise.site/img/og.jpg" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","@id":"https://autosp.nexarise.site/#app","name":"autosp","url":"https://autosp.nexarise.site/","applicationCategory":"SecurityApplication","operatingSystem":"Web","description":"autosp is an AI teammate for verified security fixes: it proves each finding with a failing test, writes the fix in a sealed sandbox, and a person on your team approves what merges. By Nexarise.","publisher":{"@type":"Organization","@id":"https://nexarise.site/#org","name":"Nexarise","url":"https://nexarise.site/"}}</script>
     <meta name="theme-color" content="#7fc6f8" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,14 +37,12 @@
         <header class="nav">
           <a class="logo" href="#"><span class="logo__mark" aria-hidden="true"></span>autosp</a>
           <nav class="nav__links" aria-label="Sections">
-            <a href="#how">Product</a>
-            <a href="#verification">How it works</a>
+            <a href="#how">How it works</a>
             <a href="#security">Security</a>
             <a href="#results">Results</a>
-            <a href="#faq">FAQ</a>
           </nav>
           <div class="nav__right">
-            <a class="nav__contact" href="#pilot">Contact</a>
+            <a class="nav__contact" href="https://nexarise.site/">by Nexarise</a>
             <a class="nav__cta" href="#pilot" data-nav-cta>Apply for the pilot<i aria-hidden="true"></i></a>
           </div>
         </header>
@@ -135,33 +145,6 @@ def test_find_invoice_injection(client):
         </div>
       </section>
 
-      <!-- verification -->
-      <section class="sec sec--sky" id="verification" aria-labelledby="verify-title">
-        <div class="wrap">
-          <h2 class="title head--centre" id="verify-title" data-reveal>Three gates. Any one of them can send a fix back.</h2>
-          <ol class="gates">
-            <li data-reveal>
-              <span class="gates__n" aria-hidden="true">1</span>
-              <h3>The exploit fails now</h3>
-              <p>The test that failed before must pass on the patched code.</p>
-              <div class="vis vis--glass" aria-label="Before: failed. Now: passed"><p class="vis__row"><b class="tag tag--open">before: failed</b><b class="tag tag--pass">now: passed</b></p></div>
-            </li>
-            <li data-reveal>
-              <span class="gates__n" aria-hidden="true">2</span>
-              <h3>So do the variations</h3>
-              <p>Attack variants run against the fix, judged by rules AUTOSP owns, not by the agent that wrote it. For SQL injection: 18 variants.</p>
-              <div class="vis vis--glass" aria-label="18 attack variants, all refused"><ul class="dots"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul></div>
-            </li>
-            <li data-reveal>
-              <span class="gates__n" aria-hidden="true">3</span>
-              <h3>Nothing else broke</h3>
-              <p>Your test suite still passes, a fresh scan no longer reports the finding, and your tests and CI are untouched.</p>
-              <div class="vis vis--glass" aria-label="Three things checked"><ul class="ticklist"><li>Test suite</li><li>Fresh scan</li><li>Tests and CI untouched</li></ul></div>
-            </li>
-          </ol>
-          <p class="gates__note" data-reveal>If a fix can't be proven, AUTOSP says so. It's never called fixed without evidence.</p>
-        </div>
-      </section>
 
       <!-- control and security -->
       <section class="sec" id="security" aria-labelledby="security-title">
@@ -258,50 +241,14 @@ def test_find_invoice_injection(client):
         </div>
       </section>
 
-      <!-- FAQ -->
-      <section class="sec sec--pale sec--faq" id="faq" aria-labelledby="faq-title">
-        <div class="wrap">
-          <h2 class="title head--centre" id="faq-title" data-reveal>Questions teams ask.</h2>
-          <div class="faq">
-            <details data-reveal>
-              <summary>Does AUTOSP replace my scanner?</summary>
-              <p>No. Its job is closing findings, not finding more of them. Keep your scanner; AUTOSP fixes what it reports.</p>
-            </details>
-            <details data-reveal>
-              <summary>Can it merge by itself?</summary>
-              <p>No. Not in any configuration. Your reviewers merge.</p>
-            </details>
-            <details data-reveal>
-              <summary>What does it cover today?</summary>
-              <p>Python on GitHub: SQL injection, cross-site scripting, insecure direct object references and vulnerable dependencies. It works with Semgrep, CodeQL, Snyk Code and osv-scanner.</p>
-            </details>
-            <details data-reveal>
-              <summary>What if it can't fix something?</summary>
-              <p>It says so: inconclusive, needs human review, or a recommendation clearly marked as advice.</p>
-            </details>
-            <details data-reveal>
-              <summary>Will a passing scan mean my app is secure?</summary>
-              <p>No. "No findings from these scanners" is all a scan can say, and that's how AUTOSP reports it.</p>
-            </details>
-          </div>
-        </div>
-      </section>
 
-      <!-- final call -->
-      <section class="final" aria-labelledby="final-title">
-        <div class="wrap">
-          <h2 class="big" id="final-title" data-reveal>Your scanner did its job. <span>Let's finish it.</span></h2>
-          <span class="orb" aria-hidden="true"></span>
-          <a class="cta cta--light" href="#pilot" data-reveal>Apply for the pilot<i aria-hidden="true"></i></a>
-        </div>
-      </section>
     </main>
 
     <footer class="foot">
       <div class="wrap">
         <div class="foot__row">
           <a class="logo" href="#"><span class="logo__mark" aria-hidden="true"></span>autosp</a>
-          <p>by Nexarise</p>
+          <p>by <a href="https://nexarise.site/">Nexarise</a></p>
           <nav aria-label="More">
             <a href="/sample-evidence-pack.pdf">Sample evidence pack</a>
             <a href="/tour/">3D tour</a>

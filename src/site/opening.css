@@ -21,7 +21,7 @@ a { color: inherit; text-decoration: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- one pinned stage; opening.ts drives the scroll story ---------- */
-.scene { position: relative; height: 340vh; }
+.scene { position: relative; height: 180vh; }
 .stage { position: sticky; top: 0; z-index: 20; height: 100vh; height: 100svh; overflow: hidden; }
 html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
@@ -182,26 +182,31 @@ html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
 
 /* ---------- the shimmer: letters arrive pale and soft, glint white, then settle into ink ---------- */
 .g-char {
-  display: inline-block;
-  color: rgb(255 255 255 / 0.5);
-  filter: blur(3px);
-  transition: color 0.5s ease, filter 0.5s ease, text-shadow 0.8s ease;
+  /* colour only: no per-word blur or glow, so revealing it costs almost nothing per frame */
+  color: rgb(255 255 255 / 0.55);
+  transition: color 0.35s ease;
 }
-.g-char.is-on { color: inherit; filter: blur(0); }
-.g-char.is-glint { color: #fff; filter: blur(0.4px); text-shadow: 0 0 10px #fff, 0 0 22px rgb(255 255 255 / 0.85); }
+.g-char.is-on { color: inherit; }
+.g-char.is-glint { color: #fff; }
 em .g-char.is-on:not(.is-glint) { color: var(--ai); }
 
 .after { display: grid; place-items: center; min-height: 60vh; background: #fff; color: #8a97a6; }
 
 @media (max-width: 52rem) {
-  .nav__links, .nav__contact { display: none; }
+  /* phones: an ordinary page. Nothing is pinned or driven by scroll, so it scrolls at full speed. */
+  .scene { height: auto; }
+  .stage { position: relative; height: auto; min-height: 0; overflow: visible; padding: calc(var(--nav-top) + var(--nav-h) + 2.2rem) var(--m) 3.5rem; }
+  .nav__links { display: none; }
+  .nav__contact { display: none; }
+  .headline { position: relative; top: auto; left: auto; right: auto; transform: none; font-size: clamp(2rem, 9vw, 2.6rem); }
   .headline br, .statement br { display: none; }
-  .headline { top: 5.5rem; }
-  .statement { text-wrap: balance; }
-  .lower { height: auto; grid-template-columns: 1fr; gap: 1.1rem; }
-  .lower__left { gap: 1.25rem; }
-  .lower__grid { grid-template-columns: repeat(4, auto); grid-template-rows: auto; justify-content: space-between; }
-  .lower__grid li { border: 0; font-size: 0.8rem; }
+  .lower-wrap { position: relative; inset: auto; clip-path: none; margin-top: 2.2rem; }
+  .lower { position: relative; left: auto; right: auto; bottom: auto; height: auto; transform: none; grid-template-columns: 1fr; gap: 1.4rem; }
+  .lower__left { gap: 1.4rem; }
+  .lower__grid { grid-template-columns: repeat(2, auto); grid-template-rows: auto; justify-content: start; gap: 0.4rem 1.4rem; }
+  .lower__grid li { border: 0; font-size: 0.95rem; place-items: start; }
+  .statement { position: relative; left: auto; top: auto; width: auto; transform: none; opacity: 1; margin-top: 3rem; text-align: left; font-size: clamp(1.35rem, 6vw, 1.7rem); text-wrap: pretty; }
+  .cta { height: 3.4rem; font-size: 1.05rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .g-char { filter: none; transition: none; }

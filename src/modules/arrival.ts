@@ -12,7 +12,7 @@
 import { prefersReducedMotion } from '../lib/reduced-motion';
 
 /** The hosts that count as Nexarise, besides this page's own. */
-const NEXARISE_HOSTS: readonly string[] = ['nexarise-website.vercel.app'];
+const NEXARISE_HOSTS: readonly string[] = ['nexarise.site', 'www.nexarise.site', 'nexarise-website.vercel.app'];
 const KEY = 'autosp.arrival-shown';
 
 function fromNexarise(): boolean {

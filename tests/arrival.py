@@ -63,7 +63,7 @@ def main() -> int:
             ('another site', '?test', 'https://example.com/page', False),
             ('this page reloaded', '?test', base, False),
             ('?from=nexarise', '?test&from=nexarise', None, True),
-            ('a Nexarise referrer', '?test', 'https://nexarise-website.vercel.app/', True),
+            ('a Nexarise referrer', '?test', 'https://nexarise.site/', True),
         ):
             ctx, page, errors = open_page(query, referer)
             ready(page)
