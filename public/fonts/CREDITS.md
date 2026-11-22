@@ -6,3 +6,5 @@
 
 - **Cabinet Grotesk** (Extrabold 800) and **General Sans** (Regular 400, Medium 500) are typefaces by the Indian Type Foundry (ITF), distributed free through Fontshare under the ITF Free Font License. Cabinet Grotesk and General Sans are trademarks of ITF, which owns their copyright. Terms: https://fontshare.com/terms. The files were downloaded from Fontshare's CDN (`api.fontshare.com/v2/css`) on 25 October 2026.
 - **JetBrains Mono** (Regular 400) is by JetBrains, under the SIL Open Font License 1.1 (`OFL-JetBrainsMono.txt`). It comes from `@fontsource/jetbrains-mono@5.3.0`, Latin subset.
+
+- Inter Tight (inter-tight-latin.woff2): Google Fonts, SIL Open Font License 1.1, see OFL-InterTight.txt

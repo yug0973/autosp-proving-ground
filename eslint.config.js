@@ -3,7 +3,8 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'tests/output', 'reel'] },
+  // src/site/ascii is third-party code from ascii.rest (MIT), kept as published
+  { ignores: ['dist', 'node_modules', 'tests/output', 'reel', 'src/site/ascii'] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   {

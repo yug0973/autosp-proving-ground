@@ -25,3 +25,22 @@ if (!reduced && 'IntersectionObserver' in window) {
 
 const form = document.querySelector<HTMLFormElement>('[data-rsvp]');
 if (form) initRsvp(form);
+
+/* the footer's aurora, loaded only when the footer is near, so it never delays the page */
+const art = document.querySelector('[data-aurora]');
+if (art) {
+  const load = new IntersectionObserver((entries) => {
+    if (!entries.some((e) => e.isIntersecting)) return;
+    load.disconnect();
+    void import('./aurora');
+  }, { rootMargin: '800px 0px' });
+  load.observe(art);
+}
+
+/* the circuit's pulses run only while it is on screen */
+const circuit = document.querySelector('.circuit');
+if (circuit) {
+  new IntersectionObserver((entries) => {
+    for (const e of entries) circuit.classList.toggle('is-live', e.isIntersecting);
+  }).observe(circuit);
+}
