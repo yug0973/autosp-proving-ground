@@ -203,20 +203,21 @@ em .g-char.is-on:not(.is-glint) { color: var(--ai); }
 .after { display: grid; place-items: center; min-height: 60vh; background: #fff; color: #8a97a6; }
 
 @media (max-width: 52rem) {
-  /* phones: an ordinary page. Nothing is pinned or driven by scroll, so it scrolls at full speed. */
-  .scene { height: auto; }
-  .stage { position: relative; height: auto; min-height: 0; overflow: visible; padding: calc(var(--nav-top) + var(--nav-h) + 2.2rem) var(--m) 3.5rem; }
-  .nav__links { display: none; }
-  .nav__contact { display: none; }
-  .headline { position: relative; top: auto; left: auto; right: auto; transform: none; font-size: clamp(2rem, 9vw, 2.6rem); }
+  /* phones: the same pinned scene as desktop, sized for one hand. Only transforms, opacity and text colour
+     change while scrolling, so it stays smooth on low-end phones. */
+  .scene { height: 230vh; height: 230svh; }
+  .nav__links, .nav__contact { display: none; }
+  .headline { top: calc(var(--nav-top) + var(--nav-h) + 2.4rem); font-size: clamp(2.05rem, 9vw, 2.6rem); line-height: 1.08; }
   .headline br, .statement br { display: none; }
-  .lower-wrap { position: relative; inset: auto; clip-path: none; margin-top: 2.2rem; }
-  .lower { position: relative; left: auto; right: auto; bottom: auto; height: auto; transform: none; grid-template-columns: 1fr; gap: 1.4rem; }
-  .lower__left { gap: 1.4rem; }
-  .lower__grid { grid-template-columns: repeat(2, auto); grid-template-rows: auto; justify-content: start; gap: 0.4rem 1.4rem; }
-  .lower__grid li { border: 0; font-size: 0.95rem; place-items: start; }
-  .statement { position: relative; left: auto; top: auto; width: auto; transform: none; opacity: 1; margin-top: 3rem; text-align: left; font-size: clamp(1.35rem, 6vw, 1.7rem); text-wrap: pretty; }
-  .cta { height: 3.4rem; font-size: 1.05rem; }
+  .lower { left: var(--m); right: var(--m); bottom: calc(1.6rem + env(safe-area-inset-bottom)); height: auto;
+    display: flex; flex-direction: column; gap: 1.1rem; }
+  .lower__left { display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 1.6rem; }
+  .lower__label { font-size: 0.85rem; color: var(--ink-2); }
+  .lower__grid { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: -0.4rem; }
+  .lower__grid li { display: inline-block; border: 0; padding: 0.38rem 0.75rem; border-radius: 999px; background: rgb(255 255 255 / 0.7);
+    box-shadow: inset 0 0 0 1px rgb(11 44 77 / 0.12); font: 500 0.82rem var(--font); color: var(--ink); }
+  .cta { height: 3.3rem; font-size: 1.02rem; }
+  .statement { width: calc(100% - var(--m) * 2); font-size: clamp(1.45rem, 6.4vw, 1.8rem); line-height: 1.28; text-wrap: balance; }
 }
 @media (prefers-reduced-motion: reduce) {
   .g-char { filter: none; transition: none; }
