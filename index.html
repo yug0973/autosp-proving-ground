@@ -35,6 +35,7 @@
           <a class="logo" href="#"><span class="logo__mark" aria-hidden="true"></span>autosp</a>
           <nav class="nav__links" aria-label="Sections">
             <a href="#how">How it works</a>
+            <a href="#covers">Coverage</a>
             <a href="#security">Security</a>
             <a href="#results">Results</a>
           </nav>
@@ -97,6 +98,31 @@
         </div>
       </section>
 
+      <!-- what it covers today -->
+      <section class="sec" id="covers" aria-labelledby="covers-title">
+        <div class="wrap">
+          <header class="shead shead--centre" data-reveal>
+            <h2 class="title" id="covers-title">Built for your stack.</h2>
+            <p class="lede">What autosp covers today.</p>
+          </header>
+          <div class="covers" data-reveal>
+            <div class="covers__col">
+              <p class="covers__h">Language</p>
+              <p class="covers__big">Python</p>
+              <p class="covers__sub">on GitHub</p>
+            </div>
+            <div class="covers__col">
+              <p class="covers__h">Closes</p>
+              <ul class="covers__tags"><li>SQL injection</li><li>Cross-site scripting</li><li>Insecure direct object references</li><li>Vulnerable dependencies</li></ul>
+            </div>
+            <div class="covers__col">
+              <p class="covers__h">Works with</p>
+              <ul class="covers__tags"><li>Semgrep</li><li>CodeQL</li><li>Snyk Code</li><li>osv-scanner</li></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- security: four promises -->
       <section class="sec" id="security" aria-labelledby="security-title">
         <div class="wrap trust">
@@ -150,40 +176,19 @@
         </div>
       </section>
 
-      <!-- the pilot -->
+      <!-- the pilot: one short form -->
       <section class="sec" id="pilot" aria-labelledby="pilot-title">
-        <div class="wrap split">
-          <div class="split__head" data-reveal>
+        <div class="wrap pilot">
+          <header class="pilot__head" data-reveal>
             <h2 class="title" id="pilot-title">Try it on your own code.</h2>
-            <p class="lede">For Python teams on GitHub, of 20 to 150 engineers, with no dedicated security engineer.</p>
-            <ul class="ticks">
-              <li>You sign a scope document naming the repositories</li>
-              <li>Your reviewers handle autosp's pull requests</li>
-              <li>Your tests run offline</li>
-            </ul>
-            <p class="assure">Nothing touches your code until you've signed a scope agreement.</p>
-            <dl class="cover">
-              <div><dt>Language</dt><dd>Python on GitHub</dd></div>
-              <div><dt>Findings it closes</dt><dd>SQL injection, cross-site scripting, insecure direct object references, vulnerable dependencies</dd></div>
-              <div><dt>Scanners</dt><dd>Semgrep, CodeQL, Snyk Code, osv-scanner</dd></div>
-            </dl>
-          </div>
-
-          <form class="form card" data-rsvp action="https://api.web3forms.com/submit" method="post" novalidate data-reveal>
+            <p class="lede">Leave your details and a person on our team will set up a free pilot with you. Nothing touches your code until you've signed a scope agreement.</p>
+          </header>
+          <form class="form pilot__form" data-rsvp action="https://api.web3forms.com/submit" method="post" novalidate data-reveal>
             <input type="hidden" name="access_key" value="" />
-            <input type="hidden" name="subject" value="AUTOSP pilot application" />
-            <div class="form__row">
-              <label class="field"><span class="field__label">Your name</span><input name="name" autocomplete="name" required /></label>
-              <label class="field"><span class="field__label">Work email</span><input name="email" type="email" autocomplete="email" required /></label>
-            </div>
+            <input type="hidden" name="subject" value="autosp pilot application" />
+            <label class="field"><span class="field__label">Your name</span><input name="name" autocomplete="name" required /></label>
+            <label class="field"><span class="field__label">Work email</span><input name="email" type="email" autocomplete="email" required /></label>
             <label class="field"><span class="field__label">Company</span><input name="company" autocomplete="organization" required /></label>
-            <fieldset class="choices">
-              <legend>Engineering team size</legend>
-              <label class="choice"><input type="radio" name="team" value="Under 20" required /><span>Under 20</span></label>
-              <label class="choice"><input type="radio" name="team" value="20 to 150" /><span>20 to 150</span></label>
-              <label class="choice"><input type="radio" name="team" value="Over 150" /><span>Over 150</span></label>
-            </fieldset>
-            <label class="field"><span class="field__label">Anything we should know <small>Optional</small></span><textarea name="note" rows="3"></textarea></label>
             <input class="trap" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
             <button class="button" type="submit">Apply for the pilot</button>
           </form>
@@ -204,6 +209,7 @@
           <div>
             <p class="foot__h">Product</p>
             <a href="#how">How it works</a>
+            <a href="#covers">Coverage</a>
             <a href="#security">Security</a>
             <a href="#results">Results</a>
             <a href="/tour/">3D tour</a>

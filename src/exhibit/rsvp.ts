@@ -21,7 +21,9 @@ const NEEDS: Record<Field, (form: HTMLFormElement) => string> = {
     return EMAIL.test(email) ? '' : 'That email does not look complete.';
   },
   company: (f) => (value(f, 'company') ? '' : 'Add your company.'),
-  team: (f) => (f.querySelector('input[name="team"]:checked') ? '' : 'Choose your team size.'),
+  // only asked when the form has the question (the landing page's short form leaves it out)
+  team: (f) =>
+    !f.querySelector('input[name="team"]') || f.querySelector('input[name="team"]:checked') ? '' : 'Choose your team size.',
 };
 
 function value(form: HTMLFormElement, name: string): string {

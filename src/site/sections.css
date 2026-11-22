@@ -816,3 +816,36 @@ small { font-weight: 400; color: var(--muted); margin-left: 0.4em; font-size: 0.
   .stat__sub { display: none; }
   .stat__date { font-size: 0.7rem; padding-top: 0.7rem; }
 }
+
+/* =====================================================================================================
+   Coverage and a short pilot form, 22 November.
+   ===================================================================================================== */
+.shead--centre { margin-inline: auto; text-align: center; }
+.shead--centre .title, .shead--centre .lede { margin-inline: auto; }
+.covers { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 1.1fr); border-top: 1px solid var(--ink); }
+.covers__col { padding: clamp(1.6rem, 3vw, 2.4rem) clamp(1.2rem, 2.5vw, 2.4rem) 0; }
+.covers__col:first-child { padding-left: 0; }
+.covers__col + .covers__col { border-left: 1px solid var(--hair); }
+.covers__h { font: 500 0.78rem var(--mono); color: var(--muted); letter-spacing: 0.02em; }
+.covers__big { margin-top: 1rem; font: 500 clamp(3rem, 6vw, 5rem) / 0.95 var(--font); letter-spacing: -0.05em; color: var(--ink); }
+.covers__sub { margin-top: 0.4rem; font-size: 1.05rem; color: var(--muted); }
+.covers__tags { list-style: none; margin: 1.1rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.covers__tags li { padding: 0.55rem 0.95rem; border: 1px solid var(--hair); border-radius: 999px; font: 500 0.95rem var(--font); color: var(--ink); background: #fff; }
+
+.pilot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 6rem); align-items: center; }
+.pilot__head .title { max-width: 12ch; font-size: clamp(2.2rem, 4.4vw, 4.2rem); }
+.pilot__head .lede { max-width: 36ch; }
+.pilot__form { display: grid; gap: 1.1rem; padding: clamp(1.4rem, 3vw, 2.4rem); }
+.pilot__form .button { justify-self: start; margin-top: 0.4rem; }
+
+@media (max-width: 52rem) {
+  .covers { grid-template-columns: 1fr; border-top: 0; }
+  .covers__col, .covers__col:first-child { padding: 1.4rem 0; border-top: 1px solid var(--hair); }
+  .covers__col + .covers__col { border-left: 0; }
+  .covers__big { font-size: 3rem; }
+  .covers__tags li { font-size: 0.88rem; padding: 0.45rem 0.8rem; }
+  .shead--centre { text-align: left; }
+  .shead--centre .title, .shead--centre .lede { margin-inline: 0; }
+  .pilot { grid-template-columns: 1fr; gap: 1.8rem; }
+  .pilot__form .button { justify-self: stretch; }
+}
