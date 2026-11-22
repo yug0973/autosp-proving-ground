@@ -44,3 +44,18 @@ if (circuit) {
     for (const e of entries) circuit.classList.toggle('is-live', e.isIntersecting);
   }).observe(circuit);
 }
+
+/* specular buttons: the rim's brightest point follows the pointer (mouse and pen only) */
+if (window.matchMedia('(hover: hover)').matches) {
+  for (const b of Array.from(document.querySelectorAll<HTMLElement>('.spec'))) {
+    b.addEventListener('pointermove', (e) => {
+      const r = b.getBoundingClientRect();
+      b.style.setProperty('--x', `${String(e.clientX - r.left)}px`);
+      b.style.setProperty('--y', `${String(e.clientY - r.top)}px`);
+    });
+    b.addEventListener('pointerleave', () => {
+      b.style.removeProperty('--x');
+      b.style.removeProperty('--y');
+    });
+  }
+}

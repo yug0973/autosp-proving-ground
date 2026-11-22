@@ -875,3 +875,55 @@ small { font-weight: 400; color: var(--muted); margin-left: 0.4em; font-size: 0.
 .foot .foot__nav { gap: 0.6rem 1.6rem; }
 .foot__box .foot__copy { justify-self: stretch; max-width: none; }
 @media (max-width: 52rem) { .foot .foot__nav { gap: 0.7rem 1.3rem; } }
+
+/* =====================================================================================================
+   Specular buttons, 22 November: dark glass whose rim catches the light; the brightest point of the rim
+   follows the pointer (--x/--y from sections.ts). Phones keep the light on the top edge.
+   ===================================================================================================== */
+.spec {
+  --x: 30%; --y: 0%;
+  position: relative; isolation: isolate; overflow: visible;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 14px; cursor: pointer;
+  background: linear-gradient(180deg, #2b2f36 0%, #17191e 55%, #111317 100%);
+  color: #f4f6fa;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 1px 2px rgb(0 0 0 / 0.25),
+    0 10px 24px -12px rgb(0 0 0 / 0.55);
+  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s ease;
+}
+/* the rim: a 1px ring lit from the pointer */
+.spec::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: radial-gradient(90px circle at var(--x) var(--y), rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.22) 45%, rgb(255 255 255 / 0.08) 75%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* the sheen inside, a soft spot under the light */
+.spec::after {
+  content: ''; position: absolute; inset: 1px; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: radial-gradient(120px circle at var(--x) var(--y), rgb(255 255 255 / 0.1), transparent 60%);
+}
+.spec > span { position: relative; }
+.spec:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), inset 0 -1px 0 rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.25), 0 16px 30px -14px rgb(0 0 0 / 0.6); }
+.spec:active { transform: translateY(0); }
+.spec:focus-visible { outline: 2px solid #2f7fe0; outline-offset: 3px; }
+
+/* where each one sits */
+.cta.spec { height: clamp(3.3rem, 4.6vw, 4.2rem); padding: 0 clamp(1.4rem, 2.2vw, 2rem); font: 500 clamp(1rem, 1.35vw, 1.25rem) / 1 var(--font); letter-spacing: -0.01em; border-radius: 16px; }
+.cta.spec:hover { background: linear-gradient(180deg, #30343c 0%, #191b20 55%, #121418 100%); }
+.nav__cta.spec { border-radius: 12px; padding-inline: calc(var(--arrive, 0) * 1.05em); gap: 0; background: linear-gradient(180deg, #2b2f36 0%, #15171b 100%); }
+.button.spec { height: 3.2rem; padding: 0 1.6rem; font: 500 1rem var(--font); }
+@media (prefers-reduced-motion: reduce) { .spec { transition: none; } }
+.button.spec, .button.spec:hover, .nav__cta.spec:hover { background: linear-gradient(180deg, #30343c 0%, #191b20 55%, #121418 100%); }
+.button.spec { background: linear-gradient(180deg, #2b2f36 0%, #17191e 55%, #111317 100%); }
+.button.spec:disabled { opacity: 0.6; }
+/* the rim sits just inside the edge, on the dark glass, so it reads on light pages too */
+.spec::before { inset: 1px; border-radius: calc(14px - 1px); padding: 1.25px;
+  background: radial-gradient(110px circle at var(--x) var(--y), #fff, rgb(255 255 255 / 0.35) 40%, rgb(255 255 255 / 0.1) 75%); }
+.cta.spec::before { border-radius: 15px; }
+.nav__cta.spec::before { border-radius: 11px; }
+.spec { box-shadow: 0 0 0 1px rgb(8 10 14 / 0.9), inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(0 0 0 / 0.25), 0 12px 26px -12px rgb(0 0 0 / 0.55); }
+.spec:hover { box-shadow: 0 0 0 1px rgb(8 10 14 / 0.9), inset 0 1px 0 rgb(255 255 255 / 0.16), 0 2px 4px rgb(0 0 0 / 0.25), 0 18px 32px -14px rgb(0 0 0 / 0.6); }
