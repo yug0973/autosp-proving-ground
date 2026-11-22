@@ -849,3 +849,29 @@ small { font-weight: 400; color: var(--muted); margin-left: 0.4em; font-size: 0.
   .pilot { grid-template-columns: 1fr; gap: 1.8rem; }
   .pilot__form .button { justify-self: stretch; }
 }
+
+/* =====================================================================================================
+   Footer, 22 November: one panel laid over the aurora, a single row of links.
+   ===================================================================================================== */
+.foot { padding-bottom: clamp(1.5rem, 3vw, 2.5rem); }
+.foot__box { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1.2rem 2.5rem; padding: clamp(1.3rem, 2.4vw, 1.9rem) clamp(1.3rem, 2.6vw, 2.2rem); }
+.foot__box .foot__brand { display: grid; gap: 0.5rem; padding: 0; }
+.foot__box .foot__brand p { color: #c9d6ea; font-size: 0.98rem; }
+.foot__box .foot__brand p a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.foot__nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem; }
+.foot__nav a { color: #eef3ff; font-size: 0.95rem; }
+.foot__nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.foot__box .foot__copy { grid-column: 1 / -1; margin: 0; padding-top: 1rem; border-top: 1px solid rgb(255 255 255 / 0.1); font-size: 0.8rem; color: #8ea2c0; }
+
+@media (max-width: 52rem) {
+  html, body { background: #fff; }
+  /* the scene keeps its own 2:1 shape across the top; the panel sits over its lower half */
+  .foot { padding-top: 30vw; padding-bottom: 1.4rem; }
+  .foot__art { -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+  .foot__box { grid-template-columns: 1fr; gap: 1.1rem; padding: 1.3rem 1.2rem; background: rgb(5 8 15 / 0.62); }
+  .foot__nav { gap: 0.55rem 1.2rem; }
+  .foot__nav a { font-size: 0.9rem; }
+}
+.foot .foot__nav { gap: 0.6rem 1.6rem; }
+.foot__box .foot__copy { justify-self: stretch; max-width: none; }
+@media (max-width: 52rem) { .foot .foot__nav { gap: 0.7rem 1.3rem; } }
