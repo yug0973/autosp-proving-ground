@@ -725,7 +725,7 @@ small { font-weight: 400; color: var(--muted); margin-left: 0.4em; font-size: 0.
 .circuit__pulse { animation-play-state: paused; }
 .circuit.is-live .circuit__pulse { animation-play-state: running; }
 /* sections below the first screen are laid out and painted only as they come near */
-.sec, .foot { content-visibility: auto; contain-intrinsic-size: auto 900px; }
+/* (content-visibility removed: its placeholder heights made the page change length while scrolling on phones) */
 @media (max-width: 52rem) {
   .circuit__pulse, .circuit__pulse--pass { filter: none; stroke-width: 3; }
   .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(5 8 15 / 0.78); }
@@ -737,7 +737,7 @@ small { font-weight: 400; color: var(--muted); margin-left: 0.4em; font-size: 0.
    Phone pass, 22 November: calmer type, real space between sections, a proper footer.
    ===================================================================================================== */
 @media (max-width: 52rem) {
-  .sec { padding-block: 5.5rem; }
+  .sec { padding-block: 4.25rem; }
   .sec + .sec { border-top: 0; }
   /* a short ink rule opens each section, so one ends clearly before the next begins */
   .sec .shead::before { content: ''; display: block; width: 2.5rem; height: 2px; margin-bottom: 1.4rem; background: var(--ink); }
@@ -907,14 +907,14 @@ small { font-weight: 400; color: var(--muted); margin-left: 0.4em; font-size: 0.
   background: radial-gradient(120px circle at var(--x) var(--y), rgb(255 255 255 / 0.1), transparent 60%);
 }
 .spec > span { position: relative; }
-.spec:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), inset 0 -1px 0 rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.25), 0 16px 30px -14px rgb(0 0 0 / 0.6); }
+.spec:hover { transform: none; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), inset 0 -1px 0 rgb(0 0 0 / 0.4), 0 2px 4px rgb(0 0 0 / 0.25), 0 16px 30px -14px rgb(0 0 0 / 0.6); }
 .spec:active { transform: translateY(0); }
 .spec:focus-visible { outline: 2px solid #2f7fe0; outline-offset: 3px; }
 
 /* where each one sits */
 .cta.spec { height: clamp(3.3rem, 4.6vw, 4.2rem); padding: 0 clamp(1.4rem, 2.2vw, 2rem); font: 500 clamp(1rem, 1.35vw, 1.25rem) / 1 var(--font); letter-spacing: -0.01em; border-radius: 16px; }
 .cta.spec:hover { background: linear-gradient(180deg, #30343c 0%, #191b20 55%, #121418 100%); }
-.nav__cta.spec { border-radius: 12px; padding-inline: calc(var(--arrive, 0) * 1.05em); gap: 0; background: linear-gradient(180deg, #2b2f36 0%, #15171b 100%); }
+.nav__cta.spec { border-radius: 12px; padding-inline: 1.05em; gap: 0; background: linear-gradient(180deg, #2b2f36 0%, #15171b 100%); }
 .button.spec { height: 3.2rem; padding: 0 1.6rem; font: 500 1rem var(--font); }
 @media (prefers-reduced-motion: reduce) { .spec { transition: none; } }
 .button.spec, .button.spec:hover, .nav__cta.spec:hover { background: linear-gradient(180deg, #30343c 0%, #191b20 55%, #121418 100%); }
@@ -927,3 +927,24 @@ small { font-weight: 400; color: var(--muted); margin-left: 0.4em; font-size: 0.
 .nav__cta.spec::before { border-radius: 11px; }
 .spec { box-shadow: 0 0 0 1px rgb(8 10 14 / 0.9), inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(0 0 0 / 0.25), 0 12px 26px -12px rgb(0 0 0 / 0.55); }
 .spec:hover { box-shadow: 0 0 0 1px rgb(8 10 14 / 0.9), inset 0 1px 0 rgb(255 255 255 / 0.16), 0 2px 4px rgb(0 0 0 / 0.25), 0 18px 32px -14px rgb(0 0 0 / 0.6); }
+
+/* ---------- phone glitch pass, 23 November ---------- */
+@media (hover: hover) { .spec:hover { transform: translateY(-1px); } }
+/* diagram labels sit on a thin halo, so connector lines pass behind them */
+.circuit__lab, .circuit__sub { paint-order: stroke; stroke: #fff; stroke-width: 5px; stroke-linejoin: round; }
+
+/* ---------- buttons, 23 November: one surface, no inner ring, a size that fits the text ---------- */
+.spec { line-height: 1; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.2), 0 8px 18px -10px rgb(0 0 0 / 0.5); }
+.spec::before { inset: 0; border-radius: inherit; padding: 1px;
+  background: radial-gradient(120px circle at var(--x) var(--y), rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.08) 55%, rgb(255 255 255 / 0.03)); }
+.spec > span { display: block; }
+.spec:hover { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 2px 4px rgb(0 0 0 / 0.2), 0 12px 24px -12px rgb(0 0 0 / 0.55); }
+.cta.spec { height: clamp(2.9rem, 3.3vw, 3.3rem); padding: 0 clamp(1.15rem, 1.6vw, 1.5rem); font: 500 clamp(0.95rem, 1.05vw, 1.05rem) / 1 var(--font); border-radius: 12px; }
+.cta.spec::before { border-radius: 12px; }
+.nav__cta.spec, .nav__cta.spec::before { border-radius: 10px; }
+.button.spec { height: 3rem; padding: 0 1.4rem; font: 500 0.98rem / 1 var(--font); border-radius: 12px; }
+.button.spec::before { border-radius: 12px; }
+@media (max-width: 52rem) {
+  .cta.spec { height: 2.95rem; font-size: 0.98rem; padding: 0 1.2rem; }
+  .pilot__form .button.spec { justify-self: stretch; height: 3.1rem; }
+}

@@ -30,7 +30,7 @@ a { color: inherit; text-decoration: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- one pinned stage; opening.ts drives the scroll story ---------- */
-.scene { position: relative; height: 180vh; }
+.scene { position: relative; height: 230vh; }
 .stage { position: sticky; top: 0; z-index: 20; height: 100vh; height: 100svh; overflow: hidden; }
 html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
@@ -88,13 +88,13 @@ html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
 }
 /* the small button that appears in the nav once the page has scrolled; "Contact" steps aside for it */
 .nav__cta {
+  /* arrives with opacity and transform only: nothing in the nav is re-laid out while scrolling */
   display: inline-flex;
   align-items: center;
   gap: 0.7em;
   height: calc(var(--nav-h) * 0.72);
-  max-width: calc(var(--arrive, 0) * 16rem);
-  margin-left: calc(var(--arrive, 0) * 1.4rem);
-  padding: 0 calc(var(--arrive, 0) * 0.95em) 0 calc(var(--arrive, 0) * 1.15em);
+  margin-left: 1.4rem;
+  padding: 0 0.95em 0 1.15em;
   overflow: hidden;
   border-radius: 999px;
   background: var(--ink);
@@ -102,7 +102,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
   font: 500 clamp(0.78rem, 0.95vw, 0.9rem) var(--font);
   white-space: nowrap;
   opacity: var(--arrive, 0);
+  transform: translateY(calc((1 - var(--arrive, 0)) * -8px)) scale(calc(0.94 + var(--arrive, 0) * 0.06));
+  transform-origin: right center;
 }
+.nav:not(.is-arrived) .nav__cta { pointer-events: none; }
 .nav__cta i { flex: none; width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--dot); box-shadow: 0 0 0.8em var(--dot); }
 
 /* ---------- the headline: left, tucked under the nav, two lines ---------- */
@@ -205,7 +208,7 @@ em .g-char.is-on:not(.is-glint) { color: var(--ai); }
 @media (max-width: 52rem) {
   /* phones: the same pinned scene as desktop, sized for one hand. Only transforms, opacity and text colour
      change while scrolling, so it stays smooth on low-end phones. */
-  .scene { height: 230vh; height: 230svh; }
+  .scene { height: 215vh; height: 215svh; }
   /* the stage fills the screen even when the address bar has slid away (100lvh), so nothing shows beneath it;
      what must stay visible is placed against the smaller screen (100svh) */
   .stage { height: 100vh; height: 100lvh; }

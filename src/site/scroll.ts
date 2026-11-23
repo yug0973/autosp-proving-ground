@@ -105,26 +105,45 @@ if (scene && stage && nav && lower && statement) {
     travel = l.bottom - s.top - (n.top - s.top + n.height / 2) + 24;
   };
 
+  // the scene follows the scroll with a short, time-based ease (the same feel at 60 Hz and 120 Hz)
+  let target = 0;
+  let current = 0;
   let frame = 0;
-  const update = (): void => {
-    frame = 0;
+  let last = 0;
+  const progress = (): number => {
     const r = scene.getBoundingClientRect();
-    const p = clamp01(-r.top / (r.height - stage.clientHeight));
+    return clamp01(-r.top / (r.height - stage.clientHeight));
+  };
+  const render = (p: number): void => {
     // a page scrolling is linear, so the content moves linearly with the scroll
     stage.style.setProperty('--rise', `${String(-travel * span(p, 0, 0.4))}px`);
     stage.style.setProperty('--glow', String(1 - easeInOut(span(p, 0.05, 0.5))));
-    stage.style.setProperty('--arrive', String(easeOut(span(p, 0.3, 0.45))));
+    const arrive = easeOut(span(p, 0.3, 0.45));
+    stage.style.setProperty('--arrive', String(arrive));
+    nav.classList.toggle('is-arrived', arrive > 0.5);
     stage.style.setProperty('--stmt', String(span(p, 0.15, 0.25)));
     stage.style.setProperty('--stmt-y', `${String((1 - easeOut(span(p, 0.15, 0.4))) * stage.clientHeight * 0.4)}px`);
     const reveal = span(p, 0.2, 0.62);
     paint(chars, Math.round(reveal * chars.length), !reduced && reveal < 1);
   };
+  const step = (now: number): void => {
+    frame = 0;
+    target = progress();
+    const dt = last ? Math.min(64, now - last) : 16;
+    last = now;
+    const gap = target - current;
+    current = reduced || Math.abs(gap) < 0.0006 ? target : current + gap * (1 - Math.exp(-dt / 130));
+    render(current);
+    if (current !== target) frame = requestAnimationFrame(step);
+    else last = 0;
+  };
   const request = (): void => {
-    if (!frame) frame = requestAnimationFrame(update);
+    if (!frame) frame = requestAnimationFrame(step);
   };
   const refresh = (): void => {
     measure();
-    update();
+    target = current = progress();
+    render(current);
   };
 
   refresh();
